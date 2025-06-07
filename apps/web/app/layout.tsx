@@ -56,7 +56,7 @@ const geistMono = Geist_Mono({
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<body className={`${geistSans.variable} ${geistMono.variable}`}>
+			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 				<ReactQueryProvider>
 					<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
 						<div className="relative min-h-screen">
@@ -64,7 +64,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 								{children}
 								<Analytics />
 							</main>
-							<Toaster position="top-center" richColors />
+							<Toaster position="top-center" richColors theme="system" />
 						</div>
 					</ThemeProvider>
 				</ReactQueryProvider>

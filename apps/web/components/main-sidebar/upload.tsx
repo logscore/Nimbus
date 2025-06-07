@@ -7,8 +7,24 @@ import {
 import { SidebarGroup, SidebarGroupContent } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Upload, FolderOpen, ChevronDown, File } from "lucide-react";
+import { useState } from "react";
+import { UploadFileDialog } from "@/components/dialogs/upload-files-dialog";
+import { UploadFolderDialog } from "@/components/dialogs/upload-folder-dialog";
 
 export default function UploadButton() {
+	const [uploadFileOpen, setUploadFileOpen] = useState(false);
+	const [uploadFolderOpen, setUploadFolderOpen] = useState(false);
+
+	const handleFileUpload = (files: FileList) => {
+		// TODO: Implement file upload logic
+		console.log("Uploading files:", files.length);
+	};
+
+	const handleFolderUpload = (files: FileList) => {
+		// TODO: Implement folder upload logic
+		console.log("Uploading folder with files:", files.length);
+	};
+
 	return (
 		<SidebarGroup>
 			<SidebarGroupContent>
@@ -22,16 +38,24 @@ export default function UploadButton() {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="start" className="w-48">
-							<DropdownMenuItem>
+							<DropdownMenuItem onClick={() => setUploadFileOpen(true)}>
 								<File className="mr-2 size-4" />
 								Upload Files
 							</DropdownMenuItem>
-							<DropdownMenuItem>
+							<DropdownMenuItem onClick={() => setUploadFolderOpen(true)}>
 								<FolderOpen className="mr-2 size-4" />
 								Upload Folder
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
+
+					<UploadFileDialog open={uploadFileOpen} onOpenChange={setUploadFileOpen} onUpload={handleFileUpload} />
+
+					<UploadFolderDialog
+						open={uploadFolderOpen}
+						onOpenChange={setUploadFolderOpen}
+						onUpload={handleFolderUpload}
+					/>
 				</div>
 			</SidebarGroupContent>
 		</SidebarGroup>

@@ -34,6 +34,7 @@
 		"db:down": "docker compose down",
 		"db:reset": "docker compose down -v && docker compose up -d",
 		"db:migrate": "cd packages/db && bunx drizzle-kit generate && bunx drizzle-kit migrate",
+		"db:studio": "cd packages/db && bunx drizzle-kit studio",
 		"build": "bun --cwd=apps/web run build",
 		"start": "bun --cwd=apps/web run start",
 		"format": "bunx prettier --write .",
