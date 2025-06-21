@@ -3,12 +3,33 @@ import type { ChangeEvent, ComponentProps, ComponentType, ReactNode } from "reac
 import type { Button } from "@/components/ui/button";
 import type { Input } from "@/components/ui/input";
 
+export interface Tag {
+	id: string;
+	name: string;
+	color: string;
+	parentId?: string;
+	userId: string;
+	createdAt: string;
+	updatedAt: string;
+	_count?: number; // Number of files tagged with this tag
+	children?: Tag[]; // For nested tags
+}
+
+export interface FileTag {
+	id: string;
+	fileId: string;
+	tagId: string;
+	userId: string;
+	createdAt: string;
+}
+
 export interface FileItem {
 	id: string;
 	name: string;
 	type: "folder" | "document" | "image" | "video";
 	size?: string;
 	modified: string;
+	tags?: Tag[]; // Tags associated with this file
 }
 
 export interface CreateFolderDialogProps {

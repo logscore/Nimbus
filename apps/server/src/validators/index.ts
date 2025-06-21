@@ -52,3 +52,50 @@ export const createFileSchema = z.object({
 	mimeType: z.string().min(1, "MIME type cannot be empty").max(100, "MIME type cannot be longer than 100 characters"),
 	parents: fileIdSchema.optional(),
 });
+
+// Tag schemas
+export const tagIdSchema = z
+	.string()
+	.min(1, "Tag ID cannot be empty")
+	.max(250, "Tag ID cannot be longer than 250 characters");
+
+export const createTagSchema = z.object({
+	name: z.string().min(1, "Tag name cannot be empty").max(50, "Tag name cannot be longer than 50 characters"),
+	color: z
+		.string()
+		.regex(/^#[0-9A-F]{6}$/i, "Color must be a valid hex color")
+		.default("#808080"),
+	parentId: z.string().optional(),
+});
+
+export const updateTagSchema = z.object({
+	id: tagIdSchema,
+	name: z
+		.string()
+		.min(1, "Tag name cannot be empty")
+		.max(50, "Tag name cannot be longer than 50 characters")
+		.optional(),
+	color: z
+		.string()
+		.regex(/^#[0-9A-F]{6}$/i, "Color must be a valid hex color")
+		.optional(),
+	parentId: z.string().optional(),
+});
+
+export const deleteTagSchema = z.object({
+	id: tagIdSchema,
+});
+
+export const getTagByIdSchema = z.object({
+	id: tagIdSchema,
+});
+
+export const addTagsToFileSchema = z.object({
+	fileId: fileIdSchema,
+	tagIds: z.array(tagIdSchema).min(1, "At least one tag ID must be provided"),
+});
+
+export const removeTagsFromFileSchema = z.object({
+	fileId: fileIdSchema,
+	tagIds: z.array(tagIdSchema).min(1, "At least one tag ID must be provided"),
+});
