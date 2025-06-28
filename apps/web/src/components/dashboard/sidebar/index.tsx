@@ -3,10 +3,10 @@
 import { type ComponentProps } from "react";
 
 import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar";
-import SidebarFolders from "@/components/dashboard/sidebar/sidebar-folders";
 import StorageFooter from "@/components/dashboard/sidebar/sidebar-footer";
 import UserAccount from "@/components/dashboard/sidebar/user-account";
 import { SearchBar } from "@/components/dashboard/sidebar/search-bar";
+import SidebarFolders from "@/components/dashboard/sidebar/file-tree";
 import TagMenu from "@/components/dashboard/sidebar/tag-menu";
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {

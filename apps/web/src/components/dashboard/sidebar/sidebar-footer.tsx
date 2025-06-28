@@ -29,7 +29,7 @@ export default function StorageFooter() {
 			<SidebarMenu>
 				<SidebarMenuItem>
 					<div className="flex flex-col items-start self-stretch rounded-lg border border-neutral-200 bg-neutral-200 dark:border-0 dark:border-transparent dark:bg-neutral-700">
-						<div className="flex flex-col items-start gap-3 self-stretch rounded-lg bg-white p-3 shadow-sm dark:bg-black">
+						<div className="flex flex-col items-start gap-3 self-stretch rounded-lg bg-white p-3 shadow-sm dark:bg-[#0C0A09]">
 							<div className="flex items-center justify-between self-stretch">
 								<p className="text-sm font-medium text-neutral-800 dark:text-neutral-300">Storage Used</p>
 								{isPending ? (
