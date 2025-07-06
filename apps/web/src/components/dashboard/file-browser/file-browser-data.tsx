@@ -4,7 +4,7 @@ import {
 	MoreVertical,
 	ExternalLink,
 	Copy,
-	// Download,
+	Download,
 	Image as ImageIcon,
 	Video,
 	Music,
@@ -21,9 +21,10 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useDeleteFile, useUpdateFile, useDownloadFile } from "@/hooks/useFileOperations";
+import { useDownloadContext } from "@/components/providers/download-provider";
 import { RenameFileDialog } from "@/components/dialogs/rename-file-dialog";
 import { DeleteFileDialog } from "@/components/dialogs/delete-file-dialog";
-import { useDeleteFile, useUpdateFile } from "@/hooks/useFileOperations";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatFileSize } from "@/lib/file-utils";
 import { Button } from "@/components/ui/button";
@@ -179,6 +180,8 @@ function FileActions({
 }) {
 	const { mutate: deleteFile } = useDeleteFile();
 	const { mutate: renameFile } = useUpdateFile();
+	const { mutate: downloadFile } = useDownloadFile();
+	const { startDownload, updateProgress, completeDownload, errorDownload } = useDownloadContext();
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
@@ -228,13 +231,44 @@ function FileActions({
 		}
 	};
 
-	// const handleDownload = () => {
-	// 	if (file.webContentLink) {
-	// 		window.open(file.webContentLink, "_blank");
-	// 	} else {
-	// 		toast.error("Download not available");
-	// 	}
-	// };
+	const handleDownload = () => {
+		if (fileType === "folder") {
+			toast.error("Cannot download folders");
+			return;
+		}
+
+		// Start download progress tracking
+		startDownload(file.id, file.name);
+
+		// Determine export MIME type for Google Workspace files
+		let exportMimeType: string | undefined;
+		if (file.mimeType === "application/vnd.google-apps.document") {
+			exportMimeType = "application/pdf";
+		} else if (file.mimeType === "application/vnd.google-apps.spreadsheet") {
+			exportMimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+		} else if (file.mimeType === "application/vnd.google-apps.presentation") {
+			exportMimeType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+		}
+
+		downloadFile(
+			{
+				fileId: file.id,
+				exportMimeType,
+				fileName: file.name,
+				onProgress: progress => {
+					updateProgress(file.id, progress);
+				},
+			},
+			{
+				onSuccess: () => {
+					completeDownload(file.id);
+				},
+				onError: error => {
+					errorDownload(file.id, error instanceof Error ? error.message : "Download failed");
+				},
+			}
+		);
+	};
 
 	return (
 		<>
@@ -263,6 +297,12 @@ function FileActions({
 							<DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
 								<Copy className="mr-2 h-4 w-4" />
 								Copy link
+							</DropdownMenuItem>
+						)}
+						{fileType === "file" && (
+							<DropdownMenuItem onClick={handleDownload} className="cursor-pointer">
+								<Download className="mr-2 h-4 w-4" />
+								Download
 							</DropdownMenuItem>
 						)}
 						<DropdownMenuSeparator />

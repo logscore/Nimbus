@@ -103,6 +103,12 @@ export const uploadFileSchema = z.object({
 	returnedValues: z.string().array(),
 });
 
+export const downloadFileSchema = z.object({
+	fileId: fileIdSchema,
+	exportMimeType: z.string().optional(),
+	acknowledgeAbuse: z.boolean().optional(),
+});
+
 // Tag schemas
 const tagIdSchema = z.string().min(1, "Tag ID cannot be empty").max(250, "Tag ID cannot be longer than 250 characters");
 

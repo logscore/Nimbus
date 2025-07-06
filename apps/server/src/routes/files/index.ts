@@ -5,6 +5,7 @@ import {
 	getFilesSchema,
 	updateFileSchema,
 	uploadFileSchema,
+	downloadFileSchema,
 	MAX_FILE_SIZE,
 	ALLOWED_MIME_TYPES,
 } from "@/validators";
@@ -342,6 +343,60 @@ filesRouter.post(
 		} catch (error) {
 			console.error("Unexpected error in upload handler:", error);
 			return c.json<ApiResponse>({ success: false, message: "An unexpected error occurred" }, 500);
+		}
+	}
+);
+
+// Download file route
+filesRouter.get(
+	"/download/:fileId",
+	securityMiddleware({
+		rateLimiting: {
+			enabled: true,
+			rateLimiter: fileGetRateLimiter,
+		},
+		securityHeaders: true,
+	}),
+	async (c: Context) => {
+		const user: Session["user"] = c.get("user");
+
+		// Validation
+		const { error, data } = downloadFileSchema.safeParse({
+			fileId: c.req.param("fileId"),
+			exportMimeType: c.req.query("exportMimeType"),
+			acknowledgeAbuse: c.req.query("acknowledgeAbuse") === "true",
+		});
+
+		if (error) {
+			return c.json<ApiResponse>({ success: false, message: error.errors[0]?.message }, 400);
+		}
+
+		const fileId = data.fileId;
+		if (!fileId) {
+			return c.json<ApiResponse>({ success: false, message: "File ID not provided" }, 400);
+		}
+
+		try {
+			const drive = await getDriveManagerForUser(user, c.req.raw.headers);
+			const downloadResult = await drive.downloadFile(fileId, {
+				exportMimeType: data.exportMimeType,
+				acknowledgeAbuse: data.acknowledgeAbuse,
+			});
+
+			if (!downloadResult) {
+				return c.json<ApiResponse>({ success: false, message: "File not found or could not be downloaded" }, 404);
+			}
+
+			// Set appropriate headers for file download
+			c.header("Content-Type", downloadResult.mimeType);
+			c.header("Content-Disposition", `attachment; filename="${downloadResult.filename}"`);
+			c.header("Content-Length", downloadResult.size.toString());
+
+			// Return the file data
+			return c.body(downloadResult.data);
+		} catch (error) {
+			console.error("Error downloading file:", error);
+			return c.json<ApiResponse>({ success: false, message: "Failed to download file" }, 500);
 		}
 	}
 );

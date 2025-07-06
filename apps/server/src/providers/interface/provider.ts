@@ -1,4 +1,5 @@
-import type { DriveInfo, File } from "@/providers/interface/types";
+import type { DriveInfo, File, DownloadOptions, DownloadResult } from "@/providers/interface/types";
+import type { Readable } from "node:stream";
 
 export interface Provider {
 	/**
@@ -31,7 +32,7 @@ export interface Provider {
 	 * @param parent The parent folder ID
 	 * @returns The created file of type File
 	 */
-	createFolder(name: string, mimeType: string, parent?: string): Promise<File | null>;
+	createFile(name: string, mimeType: string, parent?: string): Promise<File | null>;
 
 	/**
 	 * Update a file
@@ -47,6 +48,31 @@ export interface Provider {
 	 * @returns boolean indicating success
 	 */
 	deleteFile(fileId: string): Promise<boolean>;
+
+	/**
+	 * Download a file
+	 * @param fileId The ID of the file to download
+	 * @param options Download options including export MIME type for Google Workspace files
+	 * @returns File content and metadata
+	 */
+	downloadFile(fileId: string, options?: DownloadOptions): Promise<DownloadResult | null>;
+
+	/**
+	 * Upload a file
+	 * @param name The name of the file
+	 * @param mimeType The MIME type of the file
+	 * @param fileContent The file content as a Buffer or Readable stream
+	 * @param returnedValues The file values you want to return
+	 * @param parent The parent folder ID. Optional. Defaults to root.
+	 * @returns The uploaded file information
+	 */
+	uploadFile(
+		name: string,
+		mimeType: string,
+		fileContent: Buffer | Readable,
+		returnedValues: string[],
+		parent?: string
+	): Promise<File | null>;
 
 	// Future methods:
 	// copyFile(fileId: string, newName?: string, parent?: string): Promise<File | null>;

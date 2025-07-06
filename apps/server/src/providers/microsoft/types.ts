@@ -2,7 +2,9 @@ export interface File {
 	id: string;
 	name: string;
 	size?: number;
-	file?: any;
+	file?: {
+		mimeType?: string;
+	};
 	folder?: any;
 	parentReference?: {
 		id: string;
@@ -10,4 +12,6 @@ export interface File {
 	};
 	createdDateTime?: string;
 	lastModifiedDateTime?: string;
+	webUrl?: string;
+	"@microsoft.graph.downloadUrl"?: string;
 }
