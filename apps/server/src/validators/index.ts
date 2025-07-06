@@ -105,7 +105,11 @@ export const uploadFileSchema = z.object({
 
 export const downloadFileSchema = z.object({
 	fileId: fileIdSchema,
-	exportMimeType: z.string().optional(),
+	exportMimeType: z
+		.string()
+		.min(1, "Export MIME type cannot be empty")
+		.max(100, "Export MIME type too long")
+		.optional(),
 	acknowledgeAbuse: z.boolean().optional(),
 });
 

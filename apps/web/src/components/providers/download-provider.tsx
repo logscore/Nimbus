@@ -37,9 +37,11 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
 		setDownloads(prev => prev.map(d => (d.id === id ? { ...d, progress: 100, isDownloading: false } : d)));
 
 		// Remove completed download after a delay
-		setTimeout(() => {
+		const timeout = setTimeout(() => {
 			setDownloads(prev => prev.filter(d => d.id !== id));
 		}, 2000);
+
+		return () => clearTimeout(timeout);
 	}, []);
 
 	const errorDownload = useCallback((id: string, error: string) => {
@@ -75,7 +77,12 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
 					fileName={download.fileName}
 					error={download.error}
 					onCancel={() => cancelDownload(download.id)}
-					style={{ bottom: `${16 + index * 120}px` }}
+					style={{
+						position: "fixed",
+						right: "1rem",
+						bottom: `${1 + index * 8}rem`, // Correct math with unit
+						zIndex: 50,
+					}}
 				/>
 			))}
 		</DownloadContext.Provider>

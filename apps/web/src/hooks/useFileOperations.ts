@@ -195,7 +195,7 @@ export function useDownloadFile() {
 
 			// Track download progress if the response supports it
 			const contentLength = response.headers.get("Content-Length");
-			const total = contentLength ? parseInt(contentLength, 10) : 0;
+			const total = contentLength ? Number.parseInt(contentLength, 10) : 0;
 			let loaded = 0;
 
 			if (response.body && total > 0) {

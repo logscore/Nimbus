@@ -364,7 +364,7 @@ filesRouter.get(
 		const { error, data } = downloadFileSchema.safeParse({
 			fileId: c.req.param("fileId"),
 			exportMimeType: c.req.query("exportMimeType"),
-			acknowledgeAbuse: c.req.query("acknowledgeAbuse") === "true",
+			acknowledgeAbuse: c.req.query("acknowledgeAbuse") === "true" || c.req.query("acknowledgeAbuse") === "1",
 		});
 
 		if (error) {
@@ -372,9 +372,6 @@ filesRouter.get(
 		}
 
 		const fileId = data.fileId;
-		if (!fileId) {
-			return c.json<ApiResponse>({ success: false, message: "File ID not provided" }, 400);
-		}
 
 		try {
 			const drive = await getDriveManagerForUser(user, c.req.raw.headers);

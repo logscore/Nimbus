@@ -171,7 +171,8 @@ export class OneDriveProvider implements Provider {
 	 * @param options Download options (not used for OneDrive)
 	 * @returns File content and metadata
 	 */
-	async downloadFile(fileId: string, _options?: DownloadOptions): Promise<DownloadResult | null> {
+	async downloadFile(fileId: string, options?: DownloadOptions): Promise<DownloadResult | null> {
+		// OneDrive doesn't support export options like Google Drive
 		try {
 			// First, get file metadata to determine the MIME type and name
 			const fileMetadata = await this.getFileById(fileId, ["id", "name", "size", "@microsoft.graph.downloadUrl"]);

@@ -303,34 +303,7 @@ export class GoogleDriveProvider implements Provider {
 			}
 
 			// Convert response to buffer
-			let buffer: Buffer;
-			if (downloadData instanceof Buffer) {
-				buffer = downloadData;
-			} else if (downloadData instanceof ArrayBuffer) {
-				buffer = Buffer.from(downloadData);
-			} else if (typeof downloadData === "string") {
-				buffer = Buffer.from(downloadData, "utf-8");
-			} else if (downloadData && typeof downloadData === "object" && "arrayBuffer" in downloadData) {
-				// Handle Response objects
-				buffer = Buffer.from(await downloadData.arrayBuffer());
-			} else if (downloadData && typeof downloadData === "object" && "body" in downloadData) {
-				// Handle stream-like objects
-				const chunks: Buffer[] = [];
-				const reader = downloadData.body?.getReader();
-				if (reader) {
-					while (true) {
-						const { done, value } = await reader.read();
-						if (done) break;
-						chunks.push(Buffer.from(value));
-					}
-					buffer = Buffer.concat(chunks);
-				} else {
-					throw new Error("Unable to read file data");
-				}
-			} else {
-				// Fallback: try to convert to string and then to buffer
-				buffer = Buffer.from(String(downloadData));
-			}
+			const buffer = Buffer.from(downloadData);
 
 			return {
 				data: buffer,
