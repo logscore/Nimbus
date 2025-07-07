@@ -8,18 +8,18 @@ import { Suspense } from "react";
 export default function DrivePage() {
 	return (
 		<>
-			<Header />
-			<div className="flex flex-1 flex-col p-2">
-				<div className="mb-6 flex items-center justify-between">
-					<h1 className="text-2xl font-semibold">My Files</h1>
-					<UploadButton />
-				</div>
-				<div className="flex-1">
-					<Suspense fallback={null}>
+			<Suspense fallback={null}>
+				<Header />
+				<div className="flex flex-1 flex-col p-2">
+					<div className="mb-6 flex items-center justify-between">
+						<h1 className="text-2xl font-semibold">My Files</h1>
+						<UploadButton />
+					</div>
+					<div className="flex-1">
 						<FileBrowser />
-					</Suspense>
+					</div>
 				</div>
-			</div>
+			</Suspense>
 		</>
 	);
 }

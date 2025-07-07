@@ -52,16 +52,14 @@ export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 // Tag validation schemas
-export const tagNameSchema = z
+const tagNameSchema = z
 	.string()
 	.min(1, "Tag name is required")
 	.max(50, "Tag name must be less than 50 characters")
 	.regex(/^[a-zA-Z0-9-_\s]+$/, "Tag name must contain only alphabetic characters, numbers and spaces")
 	.trim();
 
-export const hexColorSchema = z
-	.string()
-	.regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a valid 6-digit hex code (e.g., #FF0000)");
+const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a valid 6-digit hex code (e.g., #FF0000)");
 
 export const createTagSchema = z.object({
 	name: tagNameSchema,

@@ -5,6 +5,7 @@
 # https://eslint.org/docs/latest/use/configure/ignore-deprecated
 
 **/server/lib/google-drive/**
+**/server/lib/one-drive/**
 **/node_modules
 **/.next
 **/dist

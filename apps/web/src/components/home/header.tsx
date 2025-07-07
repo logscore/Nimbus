@@ -1,12 +1,9 @@
 "use client";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Discord, GitHub, XPlatform, NimbusLogo } from "@/components/icons";
 import { ModeToggle } from "@/components/mode-toggle";
-import { Discord } from "@/components/icons/discord";
-import Logo from "@/components/icons/brand/logo";
-import { XPlatform } from "@/components/icons/x";
 import { Button } from "@/components/ui/button";
-import { GitHub } from "../icons/github";
 import { Users } from "lucide-react";
 import Link from "next/link";
 
@@ -16,7 +13,7 @@ export default function Header() {
 			<h1>
 				<Link href="/" className="hover:text-primary/80 flex items-center gap-2 font-bold transition-colors">
 					<span>
-						<Logo className="h-9 w-9" aria-hidden="true" />
+						<NimbusLogo className="h-9 w-9" aria-hidden="true" />
 					</span>
 					<span className="hidden md:inline">Nimbus</span>
 				</Link>

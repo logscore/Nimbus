@@ -1,3 +1,5 @@
+import type { RateLimiterRedis } from "rate-limiter-flexible";
+
 export interface ApiResponse {
 	success: boolean;
 	message?: string;
@@ -24,6 +26,13 @@ export interface FileTag {
 	createdAt: string;
 }
 
+export interface UploadedFile {
+	name: string;
+	type: string;
+	size: number;
+	arrayBuffer: () => Promise<ArrayBuffer>;
+}
+
 export interface TagOperationResponse {
 	success: boolean;
 	message: string;
@@ -34,4 +43,14 @@ export interface FileTagOperationResponse {
 	success: boolean;
 	message: string;
 	data?: FileTag[];
+}
+
+// Security/Rate Limiting
+
+export interface SecurityOptions {
+	rateLimiting?: {
+		enabled: boolean;
+		rateLimiter: RateLimiterRedis;
+	};
+	securityHeaders?: boolean;
 }
