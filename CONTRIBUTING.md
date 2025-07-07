@@ -157,7 +157,7 @@ BETTER_AUTH_SECRET=
 After setting up the database, run the migrations:
 
 ```bash
-bun db:migrate
+bun db:push
 ```
 
 ### 6. Enable Google Drive API
