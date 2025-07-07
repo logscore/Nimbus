@@ -4,6 +4,10 @@
 	"type": "module",
 	"private": true,
 	"module": "src/index.ts",
+	"exports": {
+		"./shared": "./shared/index.d.ts",
+		"./validators": "./src/validators/index.ts"
+	},
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"dev:hot": "bun --hot src/index.ts",

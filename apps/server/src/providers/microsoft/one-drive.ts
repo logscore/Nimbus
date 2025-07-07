@@ -1,7 +1,7 @@
 import type { DriveInfo, File, FileMetadata, ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
 import { Client, ResponseType } from "@microsoft/microsoft-graph-client";
+import { DEFAULT_MIME_TYPE, DEFAULT_SPACE } from "@/providers/helpers";
 import type { DriveItem } from "@microsoft/microsoft-graph-types";
-import { DEFAULT_MIME_TYPE } from "@/providers/helpers";
 import type { Provider } from "../interface/provider";
 import { Readable } from "node:stream";
 
@@ -292,11 +292,11 @@ export class OneDriveProvider implements Provider {
 			}
 
 			return {
-				totalSpace: quota.total || 0,
-				usedSpace: quota.used || 0,
-				trashSize: quota.deleted || 0,
-				trashItems: 0, // Not directly available in the API
-				fileCount: 0, // Not directly available in the API
+				totalSpace: quota.total || DEFAULT_SPACE,
+				usedSpace: quota.used || DEFAULT_SPACE,
+				trashSize: quota.deleted || DEFAULT_SPACE,
+				trashItems: 0, // OneDrive doesn't provide this in the quota
+				fileCount: 0, // OneDrive doesn't provide this in the quota
 				state: "normal",
 				providerMetadata: {
 					driveType: drive.driveType,

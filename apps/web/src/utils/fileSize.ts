@@ -10,6 +10,6 @@ export function fileSize(size: unknown) {
 		num /= 1024;
 		idx++;
 	}
-	// Only apply Math.floor if it's not 'B' (Bytes)
-	return `${idx === 0 ? num : Math.floor(num)} ${units[idx]}`;
+	// Format with 2 decimal places for all units except bytes (B)
+	return `${idx === 0 ? num : num.toFixed(2)} ${units[idx]}`;
 }

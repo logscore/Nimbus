@@ -219,10 +219,19 @@ export class GoogleDriveProvider implements Provider {
 
 			if (!response.data.storageQuota) return null;
 
+			const limit = response.data.storageQuota.limit;
+			const usage = response.data.storageQuota.usage;
+			const usageInDriveTrash = response.data.storageQuota.usageInDriveTrash;
+
+			// parseInt("") returns NaN
+			const totalSpace = limit ? parseInt(limit) : DEFAULT_SPACE;
+			const usedSpace = usage ? parseInt(usage) : DEFAULT_SPACE;
+			const trashSize = usageInDriveTrash ? parseInt(usageInDriveTrash) : DEFAULT_SPACE;
+
 			return {
-				totalSpace: parseInt(response.data.storageQuota.limit || DEFAULT_SPACE),
-				usedSpace: parseInt(response.data.storageQuota.usage || DEFAULT_SPACE),
-				trashSize: parseInt(response.data.storageQuota.usageInDriveTrash || DEFAULT_SPACE),
+				totalSpace: totalSpace || DEFAULT_SPACE,
+				usedSpace: usedSpace || DEFAULT_SPACE,
+				trashSize: trashSize || DEFAULT_SPACE,
 				trashItems: 0, // Google Drive doesn't provide this in the quota
 				fileCount: 0, // Google Drive doesn't provide this in the quota
 				state: "normal",

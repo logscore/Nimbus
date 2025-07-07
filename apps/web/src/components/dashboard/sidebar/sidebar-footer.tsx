@@ -4,13 +4,16 @@ import { useDriveInfo } from "@/hooks/useDriveOps";
 import { Moon, Settings, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fileSize } from "@/utils/fileSize";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { useEffect } from "react";
 import { toast } from "sonner";
 
 export default function StorageFooter() {
 	const { data, error, isError, isPending } = useDriveInfo();
 	const { theme, setTheme } = useTheme();
+	const [usedSpace, setUsedSpace] = useState<number>(0);
+	const [totalSpace, setTotalSpace] = useState<number>(0);
+	const [usagePercent, setUsagePercent] = useState<number>(0);
 
 	useEffect(() => {
 		if (isError && error) {
@@ -18,8 +21,15 @@ export default function StorageFooter() {
 		}
 	}, [isError, error]);
 
-	const usagePercent: number =
-		data && Number(data.limit) > 0 ? Math.floor((Number(data.usage) / Number(data.limit)) * 100) : 0;
+	useEffect(() => {
+		if (data) {
+			setUsedSpace(data.usedSpace);
+			setTotalSpace(data.totalSpace);
+			const percent =
+				Number(data.totalSpace) > 0 ? Math.floor((Number(data.usedSpace) / Number(data.totalSpace)) * 100) : 0;
+			setUsagePercent(percent);
+		}
+	}, [data]);
 
 	const toggleTheme = (): void => {
 		setTheme(theme === "dark" ? "light" : "dark");
@@ -46,8 +56,8 @@ export default function StorageFooter() {
 								<div className="h-4 w-32 animate-pulse rounded bg-neutral-300 dark:bg-neutral-500"></div>
 							) : (
 								<p className="text-sm font-medium text-neutral-500 dark:text-neutral-300">
-									{isPending || isError ? "--" : fileSize(data.usage)} of{" "}
-									{isPending || isError ? "--" : fileSize(data.limit)}
+									{isPending || isError ? "--" : fileSize(usedSpace)} of{" "}
+									{isPending || isError ? "--" : fileSize(totalSpace)}
 								</p>
 							)}
 							<Button variant="link" className="text-xs font-medium text-neutral-800 dark:text-neutral-300">

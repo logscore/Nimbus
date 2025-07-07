@@ -96,9 +96,3 @@ export interface PasswordInputProps extends Omit<ComponentProps<typeof Input>, "
 }
 
 // Drive route types
-
-export interface DriveInfo {
-	usage: string;
-	limit: string;
-	usageInTrash: string;
-}

@@ -23,6 +23,7 @@
 	"dependencies": {
 		"@hookform/resolvers": "^5.1.1",
 		"@nimbus/auth": "workspace:*",
+		"@nimbus/server": "workspace:*",
 		"@number-flow/react": "^0.5.10",
 		"@radix-ui/react-avatar": "^1.1.10",
 		"@radix-ui/react-checkbox": "^1.3.2",
