@@ -116,7 +116,7 @@ export function useUploadFile() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async ({ file, parentId, onProgress, returnedValues }: UploadFileParams) => {
+		mutationFn: async ({ file, parentId, onProgress }: UploadFileParams) => {
 			// ? Maybe look into Tanstack Form for this implementation
 			const formData = new FormData();
 			formData.append("file", file);
@@ -128,7 +128,6 @@ export function useUploadFile() {
 				withCredentials: true,
 				params: {
 					parentId,
-					returnedValues,
 				},
 				onUploadProgress: progressEvent => {
 					if (onProgress && progressEvent.total) {

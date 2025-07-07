@@ -100,7 +100,6 @@ export const uploadFileSchema = z.object({
 		.custom<File>(file => file instanceof File, { message: "Invalid file" })
 		.refine(file => file.size <= MAX_FILE_SIZE, { message: "File size must be less than 100MB" })
 		.refine(file => ALLOWED_MIME_TYPES.includes(file.type), { message: "Invalid file type" }),
-	returnedValues: z.string().array(),
 });
 
 // Tag schemas

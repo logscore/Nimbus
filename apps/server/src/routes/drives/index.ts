@@ -1,6 +1,5 @@
-import { getDriveManagerForUser } from "@/providers";
-import { getAccount } from "@/lib/utils/accounts";
 import type { ApiResponse } from "@/routes/types";
+import { getDriveProvider } from "@/providers";
 import type { Context } from "hono";
 import { Hono } from "hono";
 
@@ -11,7 +10,7 @@ drivesRouter.get("/about", async (c: Context) => {
 	try {
 		const user = c.get("user");
 
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
+		const drive = await getDriveProvider(user, c.req.raw.headers);
 		const driveInfo = await drive.getDriveInfo();
 
 		if (!driveInfo) {

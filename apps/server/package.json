@@ -21,6 +21,7 @@
 	"dependencies": {
 		"@googleapis/drive": "^13.0.1",
 		"@hono/zod-validator": "^0.7.0",
+		"@microsoft/microsoft-graph-client": "^3.0.7",
 		"@nimbus/auth": "workspace:*",
 		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
@@ -35,6 +36,7 @@
 		"zod": "^3.25.67"
 	},
 	"devDependencies": {
+		"@microsoft/microsoft-graph-types": "^2.40.0",
 		"@nimbus/tsconfig": "workspace:*",
 		"@types/pg": "^8.15.4"
 	}

@@ -1,12 +1,12 @@
 import {
+	ALLOWED_MIME_TYPES,
 	createFileSchema,
 	deleteFileSchema,
 	getFileByIdSchema,
 	getFilesSchema,
+	MAX_FILE_SIZE,
 	updateFileSchema,
 	uploadFileSchema,
-	MAX_FILE_SIZE,
-	ALLOWED_MIME_TYPES,
 } from "@/validators";
 import {
 	fileDeleteRateLimiter,
@@ -17,9 +17,9 @@ import {
 import type { ApiResponse, UploadedFile } from "@/routes/types";
 import type { File } from "@/providers/interface/types";
 import { TagService } from "@/routes/tags/tag-service";
-import { getDriveManagerForUser } from "@/providers";
 import { securityMiddleware } from "@/middleware";
 import { type Session } from "@nimbus/auth/auth";
+import { getDriveProvider } from "@/providers";
 import { Readable } from "node:stream";
 import type { Context } from "hono";
 import { Hono } from "hono";
@@ -50,19 +50,24 @@ filesRouter.get(
 			return c.json<ApiResponse>({ success: false, message: error.errors[0]?.message }, 400);
 		}
 
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const res = await drive.listFiles(data.parentId, data.pageSize, data.returnedValues, data.pageToken);
+		const drive = await getDriveProvider(user, c.req.raw.headers);
 
-		if (!res.files) {
+		const res = await drive.listChildren(data.parentId, {
+			pageSize: data.pageSize,
+			pageToken: data.pageToken,
+			fields: data.returnedValues,
+		});
+
+		if (!res.items) {
 			return c.json<ApiResponse>({ success: false, message: "Files not found" }, 404);
 		}
 
 		// Add tags to files
 		const filesWithTags = await Promise.all(
-			res.files.map(async file => {
-				if (!file.id) return { ...file, tags: [] };
-				const tags = await tagService.getFileTags(file.id, user.id);
-				return { ...file, tags };
+			res.items.map(async item => {
+				if (!item.id) return { ...item, tags: [] };
+				const tags = await tagService.getFileTags(item.id, user.id);
+				return { ...item, tags };
 			})
 		);
 
@@ -97,8 +102,8 @@ filesRouter.get(
 
 		const returnedValues = data.returnedValues;
 
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const file = await drive.getFileById(fileId, returnedValues);
+		const drive = await getDriveProvider(user, c.req.raw.headers);
+		const file = await drive.getById(fileId, returnedValues);
 		if (!file) {
 			return c.json<ApiResponse>({ success: false, message: "File not found" }, 404);
 		}
@@ -136,8 +141,8 @@ filesRouter.put(
 		const id = data.fileId;
 		const name = data.name;
 
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const success = await drive.updateFile(id, name);
+		const drive = await getDriveProvider(user, c.req.raw.headers);
+		const success = await drive.update(id, { name });
 
 		if (!success) {
 			return c.json<ApiResponse>({ success: false, message: "Failed to update file" }, 500);
@@ -175,8 +180,8 @@ filesRouter.delete(
 		}
 
 		const fileId = data.fileId;
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const success = await drive.deleteFile(fileId);
+		const drive = await getDriveProvider(user, c.req.raw.headers);
+		const success = await drive.delete(fileId);
 
 		if (!success) {
 			return c.json<ApiResponse>({ success: false, message: "Failed to delete file" }, 500);
@@ -207,10 +212,10 @@ filesRouter.post(
 
 		const name = data.name;
 		const mimeType = data.mimeType;
-		const parent = data.parent ? data.parent : undefined;
+		const parentId = data.parent ? data.parent : undefined;
 
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const success = await drive.createFile(name, mimeType, parent);
+		const drive = await getDriveProvider(user, c.req.raw.headers);
+		const success = await drive.create({ name, mimeType, parentId });
 
 		if (!success) {
 			return c.json<ApiResponse>({ success: false, message: "Failed to create file" }, 500);
@@ -237,7 +242,6 @@ filesRouter.post(
 			const formData = await c.req.formData();
 			const file = formData.get("file") as UploadedFile | null;
 			const parentId = c.req.query("parentId");
-			const returnedValues = c.req.queries("returnedValues[]");
 
 			if (!file) {
 				return c.json<ApiResponse>({ success: false, message: "No file provided" }, 400);
@@ -262,7 +266,6 @@ filesRouter.post(
 			const { data, error } = uploadFileSchema.safeParse({
 				file,
 				parentId: parentId,
-				returnedValues: returnedValues,
 			});
 
 			if (error) {
@@ -277,7 +280,7 @@ filesRouter.post(
 
 			let drive;
 			try {
-				drive = await getDriveManagerForUser(user, c.req.raw.headers);
+				drive = await getDriveProvider(user, c.req.raw.headers);
 				if (!drive) {
 					throw new Error("Failed to initialize storage provider");
 				}
@@ -296,12 +299,13 @@ filesRouter.post(
 				readableStream.push(null); // Signal end of stream
 
 				// Upload the file with timeout
-				const uploadPromise = drive.uploadFile(
-					file.name,
-					file.type,
-					readableStream,
-					data.returnedValues,
-					data.parentId
+				const uploadPromise = drive.create(
+					{
+						name: file.name,
+						mimeType: file.type,
+						parentId: data.parentId,
+					},
+					readableStream
 				);
 
 				// Set a timeout for the upload (5 minutes)

@@ -66,7 +66,6 @@ export interface UploadFileParams {
 	file: File; // Node file type
 	parentId: string;
 	onProgress?: (progress: number) => void;
-	returnedValues: string[];
 }
 
 // Auth types

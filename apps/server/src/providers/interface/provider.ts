@@ -1,55 +1,114 @@
-import type { DriveInfo, File } from "@/providers/interface/types";
+import type { DriveInfo, File, FileMetadata, ListFilesOptions, ListFilesResult } from "./types";
 
+/**
+ * Interface for cloud storage providers like Google Drive and OneDrive.
+ * Provides a unified API for file and folder operations.
+ */
 export interface Provider {
-	/**
-	 * List files in the user's drive.
-	 * @param parent The ID of the parent folder to query files from
-	 * @param pageSize The number of files to return per page
-	 * @param pageToken The next page token or URL for pagination
-	 * @param returnedValues The values the file object will contain. (https://learn.microsoft.com/en-us/onedrive/developer/rest-api/concepts/optional-query-parameters?view=odsp-graph-online) (https://developers.google.com/workspace/drive/api/guides/fields-parameter)
-	 * @returns An array of files of type File, and the next page token
-	 */
-	listFiles(
-		parent: string,
-		pageSize: number,
-		returnedValues: string[],
-		pageToken?: string
-	): Promise<{ files: File[]; nextPageToken?: string }>;
+	// ------------------------------------------------------------------------
+	// Core CRUD Operations
+	// ------------------------------------------------------------------------
 
 	/**
-	 * Get a file by ID
-	 * @param id The ID of the file to retrieve
-	 * @param returnedValues The values the file object will contain. (https://learn.microsoft.com/en-us/onedrive/developer/rest-api/concepts/optional-query-parameters?view=odsp-graph-online) (https://developers.google.com/workspace/drive/api/guides/fields-parameter)
-	 * @returns The file of type File
+	 * Create a new file or folder
+	 * @param metadata Metadata for the new file/folder
+	 * @param content Optional file content as a Buffer or Readable stream
+	 * @returns The created file/folder or null if creation failed
 	 */
-	getFileById(id: string, returnedValues: string[]): Promise<File | null>;
+	create(metadata: FileMetadata, content?: Buffer | NodeJS.ReadableStream): Promise<File | null>;
 
 	/**
-	 * Create file or folder
-	 * @param name The name of the file or folder
-	 * @param mimeType The MIME type of the file
-	 * @param parent The parent folder ID
-	 * @returns The created file of type File
+	 * Get a file or folder by ID
+	 * @param id The ID of the file/folder to retrieve
+	 * @param fields Optional array of fields to include in the response
+	 * @returns The file/folder or null if not found
 	 */
-	createFolder(name: string, mimeType: string, parent?: string): Promise<File | null>;
+	getById(id: string, fields?: string[]): Promise<File | null>;
 
 	/**
-	 * Update a file
-	 * @param fileId The ID of the file to update
-	 * @param name The new name for the file
-	 * @returns The updated file of type File
+	 * Update a file or folder
+	 * @param id The ID of the file/folder to update
+	 * @param metadata The fields to update
+	 * @returns The updated file/folder or null if update failed
 	 */
-	updateFile(fileId: string, name: string): Promise<File | null>;
+	update(id: string, metadata: Partial<FileMetadata>): Promise<File | null>;
 
 	/**
-	 * Delete a file
-	 * @param fileId The ID of the file to delete
-	 * @returns boolean indicating success
+	 * Delete a file or folder
+	 * @param id The ID of the file/folder to delete
+	 * @param permanent If true, permanently delete instead of moving to trash
+	 * @returns true if deletion was successful, false otherwise
 	 */
-	deleteFile(fileId: string): Promise<boolean>;
+	delete(id: string, permanent?: boolean): Promise<boolean>;
 
-	// Future methods:
-	// copyFile(fileId: string, newName?: string, parent?: string): Promise<File | null>;
-	// exportFile(fileId: string, mimeType: string): Promise<Blob | null>;
+	// ------------------------------------------------------------------------
+	// List Operations
+	// ------------------------------------------------------------------------
+
+	/**
+	 * List files and folders in a directory
+	 * @param parentId Optional parent folder ID (defaults to root)
+	 * @param options Additional options for listing
+	 * @returns Paginated list of files/folders
+	 */
+	listChildren(parentId?: string, options?: ListFilesOptions): Promise<ListFilesResult>;
+
+	// ------------------------------------------------------------------------
+	// File Operations
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Download file content
+	 * @param id The ID of the file to download
+	 * @returns File content as a Buffer or Readable stream
+	 */
+	download(id: string): Promise<Buffer | NodeJS.ReadableStream | null>;
+
+	/**
+	 * Copy a file or folder
+	 * @param sourceId The ID of the file/folder to copy
+	 * @param targetParentId The ID of the destination folder
+	 * @param newName Optional new name for the copy
+	 * @returns The copied file/folder or null if copy failed
+	 */
+	copy(sourceId: string, targetParentId: string, newName?: string): Promise<File | null>;
+
+	/**
+	 * Move a file or folder
+	 * @param sourceId The ID of the file/folder to move
+	 * @param targetParentId The ID of the destination folder
+	 * @param newName Optional new name for the moved item
+	 * @returns The moved file/folder or null if move failed
+	 */
+	move(sourceId: string, targetParentId: string, newName?: string): Promise<File | null>;
+
+	// ------------------------------------------------------------------------
+	// Drive Information
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Get information about the drive
+	 * @returns Drive information including usage statistics
+	 */
 	getDriveInfo(): Promise<DriveInfo | null>;
+
+	// ------------------------------------------------------------------------
+	// Utility Methods
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Get a shareable link for a file/folder
+	 * @param id The ID of the file/folder
+	 * @param permission The permission level for the link (e.g., 'view', 'edit')
+	 * @returns The shareable URL or null if failed
+	 */
+	getShareableLink(id: string, permission?: "view" | "edit"): Promise<string | null>;
+
+	/**
+	 * Search for files and folders
+	 * @param query Search query string
+	 * @param options Additional search options
+	 * @returns Paginated list of matching files/folders
+	 */
+	search(query: string, options?: Omit<ListFilesOptions, "filter">): Promise<ListFilesResult>;
 }
