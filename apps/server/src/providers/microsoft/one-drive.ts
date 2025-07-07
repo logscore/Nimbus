@@ -100,7 +100,7 @@ export class OneDriveProvider implements Provider {
 
 			// 2. Upload file in chunks
 			for (let offset = 0; offset < fileSize; offset += this.CHUNK_SIZE) {
-				const chunk = contentBuffer.slice(offset, offset + this.CHUNK_SIZE);
+				const chunk = contentBuffer.subarray(offset, offset + this.CHUNK_SIZE);
 				const chunkSize = chunk.length;
 				const end = Math.min(offset + chunkSize - 1, fileSize - 1);
 
@@ -182,7 +182,9 @@ export class OneDriveProvider implements Provider {
 			if (permanent) {
 				await this.client.api(`/me/drive/items/${id}`).delete();
 			} else {
-				await this.client.api(`/me/drive/items/${id}`).update({ "@microsoft.graph.conflictBehavior": "replace" });
+				await this.client.api(`/me/drive/items/${id}`).patch({
+					deleted: {},
+				});
 			}
 			return true;
 		} catch (error) {
@@ -360,6 +362,7 @@ export class OneDriveProvider implements Provider {
 	private mapToFile(item: DriveItem): File {
 		const isFolder = !!item.folder;
 		const isShortcut = !!item.file?.mimeType?.includes("shortcut");
+		const webContentLink: string | undefined = (item as any)["@microsoft.graph.downloadUrl"];
 
 		return {
 			id: item.id || "",
@@ -369,7 +372,7 @@ export class OneDriveProvider implements Provider {
 			parentId: item.parentReference?.id || "root",
 			size: item.size || 0,
 			webViewLink: item.webUrl || undefined,
-			webContentLink: undefined,
+			webContentLink,
 			createdTime: item.createdDateTime || new Date().toISOString(),
 			modifiedTime: item.lastModifiedDateTime || new Date().toISOString(),
 			description: item.description || undefined,

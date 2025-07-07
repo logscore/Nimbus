@@ -51,16 +51,20 @@ export default function StorageFooter() {
 							</div>
 							<Progress value={usagePercent} />
 						</div>
-						<div className="flex h-8 items-center justify-between self-stretch px-3">
+						<div className="flex min-h-[2rem] items-center justify-between self-stretch px-3 py-1">
 							{isPending ? (
 								<div className="h-4 w-32 animate-pulse rounded bg-neutral-300 dark:bg-neutral-500"></div>
 							) : (
-								<p className="text-sm font-medium text-neutral-500 dark:text-neutral-300">
-									{isPending || isError ? "--" : fileSize(usedSpace)} of{" "}
-									{isPending || isError ? "--" : fileSize(totalSpace)}
-								</p>
+								<div className="flex flex-wrap items-center gap-1 text-sm font-medium text-neutral-500 dark:text-neutral-300">
+									<span>{isPending || isError ? "--" : fileSize(usedSpace)}</span>
+									<span>of</span>
+									<span>{isPending || isError ? "--" : fileSize(totalSpace)}</span>
+								</div>
 							)}
-							<Button variant="link" className="text-xs font-medium text-neutral-800 dark:text-neutral-300">
+							<Button
+								variant="link"
+								className="ml-2 px-2 text-xs font-medium text-neutral-800 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+							>
 								Upgrade
 							</Button>
 						</div>
