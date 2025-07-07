@@ -9,17 +9,27 @@ import { toast } from "sonner";
 import axios from "axios";
 
 const signInWithGoogle = async () => {
-	await authClient.signIn.social({
-		provider: "google",
-		callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
-	});
+	try {
+		await authClient.signIn.social({
+			provider: "google",
+			callbackURL: `${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/auth/callback/google`,
+		});
+	} catch (error) {
+		console.error("Google OAuth error:", error);
+		throw error;
+	}
 };
 
 const signInWithMicrosoft = async () => {
-	await authClient.signIn.social({
-		provider: "microsoft",
-		callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
-	});
+	try {
+		await authClient.signIn.social({
+			provider: "microsoft",
+			callbackURL: `${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/auth/callback/microsoft`,
+		});
+	} catch (error) {
+		console.error("Microsoft OAuth error:", error);
+		throw error;
+	}
 };
 
 export const useGoogleAuth = () => {
@@ -28,11 +38,15 @@ export const useGoogleAuth = () => {
 	const signInWithGoogleProvider = useCallback(async () => {
 		setIsLoading(true);
 		try {
-			const isLoggedIn = await authClient.getSession();
+			const session = await authClient.getSession();
+			const isLoggedIn = session?.data?.user && session?.data?.session;
 
 			if (isLoggedIn) {
-				await toast.promise(
-					authClient.linkSocial({ provider: "google", callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL }),
+				toast.promise(
+					authClient.linkSocial({
+						provider: "google",
+						callbackURL: `${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/auth/callback/google`,
+					}),
 					{
 						loading: "Linking Google account...",
 						success: "Successfully linked Google account",
@@ -40,7 +54,7 @@ export const useGoogleAuth = () => {
 					}
 				);
 			} else {
-				await toast.promise(signInWithGoogle(), {
+				toast.promise(signInWithGoogle(), {
 					loading: "Signing in with Google...",
 					success: "Signed in with Google",
 					error: error => (error instanceof Error ? error.message : "Google authentication failed"),
@@ -63,11 +77,15 @@ export const useMicrosoftAuth = () => {
 	const signInWithMicrosoftProvider = useCallback(async () => {
 		setIsLoading(true);
 		try {
-			const isLoggedIn = await authClient.getSession();
+			const session = await authClient.getSession();
+			const isLoggedIn = session?.data?.user && session?.data?.session;
 
 			if (isLoggedIn) {
-				await toast.promise(
-					authClient.linkSocial({ provider: "microsoft", callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL }),
+				toast.promise(
+					authClient.linkSocial({
+						provider: "microsoft",
+						callbackURL: `${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/auth/callback/microsoft`,
+					}),
 					{
 						loading: "Linking Microsoft account...",
 						success: "Successfully linked Microsoft account",
@@ -75,7 +93,7 @@ export const useMicrosoftAuth = () => {
 					}
 				);
 			} else {
-				await toast.promise(signInWithMicrosoft(), {
+				toast.promise(signInWithMicrosoft(), {
 					loading: "Signing in with Microsoft...",
 					success: "Signed in with Microsoft",
 					error: error => (error instanceof Error ? error.message : "Microsoft authentication failed"),
