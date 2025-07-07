@@ -14,9 +14,7 @@ export default function useContributors() {
 	} = useQuery({
 		queryKey: ["repoStats"],
 		queryFn: async () => {
-			const response = await axios.get("https://api.github.com/repos/nimbusdotstorage/Nimbus", {
-				headers: { "User-Agent": "Nimbus" },
-			});
+			const response = await axios.get("https://api.github.com/repos/nimbusdotstorage/Nimbus");
 			return response.data;
 		},
 	});
@@ -29,7 +27,6 @@ export default function useContributors() {
 		queryKey: ["pullRequest"],
 		queryFn: async () => {
 			const response = await axios.get("https://api.github.com/search/issues", {
-				headers: { "User-Agent": "Nimbus" },
 				params: {
 					q: "repo:nimbusdotstorage/Nimbus type:pr",
 					per_page: 1,
@@ -46,9 +43,7 @@ export default function useContributors() {
 	} = useQuery({
 		queryKey: ["activityData"],
 		queryFn: async () => {
-			const response = await axios.get("https://api.github.com/repos/nimbusdotstorage/Nimbus/stats/commit_activity", {
-				headers: { "User-Agent": "Nimbus" },
-			});
+			const response = await axios.get("https://api.github.com/repos/nimbusdotstorage/Nimbus/stats/commit_activity");
 
 			const data: WeekData[] = response.data;
 			if (!data || data.length === 0) return [];
@@ -90,9 +85,7 @@ export default function useContributors() {
 	} = useQuery({
 		queryKey: ["contributorsData"],
 		queryFn: async () => {
-			const response = await axios.get("https://api.github.com/repos/nimbusdotstorage/Nimbus/contributors", {
-				headers: { "User-Agent": "Nimbus" },
-			});
+			const response = await axios.get("https://api.github.com/repos/nimbusdotstorage/Nimbus/contributors");
 			return response.data;
 		},
 	});
