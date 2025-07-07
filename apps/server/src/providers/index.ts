@@ -3,7 +3,6 @@ import { OneDriveProvider } from "@/providers/microsoft/one-drive";
 import type { ProviderName } from "@/providers/interface/types";
 import { getAccount } from "@/lib/utils/accounts";
 import { type Session } from "@nimbus/auth/auth";
-// import OneDrive from "@/lib/one-drive/src";
 
 const createDriveProvider = (providerName: ProviderName, accessToken: string) => {
 	if (providerName === "google") {
