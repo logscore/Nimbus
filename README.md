@@ -220,3 +220,14 @@ Follow the [DEPLOYMENT.md](DEPLOYMENT.md) file for instructions on how to deploy
 <a href="https://github.com/nimbusdotstorage/Nimbus/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=nimbusdotstorage/Nimbus" />
 </a>
+
+## Deploy Nimbus to VDS/VPS
+
+> There are no special differences when deploying Nimbus locally or on a server.
+
+To deploy Nimbus to a server:
+1. The domain **must be** pointed to the server
+2. When issuing Google API keys, specify the domain instead of localhost
+For example: `http://example.storage:1284/api/auth/callback/google`
+3. The environment file (.env) must also specify the domain instead of localhost.
+For example: `FRONTEND_URL=http://example.storage:3000`
