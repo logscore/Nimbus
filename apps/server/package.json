@@ -4,10 +4,6 @@
 	"type": "module",
 	"private": true,
 	"module": "src/index.ts",
-	"exports": {
-		"./shared": "./shared/index.d.ts",
-		"./validators": "./src/validators/index.ts"
-	},
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"dev:hot": "bun --hot src/index.ts",
@@ -29,6 +25,7 @@
 		"@nimbus/auth": "workspace:*",
 		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
+		"@nimbus/shared": "workspace:*",
 		"@t3-oss/env-core": "^0.13.8",
 		"drizzle-orm": "^0.43.1",
 		"google-auth-library": "^10.1.0",

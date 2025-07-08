@@ -1,0 +1,13 @@
+{
+	"name": "@nimbus/shared",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"devDependencies": {
+		"@nimbus/tsconfig": "workspace:*",
+		"typescript": "^5.0.0"
+	}
+}
