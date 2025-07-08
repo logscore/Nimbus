@@ -1,8 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { resetPasswordSchema, type ResetPasswordFormData } from "@/schemas";
-import { Loader2, ArrowLeft, Eye, EyeClosed } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { resetPasswordSchema, type ResetPasswordFormData } from "@nimbus/shared";
+import { ArrowLeft, Eye, EyeClosed, Loader2 } from "lucide-react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { FieldError } from "@/components/ui/field-error";
 import { zodResolver } from "@hookform/resolvers/zod";

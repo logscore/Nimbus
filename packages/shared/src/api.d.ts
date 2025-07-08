@@ -1,4 +1,4 @@
-import type { Tag } from "./file-types";
+import type { Tag } from "./file";
 
 export interface ApiResponse<T = unknown> {
 	success: boolean;

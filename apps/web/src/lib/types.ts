@@ -1,24 +1,8 @@
 // This file holds web-specific types and interfaces for the Next.js front end app.
 import type { ChangeEvent, ComponentProps, ReactNode } from "react";
 import type { Button } from "@/components/ui/button";
+import type { SocialProvider } from "@nimbus/shared";
 import type { Input } from "@/components/ui/input";
-
-// Re-export types from shared package
-export type {
-	ApiResponse,
-	AuthState,
-	CreateFolderParams,
-	DeleteFileParams,
-	DriveInfo,
-	File,
-	FileMetadata,
-	FileType,
-	Tag,
-	UpdateFileParams,
-	UploadFileParams,
-} from "@nimbus/shared";
-
-// Component prop types
 
 export interface CreateFolderDialogProps {
 	open: boolean;
@@ -39,7 +23,6 @@ export interface AuthCardProps extends ComponentProps<"div"> {
 	children: ReactNode;
 }
 
-type SocialProvider = "google" | "microsoft";
 type AuthAction = "signin" | "signup";
 
 export interface SocialAuthButtonProps extends Omit<ComponentProps<typeof Button>, "children" | "variant" | "type"> {

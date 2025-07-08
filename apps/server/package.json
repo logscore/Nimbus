@@ -28,19 +28,19 @@
 		"@nimbus/db": "workspace:*",
 		"@nimbus/shared": "workspace:*",
 		"@t3-oss/env-core": "^0.13.8",
-		"drizzle-orm": "^0.43.1",
+		"drizzle-orm": "^0.44.2",
 		"google-auth-library": "^10.1.0",
-		"hono": "^4.8.0",
+		"hono": "^4.8.4",
 		"nanoid": "^5.1.5",
-		"pg": "^8.16.1",
+		"pg": "^8.16.3",
 		"rate-limiter-flexible": "^7.1.1",
 		"resend": "^4.6.0",
-		"zod": "^3.25.67"
+		"zod": "^3.25.76"
 	},
 	"devDependencies": {
 		"@microsoft/microsoft-graph-types": "^2.40.0",
 		"@nimbus/tsconfig": "workspace:*",
 		"@types/pg": "^8.15.4",
-		"typescript": "^5.0.0"
+		"typescript": "^5.8.3"
 	}
 }

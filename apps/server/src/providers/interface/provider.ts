@@ -60,13 +60,6 @@ export interface Provider {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Download file content
-	 * @param id The ID of the file to download
-	 * @returns File content as a Buffer or Readable stream
-	 */
-	// download(id: string): Promise<Buffer | NodeJS.ReadableStream | null>;
-
-	/**
 	 * Download a file
 	 * @param fileId The ID of the file to download
 	 * @param options Download options including export MIME type for Google Workspace files

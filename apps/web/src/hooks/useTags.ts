@@ -1,8 +1,8 @@
-import { createTagSchema, updateTagSchema, type CreateTagInput, type UpdateTagInput } from "@/schemas";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createTagSchema, updateTagSchema, type CreateTagInput, type UpdateTagInput } from "@nimbus/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { clientEnv } from "@/lib/env/client-env";
 import axios, { type AxiosError } from "axios";
-import type { Tag } from "@/lib/types";
+import type { Tag } from "@nimbus/shared";
 import { toast } from "sonner";
 
 const TAGS_QUERY_KEY = "tags";

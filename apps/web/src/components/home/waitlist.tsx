@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { z } from "zod";
+import z from "zod";
 
 const formSchema = z.object({
 	email: emailSchema,

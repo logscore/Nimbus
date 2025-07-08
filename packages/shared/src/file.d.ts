@@ -1,5 +1,3 @@
-export type ProviderName = "google" | "microsoft";
-
 export type FileType = "file" | "folder" | "shortcut" | "other";
 
 export interface FileMetadata {

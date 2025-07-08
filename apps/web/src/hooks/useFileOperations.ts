@@ -1,4 +1,4 @@
-import type { CreateFolderParams, DeleteFileParams, UpdateFileParams, UploadFileParams } from "@/lib/types";
+import type { CreateFolderParams, DeleteFileParams, UpdateFileParams, UploadFileParams } from "@nimbus/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { clientEnv } from "@/lib/env/client-env";
 import axios, { type AxiosError } from "axios";

@@ -171,6 +171,8 @@ export class GoogleDriveProvider implements Provider {
 	 * @returns File content and metadata
 	 */
 	async download(fileId: string, options?: DownloadOptions): Promise<DownloadResult | null> {
+		console.log("Downloading file:", fileId);
+
 		try {
 			// First, get file metadata to determine the MIME type and name
 			const fileMetadata = await this.drive.files.get({
@@ -183,79 +185,49 @@ export class GoogleDriveProvider implements Provider {
 			}
 
 			const isGoogleWorkspaceFile = fileMetadata.data.mimeType?.startsWith("application/vnd.google-apps.");
-
-			let downloadData: any;
 			let finalMimeType = fileMetadata.data.mimeType || "application/octet-stream";
 			let filename = fileMetadata.data.name;
 
 			if (isGoogleWorkspaceFile && options?.exportMimeType) {
 				// For Google Workspace files, use export
-				downloadData = await this.drive.files.export({
-					fileId,
-					mimeType: options.exportMimeType,
-				});
+				const response = await this.drive.files.export(
+					{ fileId, mimeType: options.exportMimeType },
+					{ responseType: "stream" }
+				);
 				finalMimeType = options.exportMimeType;
-
-				// Update filename with appropriate extension
 				filename = this.addFileExtension(filename, options.exportMimeType);
-			} else {
-				// For regular files, use direct download with acknowledgeAbuse option
-				const queryParams = new URLSearchParams({
+
+				// Convert stream to buffer
+				const chunks: Buffer[] = [];
+				for await (const chunk of response.data) {
+					chunks.push(Buffer.from(chunk));
+				}
+				const buffer = Buffer.concat(chunks);
+
+				return {
+					data: buffer,
+					filename,
+					mimeType: finalMimeType,
+					size: buffer.length,
+				};
+			}
+
+			// For regular files, use the simple download approach
+			const response = await this.drive.files.get(
+				{
+					fileId,
 					alt: "media",
-				});
+					acknowledgeAbuse: options?.acknowledgeAbuse,
+				},
+				{ responseType: "stream" }
+			);
 
-				if (options?.acknowledgeAbuse) {
-					queryParams.append("acknowledgeAbuse", "true");
-				}
-
-				const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?${queryParams.toString()}`, {
-					headers: {
-						Authorization: `Bearer ${(this.drive.context._options.auth as any).credentials.access_token}`,
-						Accept: "*/*",
-					},
-				});
-
-				if (!response.ok) {
-					// If we get a 403 with "acknowledgeAbuse" error, try again with acknowledgeAbuse=true
-					if (response.status === 403) {
-						const errorText = await response.text();
-						if (errorText.includes("acknowledgeAbuse")) {
-							queryParams.set("acknowledgeAbuse", "true");
-							const retryResponse = await fetch(
-								`https://www.googleapis.com/drive/v3/files/${fileId}?${queryParams.toString()}`,
-								{
-									headers: {
-										Authorization: `Bearer ${(this.drive.context._options.auth as any).credentials.access_token}`,
-										Accept: "*/*",
-									},
-								}
-							);
-
-							if (!retryResponse.ok) {
-								throw new Error(`Google Drive API error: ${retryResponse.status} ${retryResponse.statusText}`);
-							}
-
-							const blob = await retryResponse.blob();
-							downloadData = await blob.arrayBuffer();
-						} else {
-							throw new Error(`Google Drive API error: ${response.status} ${response.statusText}`);
-						}
-					} else {
-						throw new Error(`Google Drive API error: ${response.status} ${response.statusText}`);
-					}
-				} else {
-					// Get the response as a blob first to preserve binary data
-					const blob = await response.blob();
-					downloadData = await blob.arrayBuffer();
-				}
+			// Convert stream to buffer
+			const chunks: Buffer[] = [];
+			for await (const chunk of response.data) {
+				chunks.push(Buffer.from(chunk));
 			}
-
-			if (!downloadData) {
-				return null;
-			}
-
-			// Convert response to buffer
-			const buffer = Buffer.from(downloadData);
+			const buffer = Buffer.concat(chunks);
 
 			return {
 				data: buffer,
@@ -263,7 +235,33 @@ export class GoogleDriveProvider implements Provider {
 				mimeType: finalMimeType,
 				size: buffer.length,
 			};
-		} catch (error) {
+		} catch (error: any) {
+			// Handle 403 acknowledgeAbuse error
+			if (error.code === 403 && error.message?.includes("acknowledgeAbuse")) {
+				const response = await this.drive.files.get(
+					{
+						fileId,
+						alt: "media",
+						acknowledgeAbuse: true,
+					},
+					{ responseType: "stream" }
+				);
+
+				// Convert stream to buffer
+				const chunks: Buffer[] = [];
+				for await (const chunk of response.data) {
+					chunks.push(Buffer.from(chunk));
+				}
+				const buffer = Buffer.concat(chunks);
+
+				return {
+					data: buffer,
+					filename: fileId, // Fallback filename since we don't have metadata
+					mimeType: "application/octet-stream",
+					size: buffer.length,
+				};
+			}
+
 			console.error("Error downloading file:", error);
 			return null;
 		}
@@ -401,6 +399,19 @@ export class GoogleDriveProvider implements Provider {
 		}
 	}
 
+	public getAccessToken(): string {
+		return this.accessToken;
+	}
+
+	public setAccessToken(token: string): void {
+		this.accessToken = token;
+		const oauth2Client = new OAuth2Client();
+		oauth2Client.setCredentials({ access_token: token });
+		this.drive = new drive_v3.Drive({
+			auth: oauth2Client,
+		});
+	}
+
 	// ------------------------------------------------------------------------
 	// Helper Methods
 	// ------------------------------------------------------------------------
@@ -480,19 +491,6 @@ export class GoogleDriveProvider implements Provider {
 			return readable;
 		}
 		return content;
-	}
-
-	public getAccessToken(): string {
-		return this.accessToken;
-	}
-
-	public setAccessToken(token: string): void {
-		this.accessToken = token;
-		const oauth2Client = new OAuth2Client();
-		oauth2Client.setCredentials({ access_token: token });
-		this.drive = new drive_v3.Drive({
-			auth: oauth2Client,
-		});
 	}
 
 	/**

@@ -6,8 +6,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CreateTagDialog } from "@/components/dialogs/create-tag-dialog";
 import { Button } from "@/components/ui/button";
+import type { File, Tag } from "@nimbus/shared";
 import { Badge } from "@/components/ui/badge";
-import type { File, Tag } from "@/lib/types";
 import { useTags } from "@/hooks/useTags";
 import { Plus, X } from "lucide-react";
 import { useState } from "react";

@@ -8,7 +8,7 @@ import { useGetFiles } from "@/hooks/useFileOperations";
 import { useSearchParams } from "next/navigation";
 import { Loader } from "@/components/loader";
 import { useEffect, useState } from "react";
-import type { File } from "@/lib/types";
+import type { File } from "@nimbus/shared";
 
 export function FileBrowser() {
 	const searchParams = useSearchParams();

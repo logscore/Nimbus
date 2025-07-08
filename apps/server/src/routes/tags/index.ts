@@ -1,12 +1,12 @@
 import {
+	addTagsToFileSchema,
 	createTagSchema,
-	updateTagSchema,
 	deleteTagSchema,
 	getTagByIdSchema,
-	addTagsToFileSchema,
 	removeTagsFromFileSchema,
-} from "@/validators";
-import type { TagOperationResponse, FileTagOperationResponse } from "@/routes/types";
+	updateTagSchema,
+} from "@nimbus/shared";
+import type { FileTagOperationResponse, TagOperationResponse } from "@/routes/types";
 import { TagService } from "@/routes/tags/tag-service";
 import type { Context } from "hono";
 import { Hono } from "hono";

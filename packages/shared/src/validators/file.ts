@@ -1,12 +1,10 @@
-import {
-	ALLOWED_MIME_TYPES,
-	MAX_FILE_SIZE,
-	fileIdSchema,
-	hexColorSchema,
-	tagIdSchema,
-	tagNameSchema,
-} from "@nimbus/shared";
-import { z } from "zod";
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "@nimbus/shared";
+import z from "zod";
+
+export const fileIdSchema = z
+	.string()
+	.nonempty("File ID cannot be empty")
+	.max(250, "File ID cannot be longer than 250 characters");
 
 export const getFilesSchema = z.object({
 	parentId: z.string().min(1).default("root"),
@@ -52,35 +50,4 @@ export const downloadFileSchema = z.object({
 		.max(100, "Export MIME type too long")
 		.optional(),
 	acknowledgeAbuse: z.boolean().optional(),
-});
-
-// Tag schemas
-export const createTagSchema = z.object({
-	name: tagNameSchema,
-	color: hexColorSchema.default("#808080"),
-	parentId: z.string().nullable().optional(),
-});
-
-export const updateTagSchema = z.object({
-	name: tagNameSchema.optional(),
-	color: hexColorSchema.optional(),
-	parentId: z.string().nullable().optional(),
-});
-
-export const deleteTagSchema = z.object({
-	id: tagIdSchema,
-});
-
-export const getTagByIdSchema = z.object({
-	id: tagIdSchema,
-});
-
-export const addTagsToFileSchema = z.object({
-	fileId: fileIdSchema,
-	tagIds: z.array(tagIdSchema).min(1, "At least one tag ID must be provided"),
-});
-
-export const removeTagsFromFileSchema = z.object({
-	fileId: fileIdSchema,
-	tagIds: z.array(tagIdSchema).min(1, "At least one tag ID must be provided"),
 });

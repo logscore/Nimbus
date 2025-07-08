@@ -1,7 +1,7 @@
-import type { DownloadOptions, DownloadResult, ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
 import { DEFAULT_MIME_TYPE, DEFAULT_SPACE, type DriveInfo, type File, type FileMetadata } from "@nimbus/shared";
-import { Client, ResponseType } from "@microsoft/microsoft-graph-client";
+import type { DownloadResult, ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
 import type { DriveItem } from "@microsoft/microsoft-graph-types";
+import { Client } from "@microsoft/microsoft-graph-client";
 import type { Provider } from "../interface/provider";
 import { Readable } from "node:stream";
 
@@ -227,28 +227,17 @@ export class OneDriveProvider implements Provider {
 	// File Operations
 	// ------------------------------------------------------------------------
 
-	// async download(id: string): Promise<Buffer | NodeJS.ReadableStream> {
-	// 	try {
-	// 		const response = await this.client.api(`/me/drive/items/${id}/content`).responseType(ResponseType.STREAM).get();
-
-	// 		return response;
-	// 	} catch (error) {
-	// 		console.error("Error downloading file:", error);
-	// 		throw error;
-	// 	}
-	// }
-
 	/**
 	 * Download a file from OneDrive
 	 * @param fileId The ID of the file to download
 	 * @param options Download options (not used for OneDrive)
 	 * @returns File content and metadata
 	 */
-	async downloadFile(fileId: string, options?: DownloadOptions): Promise<DownloadResult | null> {
+	async download(fileId: string): Promise<DownloadResult | null> {
 		// OneDrive doesn't support export options like Google Drive
 		try {
 			// First, get file metadata to determine the MIME type and name
-			const fileMetadata = await this.getFileById(fileId, ["id", "name", "size", "@microsoft.graph.downloadUrl"]);
+			const fileMetadata = await this.getById(fileId);
 
 			if (!fileMetadata) {
 				return null;
@@ -398,6 +387,27 @@ export class OneDriveProvider implements Provider {
 		}
 	}
 
+	/**
+	 * Get the current access token
+	 * @returns The current access token
+	 */
+	public getAccessToken(): string {
+		return this.accessToken;
+	}
+
+	/**
+	 * Update the access token
+	 * @param token The new access token
+	 */
+	public setAccessToken(token: string): void {
+		this.accessToken = token;
+		this.client = Client.init({
+			authProvider: done => {
+				done(null, token);
+			},
+		});
+	}
+
 	// ------------------------------------------------------------------------
 	// Helper Methods
 	// ------------------------------------------------------------------------
@@ -462,26 +472,5 @@ export class OneDriveProvider implements Provider {
 		}
 
 		throw new Error("Async operation timed out");
-	}
-
-	/**
-	 * Get the current access token
-	 * @returns The current access token
-	 */
-	public getAccessToken(): string {
-		return this.accessToken;
-	}
-
-	/**
-	 * Update the access token
-	 * @param token The new access token
-	 */
-	public setAccessToken(token: string): void {
-		this.accessToken = token;
-		this.client = Client.init({
-			authProvider: done => {
-				done(null, token);
-			},
-		});
 	}
 }

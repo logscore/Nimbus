@@ -1,12 +1,14 @@
 import {
+	ALLOWED_MIME_TYPES,
 	createFileSchema,
 	deleteFileSchema,
 	downloadFileSchema,
 	getFileByIdSchema,
 	getFilesSchema,
+	MAX_FILE_SIZE,
 	updateFileSchema,
 	uploadFileSchema,
-} from "@/validators";
+} from "@nimbus/shared";
 import {
 	fileDeleteRateLimiter,
 	fileGetRateLimiter,
@@ -14,7 +16,6 @@ import {
 	fileUploadRateLimiter,
 } from "@nimbus/cache/rate-limiters";
 import { handleUploadError, sendError, sendSuccess } from "./utils";
-import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "@nimbus/shared";
 import { buildSecurityMiddleware } from "@/middleware";
 import type { UploadedFile } from "@/routes/types";
 import type { Session } from "@nimbus/auth/auth";
@@ -59,7 +60,7 @@ filesRouter.get("/:id", buildSecurityMiddleware(fileGetRateLimiter), async (c: C
 		return sendError(c, error);
 	}
 
-	const file = await fileService.getFileById(user, c.req.raw.headers, data.fileId, data.returnedValues);
+	const file = await fileService.getById(user, c.req.raw.headers, data.fileId, data.returnedValues);
 	if (!file) {
 		return sendError(c, "File not found", 404);
 	}
@@ -191,6 +192,8 @@ filesRouter.post("/upload", buildSecurityMiddleware(fileUploadRateLimiter), asyn
 
 // Download file route
 filesRouter.get("/download/:fileId", buildSecurityMiddleware(fileGetRateLimiter), async (c: Context) => {
+	const user: Session["user"] = c.get("user");
+
 	// Validation
 	const { error, data } = downloadFileSchema.safeParse({
 		fileId: c.req.param("fileId"),
@@ -199,13 +202,13 @@ filesRouter.get("/download/:fileId", buildSecurityMiddleware(fileGetRateLimiter)
 	});
 
 	if (error) {
-		return sendError(c, 400);
+		return sendError(c, error);
 	}
 
 	const fileId = data.fileId;
 
 	try {
-		const success = await fileService.downloadFile(fileId, {
+		const downloadResult = await fileService.downloadFile(user, c.req.raw.headers, fileId, {
 			exportMimeType: data.exportMimeType,
 			acknowledgeAbuse: data.acknowledgeAbuse,
 		});

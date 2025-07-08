@@ -1,5 +1,6 @@
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { extractTokenFromUrl } from "./utils/extract-token";
+import { multiSession } from "better-auth/plugins";
 import { sendMail } from "./utils/send-mail";
 import { betterAuth } from "better-auth";
 import schema from "@nimbus/db/schema";
@@ -16,6 +17,7 @@ export const auth = betterAuth({
 			...schema,
 		},
 	}),
+	plugins: [multiSession()],
 	account: {
 		accountLinking: {
 			enabled: true,

@@ -1,19 +1,18 @@
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogFooter,
-	DialogDescription,
 } from "@/components/ui/dialog";
+import { useEffect, useState, type ReactNode } from "react";
 import { FieldError } from "@/components/ui/field-error";
+import { createTagSchema } from "@nimbus/shared";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { createTagSchema } from "@/schemas";
-import { useState, useEffect } from "react";
-import type { Tag } from "@/lib/types";
-import { type ReactNode } from "react";
+import type { Tag } from "@nimbus/shared";
 
 function renderTagOptions(tags: Tag[], level = 0): ReactNode[] {
 	return tags.flatMap(tag => [

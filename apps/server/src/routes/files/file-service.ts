@@ -49,7 +49,7 @@ export class FileService {
 		return filesWithTags as File[];
 	}
 
-	async getFileById(user: Session["user"], headers: Headers, fileId: string, returnedValues?: string[]) {
+	async getById(user: Session["user"], headers: Headers, fileId: string, returnedValues?: string[]) {
 		const drive = await getDriveProvider(user, headers);
 		const file = await drive.getById(fileId, returnedValues);
 
