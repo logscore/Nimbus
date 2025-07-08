@@ -1,7 +1,6 @@
-import type { DriveInfo, File, FileMetadata, FileTag, FileType, ProviderName, Tag } from "@nimbus/shared";
+import type { File } from "@nimbus/shared";
 
-// Re-export types from shared package
-export type { DriveInfo, File, FileMetadata, FileTag, FileType, ProviderName, Tag };
+// Make sure you keep import File from @nimbus/shared
 
 /**
  * Options for listing files from a storage provider

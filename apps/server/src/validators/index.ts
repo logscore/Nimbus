@@ -1,3 +1,4 @@
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "@nimbus/shared";
 import { z } from "zod";
 
 const fileIdSchema = z
@@ -56,36 +57,6 @@ export const updateFileSchema = z.object({
 	fileId: fileIdSchema,
 	name: z.string().min(1, "Name cannot be empty").max(100, "Name cannot be longer than 100 characters"),
 });
-
-// Maximum file size: 100MB
-export const MAX_FILE_SIZE = 100 * 1024 * 1024;
-// Allowed MIME types
-// TODO: Determine a better way to handle mimeType enforcement.
-export const ALLOWED_MIME_TYPES = [
-	"image/jpeg",
-	"image/png",
-	"image/gif",
-	"image/webp",
-	"image/avif",
-	"image/bmp",
-	"image/svg+xml",
-	"image/tiff",
-	"image/x-icon",
-	"video/mp4",
-	"video/mpeg",
-	"video/quicktime",
-	"video/webm",
-	"video/x-msvideo",
-	"video/x-ms-wmv",
-	"application/pdf",
-	"text/plain",
-	"application/msword",
-	"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-	"application/vnd.ms-excel",
-	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-	"application/vnd.ms-powerpoint",
-	"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-];
 
 export const createFileSchema = z.object({
 	name: z.string().min(1, "Name cannot be empty").max(100, "Name cannot be longer than 100 characters"),

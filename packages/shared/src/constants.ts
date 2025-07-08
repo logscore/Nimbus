@@ -28,7 +28,27 @@ export const ALLOWED_MIME_TYPES = [
 	"video/x-msvideo",
 	"video/x-ms-wmv",
 
-	// Documents
+	// Text and Documents
+	"text/plain",
+	"text/plain;charset=utf-8",
+	"text/plain;charset=us-ascii",
+	"text/plain;charset=iso-8859-1",
+	"text/csv",
+	"text/csv;charset=utf-8",
+	"text/html",
+	"text/css",
+	"text/javascript",
+	"application/json",
+	"application/xml",
+	"text/xml",
+	"application/rtf",
+	"application/x-rtf",
+	"text/richtext",
+	"application/x-tex",
+	"text/markdown",
+	"text/x-markdown",
+
+	// PDF and Office Documents
 	"application/pdf",
 	"application/msword",
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -36,4 +56,16 @@ export const ALLOWED_MIME_TYPES = [
 	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 	"application/vnd.ms-powerpoint",
 	"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+	"application/vnd.oasis.opendocument.text",
+	"application/vnd.oasis.opendocument.spreadsheet",
+	"application/vnd.oasis.opendocument.presentation",
+
+	// Archives
+	"application/zip",
+	"application/x-zip-compressed",
+	"application/x-7z-compressed",
+	"application/x-rar-compressed",
+	"application/x-tar",
+	"application/gzip",
+	"application/x-gzip",
 ];

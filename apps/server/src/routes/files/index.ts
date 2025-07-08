@@ -1,10 +1,8 @@
 import {
-	ALLOWED_MIME_TYPES,
 	createFileSchema,
 	deleteFileSchema,
 	getFileByIdSchema,
 	getFilesSchema,
-	MAX_FILE_SIZE,
 	updateFileSchema,
 	uploadFileSchema,
 } from "@/validators";
@@ -15,6 +13,7 @@ import {
 	fileUploadRateLimiter,
 } from "@nimbus/cache/rate-limiters";
 import { handleUploadError, sendError, sendSuccess } from "./utils";
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "@nimbus/shared";
 import { buildSecurityMiddleware } from "@/middleware";
 import type { UploadedFile } from "@/routes/types";
 import type { Session } from "@nimbus/auth/auth";

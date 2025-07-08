@@ -1,5 +1,13 @@
-import type { DriveInfo, File, FileMetadata, ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
-import { DEFAULT_MIME_TYPE, DEFAULT_ORDER_BY, DEFAULT_PAGE_SIZE, DEFAULT_SPACE } from "@/providers/helpers";
+import {
+	DEFAULT_MIME_TYPE,
+	DEFAULT_ORDER_BY,
+	DEFAULT_PAGE_SIZE,
+	DEFAULT_SPACE,
+	type DriveInfo,
+	type File,
+	type FileMetadata,
+} from "@nimbus/shared";
+import type { ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
 import type { Provider } from "@/providers/interface/provider";
 import { OAuth2Client } from "google-auth-library";
 import { drive_v3 } from "@googleapis/drive";

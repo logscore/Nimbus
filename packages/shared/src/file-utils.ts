@@ -3,7 +3,7 @@
  * @param size File size in bytes or string representation of bytes
  * @returns Formatted size string (e.g., "1.5 MB")
  */
-export function fileSize(size: unknown): string {
+export function formatFileSize(size: unknown): string {
 	let num = typeof size === "number" ? size : Number(size);
 	if (typeof num !== "number" || isNaN(num) || num < 0) {
 		return "Invalid size";

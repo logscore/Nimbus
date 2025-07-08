@@ -1,6 +1,6 @@
-import type { DriveInfo, File, FileMetadata, ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
+import { DEFAULT_MIME_TYPE, DEFAULT_SPACE, type DriveInfo, type File, type FileMetadata } from "@nimbus/shared";
+import type { ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
 import { Client, ResponseType } from "@microsoft/microsoft-graph-client";
-import { DEFAULT_MIME_TYPE, DEFAULT_SPACE } from "@/providers/helpers";
 import type { DriveItem } from "@microsoft/microsoft-graph-types";
 import type { Provider } from "../interface/provider";
 import { Readable } from "node:stream";
