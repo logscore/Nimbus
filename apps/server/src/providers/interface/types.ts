@@ -7,7 +7,7 @@ export interface FileMetadata {
 	name: string;
 
 	/** The MIME type of the file */
-	mimeType?: string;
+	mimeType: string;
 
 	/** ID of the parent folder */
 	parentId?: string;

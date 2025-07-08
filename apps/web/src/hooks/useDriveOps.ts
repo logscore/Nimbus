@@ -1,9 +1,7 @@
-import type { DriveInfo } from "@nimbus/server/shared";
 import { useQuery } from "@tanstack/react-query";
 import { clientEnv } from "@/lib/env/client-env";
+import type { DriveInfo } from "@/lib/types";
 import axios from "axios";
-
-// TODO(typing): fix DriveInfo import because it does not work. response.data is 'any' :(
 
 export const useDriveInfo = () => {
 	return useQuery<DriveInfo>({

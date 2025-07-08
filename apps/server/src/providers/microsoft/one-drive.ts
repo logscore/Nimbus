@@ -154,7 +154,7 @@ export class OneDriveProvider implements Provider {
 		}
 	}
 
-	async update(id: string, metadata: FileMetadata): Promise<File | null> {
+	async update(id: string, metadata: Partial<FileMetadata>): Promise<File | null> {
 		try {
 			const updateData: DriveItem = {};
 

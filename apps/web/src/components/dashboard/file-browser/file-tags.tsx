@@ -7,15 +7,14 @@ import {
 import { CreateTagDialog } from "@/components/dialogs/create-tag-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { File, Tag } from "@/lib/types";
 import { useTags } from "@/hooks/useTags";
-import type { _File } from "@/lib/types";
 import { Plus, X } from "lucide-react";
-import type { Tag } from "@/lib/types";
 import { useState } from "react";
 import { toast } from "sonner";
 
 interface FileTagsProps {
-	file: _File;
+	file: File;
 	availableTags: Tag[];
 	refetch: () => void;
 }

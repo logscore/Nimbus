@@ -12,11 +12,10 @@ import { type UploadFileDialogProps } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export function UploadFolderDialog({ open, onOpenChange, parentId }: UploadFileDialogProps) {
+export function UploadFolderDialog({ open, onOpenChange }: UploadFileDialogProps) {
 	const [selectedFolder, setSelectedFolder] = useState<FileList | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState(0);
-	console.log("Uploading folder: ", parentId);
 
 	// Reset states when dialog closes
 	useEffect(() => {

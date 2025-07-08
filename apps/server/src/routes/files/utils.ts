@@ -12,11 +12,15 @@ export function sendError(c: Context, error: Error | ZodError | string, status: 
 	return c.json<ApiResponse>({ success: false, message }, status);
 }
 
-export function sendSuccess<T>(c: Context, data?: T, message = "Success"): Response {
+export function sendSuccess<T extends Record<string, any> | any[]>(
+	c: Context,
+	data?: T,
+	message = "Success"
+): Response {
 	if (data) {
-		return c.json<ApiResponse & { data: T }>({ success: true, message, data });
+		return c.json<T>(data);
 	}
-	return c.json<ApiResponse>({ success: true, message });
+	return c.json<{ success: boolean; message: string }>({ success: true, message });
 }
 
 export function handleUploadError(error: unknown): { message: string; status: ContentfulStatusCode } {

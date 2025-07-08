@@ -7,8 +7,8 @@ import { FileTabs } from "@/components/dashboard/file-browser/file-tabs";
 import { useGetFiles } from "@/hooks/useFileOperations";
 import { useSearchParams } from "next/navigation";
 import { Loader } from "@/components/loader";
-import { useState, useEffect } from "react";
-import type { _File } from "@/lib/types";
+import { useEffect, useState } from "react";
+import type { File } from "@/lib/types";
 
 export function FileBrowser() {
 	const searchParams = useSearchParams();
@@ -24,8 +24,8 @@ export function FileBrowser() {
 	);
 
 	// Local state for optimistic updates
-	const [localFiles, setLocalFiles] = useState<_File[]>([]);
-	const [originalFiles, setOriginalFiles] = useState<_File[]>([]);
+	const [localFiles, setLocalFiles] = useState<File[]>([]);
+	const [originalFiles, setOriginalFiles] = useState<File[]>([]);
 
 	// Update local state when server data changes
 	useEffect(() => {

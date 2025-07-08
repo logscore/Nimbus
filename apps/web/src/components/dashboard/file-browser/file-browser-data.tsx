@@ -1,18 +1,18 @@
 import {
-	FileText,
-	Folder,
-	MoreVertical,
-	ExternalLink,
-	Copy,
-	// Download,
-	Image as ImageIcon,
-	Video,
-	Music,
 	Archive,
 	Code,
-	FileSpreadsheet,
-	Presentation,
+	Copy,
+	Download,
+	ExternalLink,
 	File as FileIcon,
+	FileSpreadsheet,
+	FileText,
+	Folder,
+	Image as ImageIcon,
+	MoreVertical,
+	Music,
+	Presentation,
+	Video,
 } from "lucide-react";
 import {
 	DropdownMenu,
@@ -29,11 +29,11 @@ import { formatFileSize } from "@/lib/file-utils";
 import { Button } from "@/components/ui/button";
 import { PdfIcon } from "@/components/icons";
 import { useTags } from "@/hooks/useTags";
-import type { _File } from "@/lib/types";
+import type { File } from "@/lib/types";
 import { fileSize } from "@/lib/utils";
 import { FileTags } from "./file-tags";
-import { useState } from "react";
 import type { JSX } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export function FileBrowserData({
@@ -43,7 +43,7 @@ export function FileBrowserData({
 	onOptimisticRename,
 	onRollback,
 }: {
-	data: _File[];
+	data: File[];
 	refetch: () => void;
 	onOptimisticDelete?: (fileId: string) => void;
 	onOptimisticRename?: (fileId: string, newName: string) => void;
@@ -67,7 +67,7 @@ function FilesList({
 	onOptimisticRename,
 	onRollback,
 }: {
-	data: _File[];
+	data: File[];
 	refetch: () => void;
 	onOptimisticDelete?: (fileId: string) => void;
 	onOptimisticRename?: (fileId: string, newName: string) => void;
@@ -106,21 +106,19 @@ function FilesList({
 							: "—";
 
 						// Format modified date better
-						const modifiedDate = file.modificationDate
-							? new Date(file.modificationDate).toLocaleDateString("en-US", {
+						const modifiedDate = file.modifiedTime
+							? new Date(file.modifiedTime).toLocaleDateString("en-US", {
 									year: "numeric",
 									month: "short",
 									day: "numeric",
 									hour: "2-digit",
 									minute: "2-digit",
 								})
-							: file.creationDate;
+							: file.createdTime;
 
 						// Determine file type for dialogs
-						// TODO: Adjust this to use the provider agnostic "folder". This is a big one. Do this ASAP
-						// TODO: Will need to create two-way functions in G Drive and OneDrive providers to translate generic folder/file type to provider specific type
-						const fileType =
-							file.mimeType === "application/vnd.google-apps.folder" || file.mimeType === "folder" ? "folder" : "file";
+						// TODO:(provider agnostic): looks like Google Drive and OneDrive both put .folder on the end of mimeType so this should work for now
+						const fileType = file.mimeType.includes("folder") ? "folder" : "file";
 
 						return (
 							<tr
@@ -171,7 +169,7 @@ function FileActions({
 	onOptimisticRename,
 	onRollback,
 }: {
-	file: _File;
+	file: File;
 	fileType: "file" | "folder";
 	onOptimisticDelete?: (fileId: string) => void;
 	onOptimisticRename?: (fileId: string, newName: string) => void;
@@ -228,13 +226,13 @@ function FileActions({
 		}
 	};
 
-	// const handleDownload = () => {
-	// 	if (file.webContentLink) {
-	// 		window.open(file.webContentLink, "_blank");
-	// 	} else {
-	// 		toast.error("Download not available");
-	// 	}
-	// };
+	const handleDownload = () => {
+		if (file.webContentLink) {
+			window.open(file.webContentLink, "_blank");
+		} else {
+			toast.error("Download not available");
+		}
+	};
 
 	return (
 		<>
@@ -253,12 +251,12 @@ function FileActions({
 								Open
 							</DropdownMenuItem>
 						)}
-						{/* {file.webContentLink && fileType === "file" && (
+						{file.webContentLink && fileType === "file" && (
 							<DropdownMenuItem onClick={handleDownload} className="cursor-pointer">
 								<Download className="mr-2 h-4 w-4" />
 								Download
 							</DropdownMenuItem>
-						)} */}
+						)}
 						{file.webViewLink && (
 							<DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
 								<Copy className="mr-2 h-4 w-4" />
