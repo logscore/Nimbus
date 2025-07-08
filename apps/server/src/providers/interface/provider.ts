@@ -1,4 +1,5 @@
-import type { DriveInfo, File, FileMetadata, ListFilesOptions, ListFilesResult } from "./types";
+import type { DriveInfo, File, FileMetadata } from "@nimbus/shared";
+import type { ListFilesOptions, ListFilesResult } from "./types";
 
 /**
  * Interface for cloud storage providers like Google Drive and OneDrive.

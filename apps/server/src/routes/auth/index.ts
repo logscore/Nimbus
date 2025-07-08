@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { emailSchema } from "@/validators";
+import { emailSchema } from "@nimbus/shared";
 import { user } from "@nimbus/db/schema";
 import { auth } from "@nimbus/auth/auth";
 import type { Context } from "hono";

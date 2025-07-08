@@ -1,41 +1,12 @@
-import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "@nimbus/shared";
+import {
+	ALLOWED_MIME_TYPES,
+	MAX_FILE_SIZE,
+	fileIdSchema,
+	hexColorSchema,
+	tagIdSchema,
+	tagNameSchema,
+} from "@nimbus/shared";
 import { z } from "zod";
-
-const fileIdSchema = z
-	.string()
-	.min(1, "File ID cannot be empty")
-	.max(250, "File ID cannot be longer than 250 characters");
-
-export const sendMailSchema = z.object({
-	to: z.string().email(),
-	subject: z.string().min(1),
-	text: z.string().min(1),
-});
-
-export const emailSchema = z.object({
-	email: z
-		.string()
-		.email("Please enter a valid email address")
-		.refine(email => {
-			const [, domain] = email.split("@");
-			if (!domain) return false;
-
-			const labels = domain.split(".");
-			if (labels.length < 2) return false;
-
-			// Check each label
-			const validLabel = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/;
-			if (!labels.every(label => label.length > 0 && label.length <= 15 && validLabel.test(label))) {
-				return false;
-			}
-
-			// TLD validation
-			const tld = labels.at(-1);
-			if (!tld || tld.length < 2 || !/^[a-zA-Z]{2,}$/.test(tld)) return false;
-
-			return true;
-		}, "Please enter a valid email address and try again"),
-});
 
 export const getFilesSchema = z.object({
 	parentId: z.string().min(1).default("root"),
@@ -74,34 +45,15 @@ export const uploadFileSchema = z.object({
 });
 
 // Tag schemas
-const tagIdSchema = z.string().min(1, "Tag ID cannot be empty").max(250, "Tag ID cannot be longer than 250 characters");
-
 export const createTagSchema = z.object({
-	name: z
-		.string()
-		.min(1, "Tag name cannot be empty")
-		.max(50, "Tag name cannot be longer than 50 characters")
-		.regex(/^[a-zA-Z0-9-_\s]+$/, "Tag name must contain only alphabetic characters, numbers and spaces")
-		.trim(),
-	color: z
-		.string()
-		.regex(/^#[0-9A-F]{6}$/i, "Color must be a valid hex color")
-		.default("#808080"),
+	name: tagNameSchema,
+	color: hexColorSchema.default("#808080"),
 	parentId: z.string().nullable().optional(),
 });
 
 export const updateTagSchema = z.object({
-	name: z
-		.string()
-		.min(1, "Tag name cannot be empty")
-		.max(50, "Tag name cannot be longer than 50 characters")
-		.regex(/^[a-zA-Z0-9-_\s]+$/, "Tag name must contain only alphabetic characters, numbers and spaces")
-		.trim()
-		.optional(),
-	color: z
-		.string()
-		.regex(/^#[0-9A-F]{6}$/i, "Color must be a valid hex color")
-		.optional(),
+	name: tagNameSchema.optional(),
+	color: hexColorSchema.optional(),
 	parentId: z.string().nullable().optional(),
 });
 

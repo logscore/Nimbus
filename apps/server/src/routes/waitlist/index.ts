@@ -2,7 +2,7 @@ import { createRateLimiterMiddleware } from "@/utils/rate-limiter-utils";
 import { waitlistRateLimiter } from "@nimbus/cache/rate-limiters";
 import { zValidator } from "@hono/zod-validator";
 import { waitlist } from "@nimbus/db/schema";
-import { emailSchema } from "@/validators";
+import { emailSchema } from "@nimbus/shared";
 import { count, eq } from "drizzle-orm";
 import type { Context } from "hono";
 import { db } from "@nimbus/db";

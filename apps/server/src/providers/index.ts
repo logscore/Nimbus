@@ -1,6 +1,6 @@
 import { GoogleDriveProvider } from "@/providers/google/google-drive";
 import { OneDriveProvider } from "@/providers/microsoft/one-drive";
-import type { ProviderName } from "@/providers/interface/types";
+import type { ProviderName } from "@nimbus/shared";
 import { getAccount } from "@/lib/utils/accounts";
 import { type Session } from "@nimbus/auth/auth";
 

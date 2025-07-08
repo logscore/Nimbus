@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { clientEnv } from "@/lib/env/client-env";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { emailSchema } from "@nimbus/shared";
 import NumberFlow from "@number-flow/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -13,7 +14,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
-	email: z.string().email("Invalid email. Please check the spelling and try again"),
+	email: emailSchema,
 });
 
 // this is a copy of Analogs waitlist component with some changes

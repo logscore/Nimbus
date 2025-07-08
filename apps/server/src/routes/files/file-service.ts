@@ -1,8 +1,8 @@
-import type { File } from "@/providers/interface/types";
 import { TagService } from "@/routes/tags/tag-service";
 import type { Session } from "@nimbus/auth/auth";
 import { getDriveProvider } from "@/providers";
 import type { Readable } from "node:stream";
+import type { File } from "@nimbus/shared";
 
 export interface ListFilesOptions {
 	parentId?: string;

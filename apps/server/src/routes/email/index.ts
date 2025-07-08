@@ -1,6 +1,6 @@
 import { serverEnv } from "@/lib/env/server-env";
 import { zValidator } from "@hono/zod-validator";
-import { sendMailSchema } from "@/validators";
+import { sendMailSchema } from "@nimbus/shared";
 import type { Context } from "hono";
 import { Resend } from "resend";
 import { Hono } from "hono";
