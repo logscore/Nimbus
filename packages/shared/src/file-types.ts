@@ -61,23 +61,70 @@ export interface File extends FileMetadata {
 }
 
 export interface Tag {
+	/** Unique identifier for the tag */
 	id: string;
+
+	/** Display name of the tag */
 	name: string;
+
+	/** Color code for the tag (e.g., "#FF0000") */
 	color: string;
+
+	/** Optional parent tag ID for hierarchical tags */
 	parentId?: string | null;
+
+	/** ID of the user who owns the tag */
 	userId: string;
+
+	/** ISO 8601 date string when the tag was created */
 	createdAt: string;
+
+	/** ISO 8601 date string when the tag was last updated */
 	updatedAt: string;
+
+	/** Number of files associated with this tag (optional) */
 	_count?: number;
+
+	/** Child tags for hierarchical structure (optional) */
 	children?: Tag[];
 }
 
+export interface FileTag {
+	/** Unique identifier for the file-tag relationship */
+	id: string;
+
+	/** ID of the file */
+	fileId: string;
+
+	/** ID of the tag */
+	tagId: string;
+
+	/** ID of the user who created the relationship */
+	userId: string;
+
+	/** ISO 8601 date string when the relationship was created */
+	createdAt: string;
+}
+
 export interface DriveInfo {
+	/** Total storage space in bytes */
 	totalSpace: number;
+
+	/** Used storage space in bytes */
 	usedSpace: number;
+
+	/** Storage space used by trashed items in bytes */
 	trashSize: number;
+
+	/** Number of items in trash */
 	trashItems: number;
+
+	/** Total number of files */
 	fileCount: number;
+
+	/** Storage quota state (e.g., 'normal', 'nearLimit') */
 	state?: string;
+
+	/** Provider-specific metadata */
 	providerMetadata?: Record<string, unknown>;
 }

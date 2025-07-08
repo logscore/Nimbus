@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useDriveInfo } from "@/hooks/useDriveOps";
 import { Moon, Settings, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fileSize } from "@/utils/fileSize";
+import { formatFileSize } from "@nimbus/shared";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
@@ -63,9 +63,9 @@ export default function StorageFooter() {
 								<div className="h-4 w-32 animate-pulse rounded bg-neutral-300 dark:bg-neutral-500"></div>
 							) : (
 								<div className="flex flex-wrap items-center gap-1 text-sm font-medium text-neutral-500 dark:text-neutral-300">
-									<span>{isPending || isError ? "--" : fileSize(usedSpace)}</span>
+									<span>{isPending || isError ? "--" : formatFileSize(usedSpace)}</span>
 									<span>of</span>
-									<span>{isPending || isError ? "--" : fileSize(totalSpace)}</span>
+									<span>{isPending || isError ? "--" : formatFileSize(totalSpace)}</span>
 								</div>
 							)}
 							<Button

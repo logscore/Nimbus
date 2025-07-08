@@ -6,5 +6,6 @@
 			"@/*": ["./src/*"],
 			"@/lib/*": ["./lib/*"]
 		}
-	}
+	},
+	"exclude": ["node_modules", "dist"]
 }

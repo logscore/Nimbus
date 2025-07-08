@@ -7,7 +7,8 @@
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"dev:hot": "bun --hot src/index.ts",
-		"build": "bun build src/index.ts --target bun --outdir dist",
+		"check": "tsc --noEmit",
+		"build": "bun run check && bun build src/index.ts --target bun --outdir dist",
 		"start": "bun dist/index.js",
 		"docker:build": "bun run build && docker build -t nimbus-server-manual .",
 		"docker:run": "source .env && docker run --name nimbus-server-manual --env-file .env -p $SERVER_PORT:$SERVER_PORT nimbus-server-manual:latest",
@@ -39,6 +40,7 @@
 	"devDependencies": {
 		"@microsoft/microsoft-graph-types": "^2.40.0",
 		"@nimbus/tsconfig": "workspace:*",
-		"@types/pg": "^8.15.4"
+		"@types/pg": "^8.15.4",
+		"typescript": "^5.0.0"
 	}
 }

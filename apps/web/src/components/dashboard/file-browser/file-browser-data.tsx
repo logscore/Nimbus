@@ -25,12 +25,11 @@ import { RenameFileDialog } from "@/components/dialogs/rename-file-dialog";
 import { DeleteFileDialog } from "@/components/dialogs/delete-file-dialog";
 import { useDeleteFile, useUpdateFile } from "@/hooks/useFileOperations";
 import { useRouter, useSearchParams } from "next/navigation";
-import { formatFileSize } from "@/lib/file-utils";
 import { Button } from "@/components/ui/button";
+import { formatFileSize } from "@nimbus/shared";
 import { PdfIcon } from "@/components/icons";
 import { useTags } from "@/hooks/useTags";
 import type { File } from "@/lib/types";
-import { fileSize } from "@/lib/utils";
 import { FileTags } from "./file-tags";
 import type { JSX } from "react";
 import { useState } from "react";
@@ -98,12 +97,7 @@ function FilesList({
 				</thead>
 				<tbody>
 					{data.map(file => {
-						// Use new formatFileSize if size is a number, otherwise fallback to existing logic
-						const size = file.size
-							? typeof file.size === "number"
-								? formatFileSize(file.size)
-								: fileSize(file.size)
-							: "—";
+						const size = file.size ? formatFileSize(file.size) : "—";
 
 						// Format modified date better
 						const modifiedDate = file.modifiedTime

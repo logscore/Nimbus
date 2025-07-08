@@ -1,7 +1,11 @@
-import type { File, FileMetadata, FileType, ProviderName, DriveInfo as SharedDriveInfo, Tag } from "@nimbus/shared";
+import type { DriveInfo, File, FileMetadata, FileTag, FileType, ProviderName, Tag } from "@nimbus/shared";
 
-export type { File, FileMetadata, FileType, ProviderName, SharedDriveInfo, Tag };
+// Re-export types from shared package
+export type { DriveInfo, File, FileMetadata, FileTag, FileType, ProviderName, Tag };
 
+/**
+ * Options for listing files from a storage provider
+ */
 export interface ListFilesOptions {
 	/** Maximum number of items to return per page */
 	pageSize?: number;
@@ -22,30 +26,13 @@ export interface ListFilesOptions {
 	includeTrashed?: boolean;
 }
 
+/**
+ * Result of listing files from a storage provider
+ */
 export interface ListFilesResult {
 	/** Array of files/folders */
 	items: File[];
 
 	/** Token to fetch the next page of results */
 	nextPageToken?: string;
-}
-
-/**
- * Extended DriveInfo with server-specific fields
- */
-export interface DriveInfo extends SharedDriveInfo {
-	/** Storage space in trash in bytes */
-	trashSize: number;
-
-	/** Number of items in trash */
-	trashItems: number;
-
-	/** Total number of files */
-	fileCount: number;
-
-	/** Storage quota state (e.g., 'normal', 'nearLimit', etc.) */
-	state?: string;
-
-	/** Provider-specific metadata */
-	providerMetadata?: Record<string, unknown>;
 }

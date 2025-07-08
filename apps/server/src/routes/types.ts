@@ -1,31 +1,12 @@
+import type { ApiResponse, Tag, FileTag, TagOperationResponse, FileTagOperationResponse } from "@nimbus/shared";
 import type { RateLimiterRedis } from "rate-limiter-flexible";
 
-export interface ApiResponse {
-	success: boolean;
-	message?: string;
-}
+// Re-export types from shared package
+export type { ApiResponse, Tag, FileTag, TagOperationResponse, FileTagOperationResponse };
 
-// Tag API Response Types
-export interface Tag {
-	id: string;
-	name: string;
-	color: string;
-	parentId?: string;
-	userId: string;
-	createdAt: string;
-	updatedAt: string;
-	_count?: number; // File count
-	children?: Tag[]; // Embedded / Children tags
-}
-
-export interface FileTag {
-	id: string;
-	fileId: string;
-	tagId: string;
-	userId: string;
-	createdAt: string;
-}
-
+/**
+ * Represents an uploaded file in a request
+ */
 export interface UploadedFile {
 	name: string;
 	type: string;
@@ -33,20 +14,9 @@ export interface UploadedFile {
 	arrayBuffer: () => Promise<ArrayBuffer>;
 }
 
-export interface TagOperationResponse {
-	success: boolean;
-	message: string;
-	data?: Tag | Tag[];
-}
-
-export interface FileTagOperationResponse {
-	success: boolean;
-	message: string;
-	data?: FileTag[];
-}
-
-// Security/Rate Limiting
-
+/**
+ * Security middleware options
+ */
 export interface SecurityOptions {
 	rateLimiting?: {
 		enabled: boolean;
