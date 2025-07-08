@@ -7,7 +7,7 @@ import {
 	type File,
 	type FileMetadata,
 } from "@nimbus/shared";
-import type { ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
+import type { DownloadOptions, DownloadResult, ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
 import type { Provider } from "@/providers/interface/provider";
 import { OAuth2Client } from "google-auth-library";
 import { drive_v3 } from "@googleapis/drive";
@@ -164,13 +164,108 @@ export class GoogleDriveProvider implements Provider {
 	// File Operations
 	// ------------------------------------------------------------------------
 
-	async download(id: string): Promise<Buffer | NodeJS.ReadableStream | null> {
+	/**
+	 * Download a file from Google Drive
+	 * @param fileId The ID of the file to download
+	 * @param options Download options including export MIME type for Google Workspace files
+	 * @returns File content and metadata
+	 */
+	async download(fileId: string, options?: DownloadOptions): Promise<DownloadResult | null> {
 		try {
-			const response = await this.drive.files.get({ fileId: id, alt: "media" }, { responseType: "stream" });
-			return response.data as NodeJS.ReadableStream;
+			// First, get file metadata to determine the MIME type and name
+			const fileMetadata = await this.drive.files.get({
+				fileId,
+				fields: "id, name, mimeType, size",
+			});
+
+			if (!fileMetadata.data || !fileMetadata.data.name) {
+				return null;
+			}
+
+			const isGoogleWorkspaceFile = fileMetadata.data.mimeType?.startsWith("application/vnd.google-apps.");
+
+			let downloadData: any;
+			let finalMimeType = fileMetadata.data.mimeType || "application/octet-stream";
+			let filename = fileMetadata.data.name;
+
+			if (isGoogleWorkspaceFile && options?.exportMimeType) {
+				// For Google Workspace files, use export
+				downloadData = await this.drive.files.export({
+					fileId,
+					mimeType: options.exportMimeType,
+				});
+				finalMimeType = options.exportMimeType;
+
+				// Update filename with appropriate extension
+				filename = this.addFileExtension(filename, options.exportMimeType);
+			} else {
+				// For regular files, use direct download with acknowledgeAbuse option
+				const queryParams = new URLSearchParams({
+					alt: "media",
+				});
+
+				if (options?.acknowledgeAbuse) {
+					queryParams.append("acknowledgeAbuse", "true");
+				}
+
+				const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?${queryParams.toString()}`, {
+					headers: {
+						Authorization: `Bearer ${(this.drive.context._options.auth as any).credentials.access_token}`,
+						Accept: "*/*",
+					},
+				});
+
+				if (!response.ok) {
+					// If we get a 403 with "acknowledgeAbuse" error, try again with acknowledgeAbuse=true
+					if (response.status === 403) {
+						const errorText = await response.text();
+						if (errorText.includes("acknowledgeAbuse")) {
+							queryParams.set("acknowledgeAbuse", "true");
+							const retryResponse = await fetch(
+								`https://www.googleapis.com/drive/v3/files/${fileId}?${queryParams.toString()}`,
+								{
+									headers: {
+										Authorization: `Bearer ${(this.drive.context._options.auth as any).credentials.access_token}`,
+										Accept: "*/*",
+									},
+								}
+							);
+
+							if (!retryResponse.ok) {
+								throw new Error(`Google Drive API error: ${retryResponse.status} ${retryResponse.statusText}`);
+							}
+
+							const blob = await retryResponse.blob();
+							downloadData = await blob.arrayBuffer();
+						} else {
+							throw new Error(`Google Drive API error: ${response.status} ${response.statusText}`);
+						}
+					} else {
+						throw new Error(`Google Drive API error: ${response.status} ${response.statusText}`);
+					}
+				} else {
+					// Get the response as a blob first to preserve binary data
+					const blob = await response.blob();
+					downloadData = await blob.arrayBuffer();
+				}
+			}
+
+			if (!downloadData) {
+				return null;
+			}
+
+			// Convert response to buffer
+			const buffer = Buffer.from(downloadData);
+
+			return {
+				data: buffer,
+				filename,
+				mimeType: finalMimeType,
+				size: buffer.length,
+			};
 		} catch (error) {
 			console.error("Error downloading file:", error);
-			throw error;
+			return null;
 		}
 	}
 
@@ -398,5 +493,31 @@ export class GoogleDriveProvider implements Provider {
 		this.drive = new drive_v3.Drive({
 			auth: oauth2Client,
 		});
+	}
+
+	/**
+	 * Add appropriate file extension based on MIME type
+	 */
+	private addFileExtension(filename: string, mimeType: string): string {
+		const extensionMap: Record<string, string> = {
+			"application/pdf": ".pdf",
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+			"application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+			"text/plain": ".txt",
+			"text/html": ".html",
+			"text/css": ".css",
+			"application/json": ".json",
+			"image/jpeg": ".jpg",
+			"image/png": ".png",
+			"image/gif": ".gif",
+			"image/svg+xml": ".svg",
+		};
+
+		const extension = extensionMap[mimeType];
+		if (extension && !filename.endsWith(extension)) {
+			return filename + extension;
+		}
+		return filename;
 	}
 }

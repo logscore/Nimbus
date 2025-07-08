@@ -1,5 +1,5 @@
+import type { DownloadOptions, DownloadResult, ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
 import { DEFAULT_MIME_TYPE, DEFAULT_SPACE, type DriveInfo, type File, type FileMetadata } from "@nimbus/shared";
-import type { ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
 import { Client, ResponseType } from "@microsoft/microsoft-graph-client";
 import type { DriveItem } from "@microsoft/microsoft-graph-types";
 import type { Provider } from "../interface/provider";
@@ -8,6 +8,7 @@ import { Readable } from "node:stream";
 export class OneDriveProvider implements Provider {
 	private client: Client;
 	private accessToken: string;
+	private readonly CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
 
 	constructor(accessToken: string) {
 		this.accessToken = accessToken;
@@ -21,8 +22,6 @@ export class OneDriveProvider implements Provider {
 	// ------------------------------------------------------------------------
 	// Core CRUD Operations
 	// ------------------------------------------------------------------------
-
-	private readonly CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
 
 	async create(metadata: FileMetadata, content?: Buffer | NodeJS.ReadableStream): Promise<File | null> {
 		try {
@@ -228,14 +227,56 @@ export class OneDriveProvider implements Provider {
 	// File Operations
 	// ------------------------------------------------------------------------
 
-	async download(id: string): Promise<Buffer | NodeJS.ReadableStream> {
-		try {
-			const response = await this.client.api(`/me/drive/items/${id}/content`).responseType(ResponseType.STREAM).get();
+	// async download(id: string): Promise<Buffer | NodeJS.ReadableStream> {
+	// 	try {
+	// 		const response = await this.client.api(`/me/drive/items/${id}/content`).responseType(ResponseType.STREAM).get();
 
-			return response;
+	// 		return response;
+	// 	} catch (error) {
+	// 		console.error("Error downloading file:", error);
+	// 		throw error;
+	// 	}
+	// }
+
+	/**
+	 * Download a file from OneDrive
+	 * @param fileId The ID of the file to download
+	 * @param options Download options (not used for OneDrive)
+	 * @returns File content and metadata
+	 */
+	async downloadFile(fileId: string, options?: DownloadOptions): Promise<DownloadResult | null> {
+		// OneDrive doesn't support export options like Google Drive
+		try {
+			// First, get file metadata to determine the MIME type and name
+			const fileMetadata = await this.getFileById(fileId, ["id", "name", "size", "@microsoft.graph.downloadUrl"]);
+
+			if (!fileMetadata) {
+				return null;
+			}
+
+			// For OneDrive, we can use the download URL directly
+			const downloadUrl = (fileMetadata as any)["@microsoft.graph.downloadUrl"];
+			if (!downloadUrl) {
+				return null;
+			}
+
+			const response = await fetch(downloadUrl);
+			if (!response.ok) {
+				throw new Error(`OneDrive API error: ${response.status} ${response.statusText}`);
+			}
+
+			const arrayBuffer = await response.arrayBuffer();
+			const buffer = Buffer.from(arrayBuffer);
+
+			return {
+				data: buffer,
+				filename: fileMetadata.name,
+				mimeType: response.headers.get("Content-Type") || "application/octet-stream",
+				size: buffer.length,
+			};
 		} catch (error) {
-			console.error("Error downloading file:", error);
-			throw error;
+			console.error("Error downloading file from OneDrive:", error);
+			return null;
 		}
 	}
 
@@ -423,10 +464,18 @@ export class OneDriveProvider implements Provider {
 		throw new Error("Async operation timed out");
 	}
 
+	/**
+	 * Get the current access token
+	 * @returns The current access token
+	 */
 	public getAccessToken(): string {
 		return this.accessToken;
 	}
 
+	/**
+	 * Update the access token
+	 * @param token The new access token
+	 */
 	public setAccessToken(token: string): void {
 		this.accessToken = token;
 		this.client = Client.init({

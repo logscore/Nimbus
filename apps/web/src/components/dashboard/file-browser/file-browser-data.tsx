@@ -21,9 +21,10 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useDeleteFile, useDownloadFile, useUpdateFile } from "@/hooks/useFileOperations";
+import { useDownloadContext } from "@/components/providers/download-provider";
 import { RenameFileDialog } from "@/components/dialogs/rename-file-dialog";
 import { DeleteFileDialog } from "@/components/dialogs/delete-file-dialog";
-import { useDeleteFile, useUpdateFile } from "@/hooks/useFileOperations";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@nimbus/shared";
@@ -171,6 +172,8 @@ function FileActions({
 }) {
 	const { mutate: deleteFile } = useDeleteFile();
 	const { mutate: renameFile } = useUpdateFile();
+	const { mutate: downloadFile } = useDownloadFile();
+	const { startDownload, updateProgress, completeDownload, errorDownload } = useDownloadContext();
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
@@ -220,11 +223,83 @@ function FileActions({
 		}
 	};
 
-	const handleDownload = () => {
-		if (file.webContentLink) {
-			window.open(file.webContentLink, "_blank");
-		} else {
-			toast.error("Download not available");
+	const handleDownload = async () => {
+		if (fileType === "folder") {
+			toast.error("Cannot download folders");
+			return;
+		}
+
+		try {
+			// Start download progress tracking if available
+			if (startDownload) {
+				startDownload(file.id, file.name);
+
+				// For Google Workspace files, use the downloadFile API with export
+				if (file.mimeType?.startsWith("application/vnd.google-apps.")) {
+					let exportMimeType: string | undefined;
+					if (file.mimeType === "application/vnd.google-apps.document") {
+						exportMimeType = "application/pdf";
+					} else if (file.mimeType === "application/vnd.google-apps.spreadsheet") {
+						exportMimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+					} else if (file.mimeType === "application/vnd.google-apps.presentation") {
+						exportMimeType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+					}
+
+					if (downloadFile) {
+						downloadFile(
+							{
+								fileId: file.id,
+								exportMimeType,
+								fileName: file.name,
+								onProgress: progress => {
+									if (updateProgress) updateProgress(file.id, progress);
+								},
+							},
+							{
+								onSuccess: () => {
+									if (completeDownload) completeDownload(file.id);
+								},
+								onError: error => {
+									const errorMessage = error instanceof Error ? error.message : "Download failed";
+									if (errorDownload) {
+										errorDownload(file.id, errorMessage);
+									} else {
+										toast.error(errorMessage);
+									}
+								},
+							}
+						);
+						return;
+					}
+				}
+
+				// Fallback to direct download if available
+				if (file.webContentLink) {
+					window.open(file.webContentLink, "_blank");
+					if (completeDownload) completeDownload(file.id);
+					return;
+				}
+			}
+
+			// Final fallback to web content link if available
+			if (file.webContentLink) {
+				window.open(file.webContentLink, "_blank");
+				if (completeDownload) completeDownload(file.id);
+			} else {
+				const errorMsg = "Download not available for this file";
+				if (errorDownload) {
+					errorDownload(file.id, errorMsg);
+				} else {
+					toast.error(errorMsg);
+				}
+			}
+		} catch (error) {
+			const errorMsg = error instanceof Error ? error.message : "Download failed";
+			if (errorDownload) {
+				errorDownload(file.id, errorMsg);
+			} else {
+				toast.error(errorMsg);
+			}
 		}
 	};
 
@@ -255,6 +330,12 @@ function FileActions({
 							<DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
 								<Copy className="mr-2 h-4 w-4" />
 								Copy link
+							</DropdownMenuItem>
+						)}
+						{fileType === "file" && (
+							<DropdownMenuItem onClick={handleDownload} className="cursor-pointer">
+								<Download className="mr-2 h-4 w-4" />
+								Download
 							</DropdownMenuItem>
 						)}
 						<DropdownMenuSeparator />

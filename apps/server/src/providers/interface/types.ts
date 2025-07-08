@@ -35,3 +35,22 @@ export interface ListFilesResult {
 	/** Token to fetch the next page of results */
 	nextPageToken?: string;
 }
+
+export interface DownloadOptions {
+	/**
+	 * For Google Workspace files, specify the export format
+	 */
+	exportMimeType?: string;
+
+	/**
+	 * Whether to acknowledge the risk when downloading malware
+	 */
+	acknowledgeAbuse?: boolean;
+}
+
+export interface DownloadResult {
+	data: Buffer;
+	filename: string;
+	mimeType: string;
+	size: number;
+}

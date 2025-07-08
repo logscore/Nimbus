@@ -44,6 +44,16 @@ export const uploadFileSchema = z.object({
 		.refine(file => ALLOWED_MIME_TYPES.includes(file.type), { message: "Invalid file type" }),
 });
 
+export const downloadFileSchema = z.object({
+	fileId: fileIdSchema,
+	exportMimeType: z
+		.string()
+		.min(1, "Export MIME type cannot be empty")
+		.max(100, "Export MIME type too long")
+		.optional(),
+	acknowledgeAbuse: z.boolean().optional(),
+});
+
 // Tag schemas
 export const createTagSchema = z.object({
 	name: tagNameSchema,

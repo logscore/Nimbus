@@ -1,3 +1,4 @@
+import type { DownloadOptions, DownloadResult } from "@/providers/interface/types";
 import type { DriveInfo, File, FileMetadata } from "@nimbus/shared";
 import type { ListFilesOptions, ListFilesResult } from "./types";
 
@@ -63,7 +64,15 @@ export interface Provider {
 	 * @param id The ID of the file to download
 	 * @returns File content as a Buffer or Readable stream
 	 */
-	download(id: string): Promise<Buffer | NodeJS.ReadableStream | null>;
+	// download(id: string): Promise<Buffer | NodeJS.ReadableStream | null>;
+
+	/**
+	 * Download a file
+	 * @param fileId The ID of the file to download
+	 * @param options Download options including export MIME type for Google Workspace files
+	 * @returns File content and metadata
+	 */
+	download(fileId: string, options?: DownloadOptions): Promise<DownloadResult | null>;
 
 	/**
 	 * Copy a file or folder

@@ -1,6 +1,7 @@
 import {
 	createFileSchema,
 	deleteFileSchema,
+	downloadFileSchema,
 	getFileByIdSchema,
 	getFilesSchema,
 	updateFileSchema,
@@ -185,6 +186,43 @@ filesRouter.post("/upload", buildSecurityMiddleware(fileUploadRateLimiter), asyn
 	} catch (error) {
 		const { message, status } = handleUploadError(error);
 		return sendError(c, message, status);
+	}
+});
+
+// Download file route
+filesRouter.get("/download/:fileId", buildSecurityMiddleware(fileGetRateLimiter), async (c: Context) => {
+	// Validation
+	const { error, data } = downloadFileSchema.safeParse({
+		fileId: c.req.param("fileId"),
+		exportMimeType: c.req.query("exportMimeType"),
+		acknowledgeAbuse: c.req.query("acknowledgeAbuse") === "true" || c.req.query("acknowledgeAbuse") === "1",
+	});
+
+	if (error) {
+		return sendError(c, 400);
+	}
+
+	const fileId = data.fileId;
+
+	try {
+		const success = await fileService.downloadFile(fileId, {
+			exportMimeType: data.exportMimeType,
+			acknowledgeAbuse: data.acknowledgeAbuse,
+		});
+
+		if (!downloadResult) {
+			return sendError(c, "File not found or could not be downloaded", 404);
+		}
+
+		// Set appropriate headers for file download
+		c.header("Content-Type", downloadResult.mimeType);
+		c.header("Content-Disposition", `attachment; filename="${downloadResult.filename}"`);
+		c.header("Content-Length", downloadResult.size.toString());
+
+		// Return the file data
+		return c.body(downloadResult.data);
+	} catch (error) {
+		return sendError(c, error instanceof Error ? error.message : "Failed to download file", 500);
 	}
 });
 

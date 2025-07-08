@@ -1,3 +1,4 @@
+import type { DownloadOptions } from "@/providers/interface/types";
 import { TagService } from "@/routes/tags/tag-service";
 import type { Session } from "@nimbus/auth/auth";
 import { getDriveProvider } from "@/providers";
@@ -73,5 +74,10 @@ export class FileService {
 	async createFile(user: Session["user"], headers: Headers, options: CreateFileOptions, fileStream?: Readable) {
 		const drive = await getDriveProvider(user, headers);
 		return drive.create(options, fileStream);
+	}
+
+	async downloadFile(user: Session["user"], headers: Headers, fileId: string, options?: DownloadOptions) {
+		const drive = await getDriveProvider(user, headers);
+		return drive.download(fileId, options);
 	}
 }

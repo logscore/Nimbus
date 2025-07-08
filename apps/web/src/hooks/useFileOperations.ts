@@ -150,3 +150,102 @@ export function useUploadFile() {
 }
 
 export function useUploadFolder() {}
+
+export function useDownloadFile() {
+	return useMutation({
+		mutationFn: async ({
+			fileId,
+			exportMimeType,
+			fileName,
+			onProgress,
+		}: {
+			fileId: string;
+			exportMimeType?: string;
+			fileName?: string;
+			onProgress?: (progress: number) => void;
+		}) => {
+			const params = new URLSearchParams();
+			if (exportMimeType) {
+				params.append("exportMimeType", exportMimeType);
+			}
+
+			const response = await fetch(`${API_BASE}/download/${fileId}?${params.toString()}`, {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({}));
+				throw new Error(errorData.message || "Failed to download file");
+			}
+
+			// Get the filename from the Content-Disposition header
+			const contentDisposition = response.headers.get("Content-Disposition");
+			let filename = fileName || "download";
+			if (contentDisposition) {
+				const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+				if (filenameMatch && filenameMatch[1]) {
+					filename = filenameMatch[1];
+				}
+			}
+
+			// Track download progress if the response supports it
+			const contentLength = response.headers.get("Content-Length");
+			const total = contentLength ? Number.parseInt(contentLength, 10) : 0;
+			let loaded = 0;
+
+			if (response.body && total > 0) {
+				const reader = response.body.getReader();
+				const chunks: Uint8Array[] = [];
+
+				while (true) {
+					const { done, value } = await reader.read();
+					if (done) break;
+
+					chunks.push(value);
+					loaded += value.length;
+
+					// Update progress
+					if (onProgress && total > 0) {
+						const progress = Math.round((loaded / total) * 100);
+						onProgress(progress);
+					}
+				}
+
+				// Combine chunks into blob
+				const blob = new Blob(chunks);
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = filename;
+				document.body.appendChild(a);
+				a.click();
+				window.URL.revokeObjectURL(url);
+				document.body.removeChild(a);
+			} else {
+				// Fallback for responses without progress tracking
+				const blob = await response.blob();
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = filename;
+				document.body.appendChild(a);
+				a.click();
+				window.URL.revokeObjectURL(url);
+				document.body.removeChild(a);
+			}
+
+			return { success: true, filename };
+		},
+		onSuccess: data => {
+			toast.success(`${data.filename} downloaded successfully`);
+		},
+		onError: error => {
+			console.error("Download error:", error);
+			toast.error(error instanceof Error ? error.message : "Failed to download file");
+		},
+	});
+}
