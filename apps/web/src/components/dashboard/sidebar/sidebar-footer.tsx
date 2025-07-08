@@ -1,3 +1,5 @@
+"use client";
+
 import { SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Progress } from "@/components/ui/progress";
 import { useDriveInfo } from "@/hooks/useDriveOps";
@@ -9,11 +11,16 @@ import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
 export default function StorageFooter() {
+	const [mounted, setMounted] = useState(false);
 	const { data, error, isError, isPending } = useDriveInfo();
 	const { theme, setTheme } = useTheme();
 	const [usedSpace, setUsedSpace] = useState<number>(0);
 	const [totalSpace, setTotalSpace] = useState<number>(0);
 	const [usagePercent, setUsagePercent] = useState<number>(0);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
 	useEffect(() => {
 		if (isError && error) {
@@ -74,7 +81,7 @@ export default function StorageFooter() {
 					onClick={() => toggleTheme()}
 					className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
 				>
-					{theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+					{mounted && (theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />)}
 					<span>Theme</span>
 				</SidebarMenuButton>
 				<SidebarMenuButton className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700">

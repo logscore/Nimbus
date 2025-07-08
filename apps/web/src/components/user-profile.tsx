@@ -1,3 +1,5 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
@@ -35,12 +37,24 @@ const getInitials = (name?: string | null) => {
 };
 
 const Profile = ({ className, url, name, size }: ProfileProps) => {
-	const initials = getInitials(name);
+	const [mounted, setMounted] = React.useState(false);
+	const initials = React.useMemo(() => getInitials(name), [name]);
+
+	React.useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	// Don't render anything on the server to avoid hydration mismatch
+	if (!mounted) {
+		return <div className={cn(iconvVariants({ size }), "animate-pulse bg-gray-200 dark:bg-gray-700", className)} />;
+	}
 
 	return (
 		<Avatar className={cn(iconvVariants({ size }), className)}>
-			<AvatarImage src={url as string} />
-			<AvatarFallback className="rounded-md bg-gray-100 text-sm font-semibold text-gray-500">{initials}</AvatarFallback>
+			{url && <AvatarImage src={url} alt={name} />}
+			<AvatarFallback className="rounded-md bg-gray-100 text-sm font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+				{initials}
+			</AvatarFallback>
 		</Avatar>
 	);
 };
