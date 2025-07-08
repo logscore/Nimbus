@@ -1,6 +1,17 @@
+import type { RateLimiterRedis } from "rate-limiter-flexible";
 import type { SecurityOptions } from "@/routes/types";
 import type { Context, Next } from "hono";
 import { webcrypto } from "node:crypto";
+
+export function buildSecurityMiddleware(rateLimiter: RateLimiterRedis) {
+	return securityMiddleware({
+		rateLimiting: {
+			enabled: true,
+			rateLimiter,
+		},
+		securityHeaders: true,
+	});
+}
 
 export const securityMiddleware = (options: SecurityOptions = {}) => {
 	const {

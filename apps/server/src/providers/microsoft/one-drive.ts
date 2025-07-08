@@ -7,8 +7,10 @@ import { Readable } from "node:stream";
 
 export class OneDriveProvider implements Provider {
 	private client: Client;
+	private accessToken: string;
 
 	constructor(accessToken: string) {
+		this.accessToken = accessToken;
 		this.client = Client.init({
 			authProvider: done => {
 				done(null, accessToken);
@@ -419,5 +421,18 @@ export class OneDriveProvider implements Provider {
 		}
 
 		throw new Error("Async operation timed out");
+	}
+
+	public getAccessToken(): string {
+		return this.accessToken;
+	}
+
+	public setAccessToken(token: string): void {
+		this.accessToken = token;
+		this.client = Client.init({
+			authProvider: done => {
+				done(null, token);
+			},
+		});
 	}
 }

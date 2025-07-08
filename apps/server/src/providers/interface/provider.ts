@@ -111,4 +111,20 @@ export interface Provider {
 	 * @returns Paginated list of matching files/folders
 	 */
 	search(query: string, options?: Omit<ListFilesOptions, "filter">): Promise<ListFilesResult>;
+
+	// ------------------------------------------------------------------------
+	// Authentication
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Get the current access token
+	 * @returns The current access token
+	 */
+	getAccessToken(): string;
+
+	/**
+	 * Set a new access token
+	 * @param token The new access token to use
+	 */
+	setAccessToken(token: string): void;
 }

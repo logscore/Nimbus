@@ -9,8 +9,10 @@ import { Readable } from "node:stream";
 
 export class GoogleDriveProvider implements Provider {
 	private drive: drive_v3.Drive;
+	private accessToken: string;
 
 	constructor(accessToken: string) {
+		this.accessToken = accessToken;
 		const oauth2Client = new OAuth2Client();
 		oauth2Client.setCredentials({ access_token: accessToken });
 		this.drive = new drive_v3.Drive({
@@ -375,5 +377,18 @@ export class GoogleDriveProvider implements Provider {
 			return readable;
 		}
 		return content;
+	}
+
+	public getAccessToken(): string {
+		return this.accessToken;
+	}
+
+	public setAccessToken(token: string): void {
+		this.accessToken = token;
+		const oauth2Client = new OAuth2Client();
+		oauth2Client.setCredentials({ access_token: token });
+		this.drive = new drive_v3.Drive({
+			auth: oauth2Client,
+		});
 	}
 }
