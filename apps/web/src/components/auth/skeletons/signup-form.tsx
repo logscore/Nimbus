@@ -1,15 +1,11 @@
-"use client";
-
-
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { SegmentedProgress } from "@/components/ui/segmented-progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
-export function SignupFormSkeleton({ className, ...props }: ComponentProps<"div">) {
+export function SignupFormSkeleton() {
     return (
-        <div className={cn("flex size-full flex-col items-center justify-center gap-0 select-none", className)} {...props}>
+        <div className={cn("flex size-full flex-col items-center justify-center gap-0 select-none")}>
             <Card className="w-full max-w-md gap-6 pb-0">
                 <CardHeader className="overflow-x-hidden">
                     <div className="-mx-6 flex flex-row items-center justify-start border-b">

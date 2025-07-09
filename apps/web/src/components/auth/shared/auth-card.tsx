@@ -14,7 +14,7 @@ export function AuthCard({ title, description, navigationType, children, classNa
 	return (
 		<div className={cn("flex size-full flex-col items-center justify-center gap-0 select-none", className)} {...props}>
 			<Card className="w-full max-w-md gap-6 pb-0">
-				<CardHeader className="overflow-x-hidden">
+				<CardHeader className="overflow	-x-hidden">
 					<div className="-mx-6 flex flex-row items-center justify-between border-b">
 						<Button className="cursor-pointer rounded-none px-6 py-6 font-semibold" variant="link" asChild>
 							<Link href="/">
@@ -35,7 +35,7 @@ export function AuthCard({ title, description, navigationType, children, classNa
 					</div>
 				</CardHeader>
 
-				<CardContent className="px-6">{children}</CardContent>
+				<CardContent className="px-5">{children}</CardContent>
 
 				<CardFooter className="px-6 py-4">
 					<p className="w-full text-center text-sm text-neutral-600">

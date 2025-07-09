@@ -5,18 +5,18 @@ import { PasswordInput } from "@/components/auth/shared/password-input";
 import { AuthCard } from "@/components/auth/shared/auth-card";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { signInSchema, type SignInFormData } from "@/schemas";
-import { FieldError } from "@/components/ui/field-error";
-import type { ComponentProps, ChangeEvent } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { FieldError } from "@/components/ui/field-error";
+import type { ComponentProps, ChangeEvent } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useSignIn } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
-export function SignInForm({ className, ...props }: ComponentProps<"div">) {
+export function SigninForm({ className, ...props }: ComponentProps<"div">) {
 	const { isLoading, signInWithCredentials, signInWithGoogleProvider, signInWithMicrosoftProvider } = useSignIn();
 
 	const {
@@ -49,7 +49,12 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 			{...props}
 		>
 			<div className="flex flex-col gap-4">
-				<SocialAuthButton provider="google" action="signin" onClick={signInWithGoogleProvider} disabled={isLoading} />
+				<SocialAuthButton
+					provider="google"
+					action="signin"
+					onClick={signInWithGoogleProvider}
+					disabled={isLoading}
+				/>
 				<SocialAuthButton
 					provider="microsoft"
 					action="signin"
@@ -57,18 +62,18 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 					disabled={isLoading}
 				/>
 
-				<div className="text-muted-foreground text-center text-sm">OR</div>
+				<div className="text-center text-muted-foreground text-sm font-semibold font-mono tracking-wider">OR</div>
 
 				<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-					<div className="space-y-2">
-						<Label htmlFor="email" className="text-muted-foreground text-sm font-semibold">
+					<div className="space-y-1">
+						<Label htmlFor="email" className="dark:text-muted-foreground text-sm font-semibold">
 							Email
 						</Label>
 						<Input
 							id="email"
 							type="email"
 							placeholder="example@0.email"
-							className="shadow-md"
+							className=""
 							{...register("email")}
 							aria-invalid={!!errors.email}
 							autoComplete="email"
@@ -76,8 +81,8 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 						<FieldError error={errors.email?.message} />
 					</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="password" className="text-muted-foreground text-sm font-semibold">
+					<div className="space-y-1">
+						<Label htmlFor="password" className="dark:text-muted-foreground text-sm font-semibold">
 							Password
 						</Label>
 						<PasswordInput
@@ -91,14 +96,15 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 						<FieldError error={errors.password?.message} />
 					</div>
 
-					<div className="flex items-center justify-between">
-						<div className="flex items-center space-x-2">
+					<div className="flex items-center justify-between mt-1">
+						<div className="flex flex-1 items-center space-x-2">
 							<Checkbox
 								id="remember"
 								{...register("remember")}
 								onCheckedChange={checked => setValue("remember", !!checked)}
+								defaultChecked={true}
 							/>
-							<Label htmlFor="remember" className="text-muted-foreground cursor-pointer text-sm">
+							<Label htmlFor="remember" className="text-muted-foreground cursor-pointer text-sm overflow-hidden line-clamp-1">
 								Remember me
 							</Label>
 						</div>
