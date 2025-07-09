@@ -106,13 +106,11 @@ Follow the instructions on the first step of this [guide](https://www.better-aut
 
 - Enter a name for your app.
 
-- Under <b>Supported account types</b>, choose:  
-  <b>Accounts in any organizational directory and personal Microsoft accounts</b>  
-  (i.e. all Microsoft account users).
+- Under <b>Supported account types</b>, choose: <b>Accounts in any organizational directory and personal Microsoft
+  accounts</b> (i.e. all Microsoft account users).
 
-- Under <b>Redirect URI</b>, select <b>Web</b> and enter:  
-  `http://localhost:1284/api/auth/callback/microsoft`  
-  (Also add `http://localhost:3000` under front-end origins if needed.)
+- Under <b>Redirect URI</b>, select <b>Web</b> and enter: `http://localhost:1284/api/auth/callback/microsoft` (Also add
+  `http://localhost:3000` under front-end origins if needed.)
 
 - After registration, go to the app's <b>Overview</b> to copy your <b>Application (client) ID</b>.
 
@@ -220,3 +218,13 @@ Follow the [DEPLOYMENT.md](DEPLOYMENT.md) file for instructions on how to deploy
 <a href="https://github.com/nimbusdotstorage/Nimbus/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=nimbusdotstorage/Nimbus" />
 </a>
+
+## Deploying Nimbus to VPS/VDS for Production or Development
+
+> Deployment is the same locally or on a server, but OAuth providers (e.g., Google) require a domain for callback URLs.
+
+### Steps to Deploy on a Server:
+
+1. Point your **domain** to the server.
+2. Use the domain in Google API keys for callback URLs (e.g., `https://example.com:1284/api/auth/callback/google`).
+3. Update the `.env` file with the domain (e.g., `FRONTEND_URL=https://example.com:3000`).
