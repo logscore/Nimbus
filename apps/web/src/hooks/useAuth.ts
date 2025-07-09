@@ -7,7 +7,7 @@ import type {
 	SocialProvider,
 } from "@nimbus/shared";
 import { useSocialProvider } from "@/components/providers/social-provider";
-import { useSearchParamsSafely } from "./useSearchParamsSafely";
+import { useSearchParamsSafely } from "@/hooks/useSearchParamsSafely";
 import { authClient } from "@nimbus/auth/auth-client";
 import { useMutation } from "@tanstack/react-query";
 import { clientEnv } from "@/lib/env/client-env";

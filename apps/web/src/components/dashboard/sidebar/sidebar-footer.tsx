@@ -9,6 +9,7 @@ import { formatFileSize } from "@nimbus/shared";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function StorageFooter() {
 	const [mounted, setMounted] = useState(false);
@@ -84,9 +85,11 @@ export default function StorageFooter() {
 					{mounted && (theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />)}
 					<span>Theme</span>
 				</SidebarMenuButton>
-				<SidebarMenuButton className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700">
-					<Settings />
-					<span>Settings</span>
+				<SidebarMenuButton asChild>
+					<Link href="/app/settings">
+						<Settings className="size-4" />
+						<span>Settings</span>
+					</Link>
 				</SidebarMenuButton>
 			</SidebarMenu>
 		</SidebarFooter>

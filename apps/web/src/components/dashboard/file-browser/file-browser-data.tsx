@@ -25,18 +25,19 @@ import {
 	Presentation,
 	Video,
 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useDeleteFile, useDownloadFile, useUpdateFile } from "@/hooks/useFileOperations";
 import { useDownloadContext } from "@/components/providers/download-provider";
 import { RenameFileDialog } from "@/components/dialogs/rename-file-dialog";
 import { DeleteFileDialog } from "@/components/dialogs/delete-file-dialog";
 import { useSocialProvider } from "@/components/providers/social-provider";
+import { FileTags } from "@/components/dashboard/file-browser/file-tags";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@nimbus/shared";
 import { PdfIcon } from "@/components/icons";
 import type { File } from "@nimbus/shared";
 import { useTags } from "@/hooks/useTags";
-import { FileTags } from "./file-tags";
 import type { JSX } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -83,82 +84,80 @@ function FilesList({
 	const searchParams = useSearchParams();
 
 	return (
-		<div className="overflow-hidden rounded-md border">
-			<table className="w-full table-fixed">
-				<colgroup>
-					<col className="w-2/5" />
-					<col className="w-1/5" />
-					<col className="w-1/6" />
-					<col className="w-1/8" />
-					<col className="w-1/8" />
-				</colgroup>
-				<thead className="text-muted-foreground bg-muted/50 text-left text-xs font-medium">
-					<tr>
-						<th className="p-3 font-semibold">Name</th>
-						<th className="p-3 font-semibold">Modified</th>
-						<th className="p-3 font-semibold">Size</th>
-						<th className="p-3 font-semibold">Actions</th>
-						<th className="p-3 font-semibold">Tags</th>
-					</tr>
-				</thead>
-				<tbody>
-					{data.map(file => {
-						const size = file.size ? formatFileSize(file.size) : "—";
+		<Table wrapperClassName="overflow-hidden" tableLayout="fixed">
+			<colgroup>
+				<col className="w-2/5" />
+				<col className="w-1/5" />
+				<col className="w-1/6" />
+				<col className="w-1/8" />
+				<col className="w-1/8" />
+			</colgroup>
+			<TableHeader>
+				<TableRow>
+					<TableHead>Name</TableHead>
+					<TableHead>Modified</TableHead>
+					<TableHead>Size</TableHead>
+					<TableHead>Actions</TableHead>
+					<TableHead>Tags</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{data.map(file => {
+					const size = file.size ? formatFileSize(file.size) : "—";
 
-						// Format modified date better
-						const modifiedDate = file.modifiedTime
-							? new Date(file.modifiedTime).toLocaleDateString("en-US", {
-									year: "numeric",
-									month: "short",
-									day: "numeric",
-									hour: "2-digit",
-									minute: "2-digit",
-								})
-							: file.createdTime;
+					// Format modified date better
+					const modifiedDate = file.modifiedTime
+						? new Date(file.modifiedTime).toLocaleDateString("en-US", {
+								year: "numeric",
+								month: "short",
+								day: "numeric",
+								hour: "2-digit",
+								minute: "2-digit",
+							})
+						: file.createdTime;
 
-						// Determine file type for dialogs
-						// TODO:(provider agnostic): looks like Google Drive and OneDrive both put .folder on the end of mimeType so this should work for now
-						const fileType = file.mimeType.includes("folder") ? "folder" : "file";
+					// Determine file type for dialogs
+					// TODO:(provider agnostic): looks like Google Drive and OneDrive both put .folder on the end of mimeType so this should work for now
+					const fileType = file.mimeType.includes("folder") ? "folder" : "file";
 
-						return (
-							<tr
-								key={file.id}
-								className="hover:bg-accent/10 relative cursor-pointer border-t transition-colors"
-								tabIndex={0}
-								onClick={() => {
-									if (fileType === "folder") {
-										const params = new URLSearchParams(searchParams);
-										params.set("folderId", file.id);
-										router.push(`?${params.toString()}`);
-									}
-								}}
-							>
-								<td className="p-4">
-									<div className="relative z-10 flex min-w-0 items-center gap-3">
-										<div className="flex-shrink-0">{getModernFileIcon(file.mimeType, file.name)}</div>
-										<span className="truncate text-sm font-medium">{file.name}</span>
-									</div>
-								</td>
-								<td className="text-muted-foreground p-3 text-sm">{modifiedDate}</td>
-								<td className="text-muted-foreground p-3 text-sm">{size}</td>
-								<td className="relative p-3">
-									<FileActions
-										file={file}
-										fileType={fileType}
-										onOptimisticDelete={onOptimisticDelete}
-										onOptimisticRename={onOptimisticRename}
-										onRollback={onRollback}
-									/>
-								</td>
-								<td className="relative p-3">
-									<FileTags file={file} availableTags={tags} refetch={refetch} />
-								</td>
-							</tr>
-						);
-					})}
-				</tbody>
-			</table>
-		</div>
+					return (
+						<TableRow
+							key={file.id}
+							clickable={fileType === "folder"}
+							tabIndex={0}
+							onClick={() => {
+								if (fileType === "folder") {
+									const params = new URLSearchParams(searchParams);
+									params.set("folderId", file.id);
+									router.push(`?${params.toString()}`);
+								}
+							}}
+						>
+							<TableCell className="p-4">
+								<div className="relative z-10 flex min-w-0 items-center gap-3">
+									<div className="flex-shrink-0">{getModernFileIcon(file.mimeType, file.name)}</div>
+									<span className="truncate text-sm font-medium">{file.name}</span>
+								</div>
+							</TableCell>
+							<TableCell textMuted>{modifiedDate}</TableCell>
+							<TableCell textMuted>{size}</TableCell>
+							<TableCell className="relative">
+								<FileActions
+									file={file}
+									fileType={fileType}
+									onOptimisticDelete={onOptimisticDelete}
+									onOptimisticRename={onOptimisticRename}
+									onRollback={onRollback}
+								/>
+							</TableCell>
+							<TableCell className="relative">
+								<FileTags file={file} availableTags={tags} refetch={refetch} />
+							</TableCell>
+						</TableRow>
+					);
+				})}
+			</TableBody>
+		</Table>
 	);
 }
 

@@ -25,9 +25,10 @@ export interface AuthCardProps extends ComponentProps<"div"> {
 
 type AuthAction = "signin" | "signup";
 
-export interface SocialAuthButtonProps extends Omit<ComponentProps<typeof Button>, "children" | "variant" | "type"> {
+export interface SocialAuthButtonProps extends Omit<ComponentProps<typeof Button>, "variant" | "type"> {
 	provider: SocialProvider;
 	action: AuthAction;
+	children?: ReactNode;
 }
 
 export interface PasswordInputProps extends Omit<ComponentProps<typeof Input>, "type"> {

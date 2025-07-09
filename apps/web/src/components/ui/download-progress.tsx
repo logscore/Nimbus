@@ -1,8 +1,8 @@
 "use client";
 
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
-import { useState, useEffect } from "react";
-import { Progress } from "./progress";
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface DownloadProgressProps {
