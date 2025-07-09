@@ -1,8 +1,8 @@
 import { GoogleDriveProvider } from "@/providers/google/google-drive";
 import { OneDriveProvider } from "@/providers/microsoft/one-drive";
+import { type SessionUser } from "@nimbus/auth/auth";
 import type { SocialProvider } from "@nimbus/shared";
 import { getAccount } from "@/lib/utils/accounts";
-import { type Session } from "@nimbus/auth/auth";
 
 const createDriveProvider = (providerName: SocialProvider, accessToken: string) => {
 	if (providerName === "google") {
@@ -14,7 +14,7 @@ const createDriveProvider = (providerName: SocialProvider, accessToken: string) 
 	throw new Error("Unsupported provider");
 };
 
-export const getDriveProvider = async (user: Session["user"] | null, headers: Headers) => {
+export const getDriveProvider = async (user: SessionUser | null, headers: Headers) => {
 	if (!user) {
 		throw new Error("User not authenticated");
 	}

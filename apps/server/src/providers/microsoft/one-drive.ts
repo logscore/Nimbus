@@ -124,8 +124,8 @@ export class OneDriveProvider implements Provider {
 				}
 
 				// Progress could be reported here
-				const progress = Math.round(((end + 1) / fileSize) * 100);
-				console.log(`Upload progress: ${progress}%`);
+				// const progress = Math.round(((end + 1) / fileSize) * 100);
+				// console.log(`Upload progress: ${progress}%`);
 			}
 
 			// 3. Get the uploaded item

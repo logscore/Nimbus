@@ -12,11 +12,13 @@
 		"@nimbus/tsconfig": "workspace:*"
 	},
 	"peerDependencies": {
-		"typescript": "^5"
+		"typescript": "^5.8.3"
 	},
 	"dependencies": {
+		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
 		"axios": "^1.10.0",
-		"better-auth": "^1.2.12"
+		"better-auth": "^1.2.12",
+		"drizzle-orm": "^0.44.2"
 	}
 }

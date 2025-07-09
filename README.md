@@ -125,7 +125,7 @@ Follow the instructions on the first step of this [guide](https://www.better-aut
   - `openid` – Sign users in
   - `profile` – View users' basic profile
   - `User.Read` – Sign in and read user profile
-  - `Files.ReadWrite` – Have full access to user files (OneDrive access)
+  - `Files.ReadWrite.All` – Have full access to user files (OneDrive access)
 
 - Click <b>Grant admin consent</b> to apply the permissions.
 

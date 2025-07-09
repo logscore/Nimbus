@@ -6,6 +6,7 @@ import type { Tag } from "@nimbus/shared";
 import { toast } from "sonner";
 
 const TAGS_QUERY_KEY = "tags";
+const API_BASE = `${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags`;
 
 export function useTags() {
 	const queryClient = useQueryClient();
@@ -200,14 +201,14 @@ export function useTags() {
 }
 
 async function getTags(): Promise<Tag[]> {
-	const response = await axios.get(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags`, {
+	const response = await axios.get(`${API_BASE}`, {
 		withCredentials: true,
 	});
 	return response.data.data;
 }
 
 async function createTag(data: CreateTagInput): Promise<Tag> {
-	const response = await axios.post(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags`, data, {
+	const response = await axios.post(`${API_BASE}`, data, {
 		withCredentials: true,
 	});
 	return response.data.data;
@@ -215,21 +216,21 @@ async function createTag(data: CreateTagInput): Promise<Tag> {
 
 async function updateTag(data: UpdateTagInput): Promise<Tag> {
 	const { id, ...updateData } = data;
-	const response = await axios.put(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags/${id}`, updateData, {
+	const response = await axios.put(`${API_BASE}/${id}`, updateData, {
 		withCredentials: true,
 	});
 	return response.data.data;
 }
 
 async function deleteTag(id: string): Promise<void> {
-	await axios.delete(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags/${id}`, {
+	await axios.delete(`${API_BASE}/${id}`, {
 		withCredentials: true,
 	});
 }
 
 async function addTagsToFile(variables: { fileId: string; tagIds: string[]; onSuccess?: () => void }): Promise<void> {
 	await axios.post(
-		`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags/files/${variables.fileId}`,
+		`${API_BASE}/files/${variables.fileId}`,
 		{ tagIds: variables.tagIds },
 		{
 			withCredentials: true,
@@ -242,7 +243,7 @@ async function removeTagsFromFile(variables: {
 	tagIds: string[];
 	onSuccess?: () => void;
 }): Promise<void> {
-	await axios.delete(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags/files/${variables.fileId}`, {
+	await axios.delete(`${API_BASE}/files/${variables.fileId}`, {
 		data: { tagIds: variables.tagIds },
 		withCredentials: true,
 	});

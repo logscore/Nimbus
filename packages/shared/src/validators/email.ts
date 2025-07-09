@@ -28,3 +28,7 @@ export const sendMailSchema = z.object({
 	subject: z.string().min(1, "Subject is required"),
 	text: z.string().min(1, "Message text is required"),
 });
+
+export const checkEmailSchema = z.object({
+	email: emailSchema,
+});

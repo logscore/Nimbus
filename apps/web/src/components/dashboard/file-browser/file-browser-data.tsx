@@ -30,7 +30,6 @@ import { useDeleteFile, useDownloadFile, useUpdateFile } from "@/hooks/useFileOp
 import { useDownloadContext } from "@/components/providers/download-provider";
 import { RenameFileDialog } from "@/components/dialogs/rename-file-dialog";
 import { DeleteFileDialog } from "@/components/dialogs/delete-file-dialog";
-import { useSocialProvider } from "@/components/providers/social-provider";
 import { FileTags } from "@/components/dashboard/file-browser/file-tags";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -177,7 +176,6 @@ function FileActions({
 	const { mutate: deleteFile } = useDeleteFile();
 	const { mutate: renameFile } = useUpdateFile();
 	const { mutate: downloadFile } = useDownloadFile();
-	const { provider } = useSocialProvider();
 	const { startDownload, updateProgress, completeDownload, errorDownload } = useDownloadContext();
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
@@ -294,15 +292,16 @@ function FileActions({
 	};
 
 	const handleDirectDownload = async () => {
-		const isGoogleProvider = provider === "google";
+		// TODO:(session): get provider from session
+		// const isGoogleProvider = provider === "google";
 
 		// TODO:(provider context): figure this out when we implement multiSession / multiProvider support
-		console.log({ isGoogleProvider, provider });
+		// console.log({ isGoogleProvider, provider });
 
-		if (isGoogleProvider) {
-			const success = await handleGoogleWorkspaceDownload();
-			if (success) return true;
-		}
+		// if (isGoogleProvider) {
+		// 	const success = await handleGoogleWorkspaceDownload();
+		// 	if (success) return true;
+		// }
 
 		if (!file.webContentLink) return false;
 

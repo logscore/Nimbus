@@ -2,7 +2,6 @@
 
 import { DownloadProvider } from "@/components/providers/download-provider";
 import { ReactQueryProvider } from "@/components/providers/query-provider";
-import { SocialProvider } from "@/components/providers/social-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Geist, Geist_Mono } from "next/font/google";
 import { siteConfig } from "@/utils/site-config";
@@ -82,14 +81,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			<body className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} antialiased`}>
 				<ReactQueryProvider>
 					<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-						<SocialProvider>
-							<DownloadProvider>
-								<div className="relative min-h-screen">
-									<main className="flex flex-1 justify-center">{children}</main>
-									<Toaster position="top-center" richColors theme="system" />
-								</div>
-							</DownloadProvider>
-						</SocialProvider>
+						<DownloadProvider>
+							<div className="relative min-h-screen">
+								<main className="flex flex-1 justify-center">{children}</main>
+								<Toaster position="top-center" richColors theme="system" />
+							</div>
+						</DownloadProvider>
 					</ThemeProvider>
 				</ReactQueryProvider>
 			</body>

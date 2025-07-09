@@ -1,6 +1,6 @@
 import type { DownloadOptions } from "@/providers/interface/types";
 import { TagService } from "@/routes/tags/tag-service";
-import type { Session } from "@nimbus/auth/auth";
+import type { SessionUser } from "@nimbus/auth/auth";
 import { getDriveProvider } from "@/providers";
 import type { Readable } from "node:stream";
 import type { File } from "@nimbus/shared";
@@ -25,7 +25,7 @@ export class FileService {
 		this.tagService = new TagService();
 	}
 
-	async listFiles(user: Session["user"], headers: Headers, options: ListFilesOptions) {
+	async listFiles(user: SessionUser, headers: Headers, options: ListFilesOptions) {
 		const drive = await getDriveProvider(user, headers);
 		const res = await drive.listChildren(options.parentId, {
 			pageSize: options.pageSize,
@@ -49,7 +49,7 @@ export class FileService {
 		return filesWithTags as File[];
 	}
 
-	async getById(user: Session["user"], headers: Headers, fileId: string, returnedValues?: string[]) {
+	async getById(user: SessionUser, headers: Headers, fileId: string, returnedValues?: string[]) {
 		const drive = await getDriveProvider(user, headers);
 		const file = await drive.getById(fileId, returnedValues);
 
@@ -61,22 +61,22 @@ export class FileService {
 		return { ...file, tags } as File;
 	}
 
-	async updateFile(user: Session["user"], headers: Headers, fileId: string, updates: { name: string }) {
+	async updateFile(user: SessionUser, headers: Headers, fileId: string, updates: { name: string }) {
 		const drive = await getDriveProvider(user, headers);
 		return drive.update(fileId, updates);
 	}
 
-	async deleteFile(user: Session["user"], headers: Headers, fileId: string) {
+	async deleteFile(user: SessionUser, headers: Headers, fileId: string) {
 		const drive = await getDriveProvider(user, headers);
 		return drive.delete(fileId);
 	}
 
-	async createFile(user: Session["user"], headers: Headers, options: CreateFileOptions, fileStream?: Readable) {
+	async createFile(user: SessionUser, headers: Headers, options: CreateFileOptions, fileStream?: Readable) {
 		const drive = await getDriveProvider(user, headers);
 		return drive.create(options, fileStream);
 	}
 
-	async downloadFile(user: Session["user"], headers: Headers, fileId: string, options?: DownloadOptions) {
+	async downloadFile(user: SessionUser, headers: Headers, fileId: string, options?: DownloadOptions) {
 		const drive = await getDriveProvider(user, headers);
 		return drive.download(fileId, options);
 	}

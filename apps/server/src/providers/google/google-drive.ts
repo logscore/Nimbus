@@ -171,8 +171,6 @@ export class GoogleDriveProvider implements Provider {
 	 * @returns File content and metadata
 	 */
 	async download(fileId: string, options?: DownloadOptions): Promise<DownloadResult | null> {
-		console.log("Downloading file:", fileId);
-
 		try {
 			// First, get file metadata to determine the MIME type and name
 			const fileMetadata = await this.drive.files.get({

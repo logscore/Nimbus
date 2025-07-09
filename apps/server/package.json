@@ -20,7 +20,7 @@
 		"fly:deploy": "bun run build && bash ../../scripts/fly:deploy.sh server"
 	},
 	"dependencies": {
-		"@googleapis/drive": "^13.0.1",
+		"@googleapis/drive": "^14.1.0",
 		"@hono/zod-validator": "^0.7.0",
 		"@microsoft/microsoft-graph-client": "^3.0.7",
 		"@nimbus/auth": "workspace:*",

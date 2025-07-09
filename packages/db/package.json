@@ -24,7 +24,7 @@
 		"drizzle-kit": "^0.31.4"
 	},
 	"peerDependencies": {
-		"typescript": "^5"
+		"typescript": "^5.8.3"
 	},
 	"dependencies": {
 		"drizzle-orm": "^0.44.2",

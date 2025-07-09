@@ -6,7 +6,6 @@ import type {
 	SignUpFormData,
 	SocialProvider,
 } from "@nimbus/shared";
-import { useSocialProvider } from "@/components/providers/social-provider";
 import { useSearchParamsSafely } from "@/hooks/useSearchParamsSafely";
 import { authClient } from "@nimbus/auth/auth-client";
 import { useMutation } from "@tanstack/react-query";
@@ -15,6 +14,8 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import axios from "axios";
+
+const API_BASE = `${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/auth`;
 
 const signInWithProvider = async (provider: SocialProvider) => {
 	return authClient.signIn.social({
@@ -43,7 +44,6 @@ const getProviderDisplayName = (provider: SocialProvider): string => {
 
 export const useSocialAuth = (provider: SocialProvider) => {
 	const [isLoading, setIsLoading] = useState(false);
-	const { setProvider } = useSocialProvider();
 	const providerName = getProviderDisplayName(provider);
 
 	const handleAuth = useCallback(async () => {
@@ -61,7 +61,6 @@ export const useSocialAuth = (provider: SocialProvider) => {
 				error: (error: unknown) => handleAuthError(error, `${providerName} authentication failed`),
 			});
 
-			setProvider(provider);
 			return true;
 		} catch (error) {
 			const errorMessage = handleAuthError(error, `${providerName} authentication failed`);
@@ -70,7 +69,7 @@ export const useSocialAuth = (provider: SocialProvider) => {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [provider, providerName, setProvider]);
+	}, [provider, providerName]);
 
 	return { handleAuth, isLoading };
 };
@@ -262,7 +261,9 @@ export const useSignOut = () => {
 
 export const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
 	try {
-		const response = await axios.post<{ exists: boolean }>("/api/auth/check-email", { email });
+		const response = await axios.post<{ exists: boolean }>(`${API_BASE}/check-email`, {
+			email,
+		});
 		return response.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {

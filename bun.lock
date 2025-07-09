@@ -24,28 +24,28 @@
       "name": "@nimbus/server",
       "version": "0.0.3",
       "dependencies": {
-        "@googleapis/drive": "^13.0.1",
-        "@hono/zod-validator": "^0.7.0",
-        "@microsoft/microsoft-graph-client": "^3.0.7",
+        "@googleapis/drive": "latest",
+        "@hono/zod-validator": "latest",
+        "@microsoft/microsoft-graph-client": "latest",
         "@nimbus/auth": "workspace:*",
         "@nimbus/cache": "workspace:*",
         "@nimbus/db": "workspace:*",
         "@nimbus/shared": "workspace:*",
-        "@t3-oss/env-core": "^0.13.8",
-        "drizzle-orm": "^0.44.2",
-        "google-auth-library": "^10.1.0",
-        "hono": "^4.8.4",
-        "nanoid": "^5.1.5",
-        "pg": "^8.16.3",
-        "rate-limiter-flexible": "^7.1.1",
-        "resend": "^4.6.0",
-        "zod": "^3.25.76",
+        "@t3-oss/env-core": "latest",
+        "drizzle-orm": "latest",
+        "google-auth-library": "latest",
+        "hono": "latest",
+        "nanoid": "latest",
+        "pg": "latest",
+        "rate-limiter-flexible": "latest",
+        "resend": "latest",
+        "zod": "latest",
       },
       "devDependencies": {
-        "@microsoft/microsoft-graph-types": "^2.40.0",
+        "@microsoft/microsoft-graph-types": "latest",
         "@nimbus/tsconfig": "workspace:*",
-        "@types/pg": "^8.15.4",
-        "typescript": "^5.8.3",
+        "@types/pg": "latest",
+        "typescript": "latest",
       },
     },
     "apps/web": {
@@ -68,7 +68,7 @@
         "@radix-ui/react-tabs": "^1.1.12",
         "@radix-ui/react-tooltip": "^1.2.7",
         "@t3-oss/env-core": "^0.13.8",
-        "@tailwindcss/postcss": "^4",
+        "@tailwindcss/postcss": "^4.1.11",
         "@tanstack/react-query": "^5.81.5",
         "axios": "^1.10.0",
         "better-auth": "^1.2.12",
@@ -84,19 +84,19 @@
         "react-hook-form": "^7.60.0",
         "sonner": "^2.0.6",
         "tailwind-merge": "^3.3.1",
-        "tailwindcss": "^4",
+        "tailwindcss": "^4.1.11",
         "tw-animate-css": "^1.3.5",
         "zod": "^3.25.76",
       },
       "devDependencies": {
-        "@eslint/eslintrc": "^3",
+        "@eslint/eslintrc": "^3.3.1",
         "@nimbus/eslint": "workspace:*",
         "@nimbus/tsconfig": "workspace:*",
-        "@types/react": "^19",
-        "@types/react-dom": "^19",
-        "eslint": "^9",
+        "@types/react": "^19.1.8",
+        "@types/react-dom": "^19.1.6",
+        "eslint": "^9.30.1",
         "eslint-config-next": "15.3.5",
-        "typescript": "^5",
+        "typescript": "^5.8.3",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -106,15 +106,17 @@
       "name": "@nimbus/auth",
       "version": "0.0.0",
       "dependencies": {
+        "@nimbus/cache": "workspace:*",
         "@nimbus/db": "workspace:*",
         "axios": "^1.10.0",
         "better-auth": "^1.2.12",
+        "drizzle-orm": "^0.44.2",
       },
       "devDependencies": {
         "@nimbus/tsconfig": "workspace:*",
       },
       "peerDependencies": {
-        "typescript": "^5",
+        "typescript": "^5.8.3",
       },
     },
     "packages/cache": {
@@ -128,7 +130,7 @@
       },
       "devDependencies": {
         "@nimbus/tsconfig": "workspace:*",
-        "@types/bun": "latest",
+        "@types/bun": "^1.2.18",
       },
     },
     "packages/db": {
@@ -143,7 +145,7 @@
         "drizzle-kit": "^0.31.4",
       },
       "peerDependencies": {
-        "typescript": "^5",
+        "typescript": "^5.8.3",
       },
     },
     "packages/eslint": {
@@ -277,7 +279,7 @@
 
     "@floating-ui/utils": ["@floating-ui/utils@0.2.10", "", {}, "sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ=="],
 
-    "@googleapis/drive": ["@googleapis/drive@13.0.1", "", { "dependencies": { "googleapis-common": "^8.0.2-rc.0" } }, "sha512-n6smJQyKTllRbXI8Xe/9IsCI+tuY20bhs9lircO+t2+a4k2t08NCZuujsBgIBTiE29v2kDzrrKdsuPxg5lUmXw=="],
+    "@googleapis/drive": ["@googleapis/drive@14.1.0", "", { "dependencies": { "googleapis-common": "^8.0.2-rc.0" } }, "sha512-4xVgkVwbbWSawnS05ZA3Ixe7fUz44jsrdYf4EwcHoPZ89oR3UGz4NPBc5HSNL/mOc1WW9Rh2pGDGl7clRX1NHw=="],
 
     "@hexagon/base64": ["@hexagon/base64@1.1.28", "", {}, "sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw=="],
 
@@ -603,7 +605,7 @@
 
     "@types/json5": ["@types/json5@0.0.29", "", {}, "sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ=="],
 
-    "@types/node": ["@types/node@24.0.11", "", { "dependencies": { "undici-types": "~7.8.0" } }, "sha512-CJV8eqrYnwQJGMrvcRhQmZfpyniDavB+7nAZYJc6w99hFYJyFN3INV1/2W3QfQrqM36WTLrijJ1fxxvGBmCSxA=="],
+    "@types/node": ["@types/node@24.0.12", "", { "dependencies": { "undici-types": "~7.8.0" } }, "sha512-LtOrbvDf5ndC9Xi+4QZjVL0woFymF/xSTKZKPgrrl7H7XoeDvnD+E2IclKVDyaK9UM756W/3BXqSU+JEHopA9g=="],
 
     "@types/pg": ["@types/pg@8.15.4", "", { "dependencies": { "@types/node": "*", "pg-protocol": "*", "pg-types": "^2.2.0" } }, "sha512-I6UNVBAoYbvuWkkU3oosC8yxqH21f4/Jc4DK71JLG3dT2mdlGe1z+ep/LQGXaKaOgcvUrsQoPRqfgtMcvZiJhg=="],
 

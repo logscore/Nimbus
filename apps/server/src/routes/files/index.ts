@@ -17,8 +17,8 @@ import {
 } from "@nimbus/cache/rate-limiters";
 import { handleUploadError, sendError, sendSuccess } from "./utils";
 import { buildSecurityMiddleware } from "@/middleware";
+import type { SessionUser } from "@nimbus/auth/auth";
 import type { UploadedFile } from "@/routes/types";
-import type { Session } from "@nimbus/auth/auth";
 import { FileService } from "./file-service";
 import { Readable } from "node:stream";
 import type { Context } from "hono";
@@ -30,7 +30,7 @@ const fileService = new FileService();
 export type FilesRouter = typeof filesRouter;
 
 filesRouter.get("/", buildSecurityMiddleware(fileGetRateLimiter), async (c: Context) => {
-	const user: Session["user"] = c.get("user");
+	const user: SessionUser = c.get("user");
 
 	const { data, error } = getFilesSchema.safeParse({
 		parentId: c.req.query("parentId"),
@@ -53,7 +53,7 @@ filesRouter.get("/", buildSecurityMiddleware(fileGetRateLimiter), async (c: Cont
 
 // Get file by ID
 filesRouter.get("/:id", buildSecurityMiddleware(fileGetRateLimiter), async (c: Context) => {
-	const user: Session["user"] = c.get("user");
+	const user: SessionUser = c.get("user");
 
 	const { error, data } = getFileByIdSchema.safeParse(c.req.param());
 	if (error) {
@@ -70,7 +70,7 @@ filesRouter.get("/:id", buildSecurityMiddleware(fileGetRateLimiter), async (c: C
 
 // Update file
 filesRouter.put("/", buildSecurityMiddleware(fileUpdateRateLimiter), async (c: Context) => {
-	const user: Session["user"] = c.get("user");
+	const user: SessionUser = c.get("user");
 	const fileId = c.req.query("fileId");
 	const reqName = (await c.req.json()).name;
 
@@ -89,7 +89,7 @@ filesRouter.put("/", buildSecurityMiddleware(fileUpdateRateLimiter), async (c: C
 
 // Delete file
 filesRouter.delete("/", buildSecurityMiddleware(fileDeleteRateLimiter), async (c: Context) => {
-	const user: Session["user"] = c.get("user");
+	const user: SessionUser = c.get("user");
 
 	const { error, data } = deleteFileSchema.safeParse(c.req.query());
 	if (error) {
@@ -106,7 +106,7 @@ filesRouter.delete("/", buildSecurityMiddleware(fileDeleteRateLimiter), async (c
 
 // Create file/folder
 filesRouter.post("/", buildSecurityMiddleware(fileUploadRateLimiter), async (c: Context) => {
-	const user: Session["user"] = c.get("user");
+	const user: SessionUser = c.get("user");
 
 	const { error, data } = createFileSchema.safeParse(c.req.query());
 	if (error) {
@@ -128,7 +128,7 @@ filesRouter.post("/", buildSecurityMiddleware(fileUploadRateLimiter), async (c: 
 
 // Upload file
 filesRouter.post("/upload", buildSecurityMiddleware(fileUploadRateLimiter), async (c: Context) => {
-	const user: Session["user"] = c.get("user");
+	const user: SessionUser = c.get("user");
 
 	try {
 		const formData = await c.req.formData();
@@ -192,7 +192,7 @@ filesRouter.post("/upload", buildSecurityMiddleware(fileUploadRateLimiter), asyn
 
 // Download file route
 filesRouter.get("/download/:fileId", buildSecurityMiddleware(fileGetRateLimiter), async (c: Context) => {
-	const user: Session["user"] = c.get("user");
+	const user: SessionUser = c.get("user");
 
 	// Validation
 	const { error, data } = downloadFileSchema.safeParse({
