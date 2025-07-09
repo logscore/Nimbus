@@ -211,9 +211,9 @@ to work properly. Additionally, configure your Resend API key for the forgot pas
 If you want to contribute, please refer to the
 [contributing guide](https://github.com/nimbusdotstorage/Nimbus/blob/main/CONTRIBUTING.md)
 
-## Deploying Docker images (ex. Fly.io)
+## Deploying Docker images (ex. Coolify)
 
-Follow the [DEPLOYMENT.md](DEPLOYMENT.md) file for instructions on how to deploy to Fly.
+Follow the [DEPLOYMENT.md](DEPLOYMENT.md) file for instructions on how to deploy with Coolify.
 
 ## Our Amazing Contributors
 

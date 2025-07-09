@@ -9,14 +9,13 @@
 		"dev:hot": "bun --hot src/index.ts",
 		"build": "bun build src/index.ts --target bun --outdir dist",
 		"start": "bun dist/index.js",
+		"deploy": "bunx wrangler deploy --env production",
 		"docker:build": "bun run build && docker build -t nimbus-server-manual .",
 		"docker:run": "source .env && docker run --name nimbus-server-manual --env-file .env -p $SERVER_PORT:$SERVER_PORT nimbus-server-manual:latest",
 		"docker:up": "bun run build && docker compose up -d",
 		"docker:down": "docker compose down",
 		"docker:remove": "docker compose down --rmi local -v",
-		"docker:reset": "bun run docker:remove && bun run docker:up",
-		"fly:secrets:stage": "flyctl secrets import --stage < .env",
-		"fly:deploy": "bun run build && bash ../../scripts/fly:deploy.sh server"
+		"docker:reset": "bun run docker:remove && bun run docker:up"
 	},
 	"dependencies": {
 		"@googleapis/drive": "^13.0.1",
@@ -24,7 +23,8 @@
 		"@nimbus/auth": "workspace:*",
 		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
-		"@t3-oss/env-core": "^0.13.8",
+		"@nimbus/env": "workspace:*",
+		"@upstash/ratelimit": "^2.0.5",
 		"drizzle-orm": "^0.43.1",
 		"google-auth-library": "^10.1.0",
 		"hono": "^4.8.0",
@@ -35,6 +35,7 @@
 		"zod": "^3.25.67"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250704.0",
 		"@nimbus/tsconfig": "workspace:*",
 		"@types/pg": "^8.15.4"
 	}

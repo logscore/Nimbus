@@ -1,7 +1,6 @@
 import type { ForgotPasswordFormData, ResetPasswordFormData, SignInFormData, SignUpFormData } from "@/schemas";
 import { authClient } from "@nimbus/auth/auth-client";
 import { useMutation } from "@tanstack/react-query";
-import { clientEnv } from "@/lib/env/client-env";
 import { useCallback, useState } from "react";
 import type { AuthState } from "@/lib/types";
 import { useRouter } from "next/navigation";
@@ -11,14 +10,14 @@ import axios from "axios";
 const signInWithGoogle = async () => {
 	await authClient.signIn.social({
 		provider: "google",
-		callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
+		callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/app`,
 	});
 };
 
 const signInWithMicrosoft = async () => {
 	await authClient.signIn.social({
 		provider: "microsoft",
-		callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
+		callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/app`,
 	});
 };
 
@@ -30,9 +29,9 @@ export const useGoogleAuth = () => {
 		try {
 			const isLoggedIn = await authClient.getSession();
 
-			if (isLoggedIn) {
-				await toast.promise(
-					authClient.linkSocial({ provider: "google", callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL }),
+			if (isLoggedIn.data?.session) {
+				toast.promise(
+					authClient.linkSocial({ provider: "google", callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/app` }),
 					{
 						loading: "Linking Google account...",
 						success: "Successfully linked Google account",
@@ -40,7 +39,7 @@ export const useGoogleAuth = () => {
 					}
 				);
 			} else {
-				await toast.promise(signInWithGoogle(), {
+				toast.promise(signInWithGoogle(), {
 					loading: "Signing in with Google...",
 					success: "Signed in with Google",
 					error: error => (error instanceof Error ? error.message : "Google authentication failed"),
@@ -65,9 +64,9 @@ export const useMicrosoftAuth = () => {
 		try {
 			const isLoggedIn = await authClient.getSession();
 
-			if (isLoggedIn) {
-				await toast.promise(
-					authClient.linkSocial({ provider: "microsoft", callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL }),
+			if (isLoggedIn.data?.session) {
+				toast.promise(
+					authClient.linkSocial({ provider: "microsoft", callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/app` }),
 					{
 						loading: "Linking Microsoft account...",
 						success: "Successfully linked Microsoft account",
@@ -75,7 +74,7 @@ export const useMicrosoftAuth = () => {
 					}
 				);
 			} else {
-				await toast.promise(signInWithMicrosoft(), {
+				toast.promise(signInWithMicrosoft(), {
 					loading: "Signing in with Microsoft...",
 					success: "Signed in with Microsoft",
 					error: error => (error instanceof Error ? error.message : "Microsoft authentication failed"),
@@ -174,7 +173,7 @@ export const useSignUp = () => {
 							name: fullName,
 							email: data.email,
 							password: data.password,
-							callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
+							callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/app`,
 						});
 
 						router.push("/app");
@@ -269,7 +268,7 @@ export const useSignOut = () => {
 };
 
 const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
-	const response = await axios.post(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/auth/check-email`, { email });
+	const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/check-email`, { email });
 	return response.data;
 };
 

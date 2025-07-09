@@ -1,0 +1,28 @@
+{
+	"$schema": "../../node_modules/wrangler/config-schema.json",
+	"name": "nimbus-server",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-05-18",
+	"compatibility_flags": ["nodejs_compat"],
+	"dev": {
+		"port": 1284,
+		"host": "localhost",
+		"local_protocol": "http",
+	},
+	"env": {
+		"local": {
+			"name": "nimbus-local-server",
+			"vars": {
+				"NEXT_PUBLIC_BACKEND_URL": "http://localhost:1284",
+				"NEXT_PUBLIC_FRONTEND_URL": "http://localhost:3000",
+			},
+		},
+		"production": {
+			"name": "nimbus-server",
+			"vars": {
+				"NEXT_PUBLIC_BACKEND_URL": "https://nimbus-server.logan-def.workers.dev/",
+				"NEXT_PUBLIC_FRONTEND_URL": "https://nimbus-web.logan-def.workers.dev/",
+			},
+		},
+	},
+}

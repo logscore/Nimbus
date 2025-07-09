@@ -1,5 +1,6 @@
-import { auth } from "@nimbus/auth/auth";
-import { db } from "@nimbus/db";
+import { auth, type Session } from "@nimbus/auth/auth";
+import { createDb } from "@nimbus/db";
+import env from "@nimbus/env";
 
 class AccountError extends Error {
 	constructor(
@@ -11,12 +12,13 @@ class AccountError extends Error {
 	}
 }
 
-export const getAccount = async (user: typeof auth.$Infer.Session.user | null, headers: Headers) => {
+export const getAccount = async (user: Session["user"] | null, headers: Headers) => {
 	if (!user?.id) {
 		throw new AccountError("User session does not exist", "USER_SESSION_DOES_NOT_EXIST");
 	}
 
 	try {
+		const db = createDb(env.DATABASE_URL);
 		const account = await db.query.account.findFirst({
 			where: (table, { eq }) => eq(table.userId, user.id),
 		});
@@ -25,7 +27,7 @@ export const getAccount = async (user: typeof auth.$Infer.Session.user | null, h
 			throw new AccountError(`No account found`, "ACCOUNT_NOT_FOUND");
 		}
 
-		const { accessToken } = await auth.api.getAccessToken({
+		const { accessToken } = await auth().api.getAccessToken({
 			body: {
 				providerId: account.providerId,
 				accountId: account.id,

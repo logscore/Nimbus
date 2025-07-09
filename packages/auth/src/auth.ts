@@ -3,66 +3,75 @@ import { extractTokenFromUrl } from "@/utils/extract-token";
 import { sendMail } from "@/utils/send-mail";
 import { betterAuth } from "better-auth";
 import schema from "@nimbus/db/schema";
-import { db } from "@nimbus/db";
+import { createDb } from "@nimbus/db";
+import env from "@nimbus/env";
 
-if (!process.env.FRONTEND_URL || !process.env.BACKEND_URL) {
+if (!env.FRONTEND_URL || !env.BACKEND_URL) {
 	throw new Error("Missing environment variables. FRONTEND_URL or BACKEND_URL is not defined");
 }
 
-export const auth = betterAuth({
-	database: drizzleAdapter(db, {
-		provider: "pg",
-		schema: {
-			...schema,
+export const auth = () =>
+	betterAuth({
+		baseURL: env.BACKEND_URL,
+		// Ensure state is properly handled
+		state: {
+			encryption: true, // Enable state encryption
+			ttl: 600, // 10 minutes state TTL
 		},
-	}),
-	account: {
-		accountLinking: {
+		database: drizzleAdapter(createDb(env.DATABASE_URL), {
+			provider: "pg",
+			schema: {
+				...schema,
+			},
+		}),
+		account: {
+			accountLinking: {
+				enabled: true,
+			},
+		},
+
+		trustedOrigins: [env.FRONTEND_URL, env.BACKEND_URL],
+
+		emailAndPassword: {
 			enabled: true,
-		},
-	},
+			autoSignIn: true,
+			minPasswordLength: 8,
+			maxPasswordLength: 100,
+			resetPasswordTokenExpiresIn: 600, // 10 minutes
+			sendResetPassword: async ({ user, url }) => {
+				const token = extractTokenFromUrl(url);
+				const frontendResetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
 
-	trustedOrigins: [process.env.FRONTEND_URL, process.env.BACKEND_URL],
-
-	emailAndPassword: {
-		enabled: true,
-		autoSignIn: true,
-		minPasswordLength: 8,
-		maxPasswordLength: 100,
-		resetPasswordTokenExpiresIn: 600, // 10 minutes
-		sendResetPassword: async ({ user, url }) => {
-			const token = extractTokenFromUrl(url);
-			const frontendResetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-
-			await sendMail({
-				to: user.email,
-				subject: "Reset your password",
-				text: `Click the link to reset your password: ${frontendResetUrl}`,
-			});
-		},
-	},
-
-	socialProviders: {
-		google: {
-			clientId: process.env.GOOGLE_CLIENT_ID as string,
-			clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-			scope: [
-				"https://www.googleapis.com/auth/drive",
-				"https://www.googleapis.com/auth/userinfo.profile",
-				"https://www.googleapis.com/auth/userinfo.email",
-			],
-			accessType: "offline",
-			prompt: "consent",
+				await sendMail({
+					to: user.email,
+					subject: "Reset your password",
+					text: `Click the link to reset your password: ${frontendResetUrl}`,
+				});
+			},
 		},
 
-		microsoft: {
-			clientId: process.env.MICROSOFT_CLIENT_ID as string,
-			clientSecret: process.env.MICROSOFT_CLIENT_SECRET as string,
-			scope: ["https://graph.microsoft.com/User.Read", "https://graph.microsoft.com/Files.ReadWrite.All"],
-			tenantId: "common",
-			prompt: "select_account",
-		},
-	},
-});
+		socialProviders: {
+			google: {
+				clientId: env.GOOGLE_CLIENT_ID as string,
+				clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+				scope: [
+					"https://www.googleapis.com/auth/drive",
+					"https://www.googleapis.com/auth/userinfo.profile",
+					"https://www.googleapis.com/auth/userinfo.email",
+				],
+				accessType: "offline",
+				prompt: "consent",
+			},
 
-export type Session = typeof auth.$Infer.Session;
+			microsoft: {
+				clientId: env.MICROSOFT_CLIENT_ID as string,
+				clientSecret: env.MICROSOFT_CLIENT_SECRET as string,
+				scope: ["https://graph.microsoft.com/User.Read", "https://graph.microsoft.com/Files.ReadWrite.All"],
+				tenantId: "common",
+				prompt: "select_account",
+			},
+		},
+	});
+
+const authInstance = auth();
+export type Session = typeof authInstance.$Infer.Session;

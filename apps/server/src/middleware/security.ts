@@ -1,3 +1,4 @@
+import { RateLimiterRedis } from "rate-limiter-flexible";
 import type { SecurityOptions } from "@/routes/types";
 import type { Context, Next } from "hono";
 import { webcrypto } from "node:crypto";
@@ -53,7 +54,6 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 					`block-all-mixed-content;`
 			);
 		}
-
 		// Rate limiting
 		if (rateLimiting.enabled && rateLimiting.rateLimiter) {
 			const user = c.get("user");
@@ -61,7 +61,12 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 			const identifier = user?.id || ip;
 
 			try {
-				await rateLimiting.rateLimiter.consume(identifier);
+				const limiter = rateLimiting.rateLimiter(c);
+				if (limiter instanceof RateLimiterRedis) {
+					await limiter.consume(identifier); // Use consume() for RateLimiterRedis
+				} else {
+					await limiter.limit(identifier); // Use limit() for UpstashRateLimit
+				}
 			} catch (error: any) {
 				if (error instanceof Error) {
 					console.error("Rate limiter error:", error);

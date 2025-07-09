@@ -32,7 +32,9 @@ filesRouter.get(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileGetRateLimiter,
+			rateLimiter(c) {
+				return fileGetRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
@@ -77,7 +79,9 @@ filesRouter.get(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileGetRateLimiter,
+			rateLimiter(c) {
+				return fileGetRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
@@ -117,7 +121,9 @@ filesRouter.put(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileUpdateRateLimiter,
+			rateLimiter(c) {
+				return fileUpdateRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
@@ -154,7 +160,9 @@ filesRouter.delete(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileDeleteRateLimiter,
+			rateLimiter(c) {
+				return fileDeleteRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
@@ -192,7 +200,9 @@ filesRouter.post(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileUploadRateLimiter,
+			rateLimiter(c) {
+				return fileUploadRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
@@ -226,7 +236,9 @@ filesRouter.post(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileUploadRateLimiter,
+			rateLimiter(c) {
+				return fileUploadRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),

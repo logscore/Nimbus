@@ -5,23 +5,22 @@
 	"private": true,
 	"exports": {
 		"./rate-limiters": "./src/rate-limiters.ts",
-		"./valkey": "./src/valkey.ts",
-		"./utils/valkey-health-check": "./src/utils/valkey-health-check.ts"
+		".": "./src/index.ts"
 	},
 	"scripts": {
 		"build": "bun build src/rate-limiters.ts --outdir dist --target bun",
 		"docker:up": "docker compose up -d",
 		"docker:down": "docker compose down",
 		"docker:remove": "docker compose down --rmi local -v",
-		"docker:reset": "bun run docker:remove && bun run docker:up",
-		"fly:secrets:stage": "flyctl secrets import --stage < .env",
-		"fly:deploy": "bun run build && flyctl deploy --flycast"
+		"docker:reset": "bun run docker:remove && bun run docker:up"
 	},
 	"dependencies": {
-		"@t3-oss/env-core": "^0.13.8",
+		"@upstash/ratelimit": "^2.0.5",
+		"@upstash/redis": "^1.35.1",
 		"iovalkey": "^0.3.3",
 		"rate-limiter-flexible": "^7.1.1",
-		"zod": "^3.25.67"
+		"@nimbus/auth": "workspace:*",
+		"@nimbus/env": "workspace:*"
 	},
 	"devDependencies": {
 		"@nimbus/tsconfig": "workspace:*",

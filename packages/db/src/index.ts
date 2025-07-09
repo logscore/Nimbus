@@ -1,13 +1,31 @@
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle as drizzleNode } from "drizzle-orm/node-postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import schema from "@nimbus/db/schema";
+import postgres from "postgres";
+import env from "@nimbus/env";
 import { Pool } from "pg";
 
-if (!process.env.DATABASE_URL) {
+if (!env.DATABASE_URL) {
 	throw new Error("Missing environment variables. DATABASE_URL is not defined");
 }
 
-const pool = new Pool({
-	connectionString: process.env.DATABASE_URL,
-});
+export const createDb = (url: string) => {
+	const db =
+		typeof process === "undefined" || (globalThis as any).WebSocketPair !== undefined
+			? drizzle(
+					// Serverless connection. Supabase doesnt support prepare statements
+					postgres(url, { prepare: false }),
+					{ schema }
+				)
+			: drizzleNode(
+					// NodeJS connection
+					new Pool({
+						connectionString: url,
+					}),
+					{ schema }
+				);
 
-export const db = drizzle({ client: pool, schema });
+	return db;
+};
+
+export type DB = ReturnType<typeof createDb>;

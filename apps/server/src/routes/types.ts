@@ -1,4 +1,6 @@
-import type { RateLimiterRedis } from "rate-limiter-flexible";
+import type { RateLimiterRedis as ValkeyRateLimit } from "rate-limiter-flexible";
+import type { Ratelimit as UpstashRateLimit } from "@upstash/ratelimit";
+import type { Context } from "hono";
 
 export interface ApiResponse {
 	success: boolean;
@@ -50,7 +52,7 @@ export interface FileTagOperationResponse {
 export interface SecurityOptions {
 	rateLimiting?: {
 		enabled: boolean;
-		rateLimiter: RateLimiterRedis;
+		rateLimiter: (c: Context) => ValkeyRateLimit | UpstashRateLimit;
 	};
 	securityHeaders?: boolean;
 }

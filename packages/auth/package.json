@@ -16,6 +16,7 @@
 	},
 	"dependencies": {
 		"@nimbus/db": "workspace:*",
+		"@nimbus/env": "workspace:*",
 		"axios": "^1.10.0",
 		"better-auth": "^1.2.9"
 	}

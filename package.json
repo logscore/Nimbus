@@ -1,9 +1,8 @@
 {
 	"name": "nimbus",
 	"version": "0.1.0",
-	"type": "module",
-	"private": true,
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250704.0",
 		"@nimbus/eslint": "workspace:*",
 		"@nimbus/tsconfig": "workspace:*",
 		"concurrently": "^9.1.2",
@@ -16,14 +15,17 @@
 		"prettier": "^3.5.3",
 		"prettier-plugin-sort-imports": "^1.8.8",
 		"prettier-plugin-tailwindcss": "^0.6.12",
-		"typescript": "^5"
+		"typescript": "^5",
+		"wrangler": "^4.23.0"
 	},
+	"private": true,
 	"scripts": {
 		"knip": "knip-bun --config knip.config.ts",
 		"dev:web": "bun --elide-lines 0 --filter @nimbus/web --env-file .env dev",
 		"dev:server": "bun --elide-lines 0 --filter @nimbus/server --env-file .env dev",
 		"dev": "concurrently --names \"WEB,SERVER\" --prefix-colors \"cyan,magenta\" --prefix \"[{name}]\" --kill-others-on-fail \"bun --env-file .env dev:web\" \"bun --env-file .env dev:server\"",
 		"dev:verbose": "bun --elide-lines 0 --filter \"*\" --env-file .env dev",
+		"deploy": "bun run --cwd=apps/web deploy && bun run --cwd=apps/server deploy",
 		"db:up": "bun run --cwd=packages/db docker:up",
 		"db:down": "bun run --cwd=packages/db docker:down",
 		"db:reset": "bun run --cwd=packages/db docker:reset",
@@ -48,14 +50,13 @@
 		"docker:down": "docker compose down",
 		"docker:remove": "docker compose down --rmi local -v",
 		"docker:reset": "bun run docker:remove && bun run docker:up",
-		"fly:secrets:stage": "bun run env:clean-sync && bun run --cwd=packages/cache fly:secrets:stage && bun run --cwd=apps/server fly:secrets:stage && bun run --cwd=apps/web fly:secrets:stage",
-		"fly:deploy": "bun run fly:secrets:stage && bun run --cwd=packages/cache fly:deploy && bun run --cwd=apps/server fly:deploy && bun run --cwd=apps/web fly:deploy",
 		"format": "bun prettier . --write --list-different",
 		"format:check": "bun prettier . --check",
 		"lint": "oxlint; eslint .; bun run --cwd=apps/web lint",
 		"lint:fix": "oxlint --fix; eslint . --fix; bun run --cwd=apps/web lint --fix",
 		"prepare": "husky"
 	},
+	"type": "module",
 	"workspaces": [
 		"apps/*",
 		"packages/*"

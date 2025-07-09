@@ -1,21 +1,21 @@
-import { serverEnv } from "@/lib/env/server-env";
-import { auth } from "@nimbus/auth/auth";
+import { auth, type Session } from "@nimbus/auth/auth";
+import { createDb, type DB } from "@nimbus/db";
 import { cors } from "hono/cors";
-import { db } from "@nimbus/db";
+import env from "@nimbus/env";
 import routes from "@/routes";
 import { Hono } from "hono";
 
 export interface ReqVariables {
-	user: typeof auth.$Infer.Session.user | null;
-	session: typeof auth.$Infer.Session.session | null;
-	db: typeof db | null;
+	user: Session["user"] | null;
+	session: Session["session"] | null;
+	db: DB | null;
 }
 
 const app = new Hono<{ Variables: ReqVariables }>();
 
 app.use(
 	cors({
-		origin: serverEnv.FRONTEND_URL,
+		origin: env.FRONTEND_URL,
 		credentials: true,
 		allowHeaders: ["Content-Type", "Authorization"],
 		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -24,7 +24,7 @@ app.use(
 );
 
 app.use("*", async (c, next) => {
-	const session = await auth.api.getSession({ headers: c.req.raw.headers });
+	const session = await auth().api.getSession({ headers: c.req.raw.headers });
 
 	// TODO: Add auth middleware and ratelimiting to the drive operations endpoints.
 	if (!session) {
@@ -35,7 +35,7 @@ app.use("*", async (c, next) => {
 		return next();
 	}
 
-	c.set("db", db);
+	c.set("db", createDb(env.DATABASE_URL));
 	c.set("user", session.user);
 	c.set("session", session.session);
 	return next();

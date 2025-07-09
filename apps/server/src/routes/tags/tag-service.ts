@@ -1,19 +1,24 @@
 import { eq, and, inArray, count, isNull } from "drizzle-orm";
 import type { Tag, FileTag } from "@/routes/types";
 import { tag, fileTag } from "@nimbus/db/schema";
-import { db } from "@nimbus/db";
+import { createDb } from "@nimbus/db";
 import { nanoid } from "nanoid";
+import env from "@nimbus/env";
 
 export class TagService {
 	// Get all tags for a user with file counts
 	async getUserTags(userId: string): Promise<Tag[]> {
 		// Get all tags for the user
-		const userTags = await db.select().from(tag).where(eq(tag.userId, userId)).orderBy(tag.name);
+		const userTags = await createDb(env.DATABASE_URL)
+			.select()
+			.from(tag)
+			.where(eq(tag.userId, userId))
+			.orderBy(tag.name);
 
 		// Get file counts for each tag
 		const tagsWithCounts = await Promise.all(
 			userTags.map(async tagRecord => {
-				const fileCount = await db
+				const fileCount = await createDb(env.DATABASE_URL)
 					.select({ count: count() })
 					.from(fileTag)
 					.where(and(eq(fileTag.tagId, tagRecord.id), eq(fileTag.userId, userId)));
@@ -34,6 +39,7 @@ export class TagService {
 
 	// Get a specific tag by ID
 	async getTagById(tagId: string, userId: string): Promise<Tag | null> {
+		const db = createDb(env.DATABASE_URL);
 		const tagRecord = await db
 			.select()
 			.from(tag)
@@ -64,6 +70,7 @@ export class TagService {
 
 	// Create a new tag
 	async createTag(userId: string, name: string, color: string, parentId?: string | null): Promise<Tag> {
+		const db = createDb(env.DATABASE_URL);
 		// Check if parent tag exists and belongs to user
 		if (parentId) {
 			const parentTag = await this.getTagById(parentId, userId);
@@ -108,6 +115,7 @@ export class TagService {
 		userId: string,
 		updates: { name?: string; color?: string; parentId?: string | null }
 	): Promise<Tag> {
+		const db = createDb(env.DATABASE_URL);
 		// Check if tag exists and belongs to user
 		const existingTag = await this.getTagById(tagId, userId);
 		if (!existingTag) {
@@ -156,6 +164,7 @@ export class TagService {
 
 	// Delete a tag and all its children
 	async deleteTag(tagId: string, userId: string): Promise<void> {
+		const db = createDb(env.DATABASE_URL);
 		// Check if tag exists and belongs to user
 		const existingTag = await this.getTagById(tagId, userId);
 		if (!existingTag) {
@@ -174,6 +183,7 @@ export class TagService {
 
 	// Add tags to a file
 	async addTagsToFile(fileId: string, tagIds: string[], userId: string): Promise<FileTag[]> {
+		const db = createDb(env.DATABASE_URL);
 		// Verify all tags exist and belong to user
 		for (const tagId of tagIds) {
 			const tagExists = await this.getTagById(tagId, userId);
@@ -224,13 +234,14 @@ export class TagService {
 
 	// Remove tags from a file
 	async removeTagsFromFile(fileId: string, tagIds: string[], userId: string): Promise<void> {
-		await db
+		await createDb(env.DATABASE_URL)
 			.delete(fileTag)
 			.where(and(eq(fileTag.fileId, fileId), inArray(fileTag.tagId, tagIds), eq(fileTag.userId, userId)));
 	}
 
 	// Get all tags for a specific file
 	async getFileTags(fileId: string, userId: string): Promise<Tag[]> {
+		const db = createDb(env.DATABASE_URL);
 		const fileTagAssociations = await db
 			.select({
 				tagId: fileTag.tagId,
@@ -257,7 +268,7 @@ export class TagService {
 
 	// Get all child tag IDs recursively
 	private async getAllChildTagIds(parentId: string, userId: string): Promise<string[]> {
-		const childTags = await db
+		const childTags = await createDb(env.DATABASE_URL)
 			.select({ id: tag.id })
 			.from(tag)
 			.where(and(eq(tag.parentId, parentId), eq(tag.userId, userId)));
@@ -299,6 +310,8 @@ export class TagService {
 
 	// Delete all fileTag associations for a file
 	async deleteFileTagsByFileId(fileId: string, userId: string): Promise<void> {
-		await db.delete(fileTag).where(and(eq(fileTag.fileId, fileId), eq(fileTag.userId, userId)));
+		await createDb(env.DATABASE_URL)
+			.delete(fileTag)
+			.where(and(eq(fileTag.fileId, fileId), eq(fileTag.userId, userId)));
 	}
 }

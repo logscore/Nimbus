@@ -1,4 +1,3 @@
-import { clientEnv } from "@/lib/env/client-env";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -21,7 +20,7 @@ export function fileSize(size: unknown) {
 }
 
 export const getBaseUrl = () => {
-	return clientEnv.NEXT_PUBLIC_FRONTEND_URL;
+	return process.env.NEXT_PUBLIC_FRONTEND_URL;
 };
 
 export const buildUrl = (path: string) => {
