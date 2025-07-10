@@ -6,10 +6,6 @@ import schema from "@nimbus/db/schema";
 import { createDb } from "@nimbus/db";
 import env from "@nimbus/env";
 
-if (!env.FRONTEND_URL || !env.BACKEND_URL || !env.DATABASE_URL) {
-	throw new Error("Missing environment variables. FRONTEND_URL, BACKEND_URL, or DATABASE_URL is not defined");
-}
-
 export const createAuth = () =>
 	betterAuth({
 		baseURL: env.BACKEND_URL,

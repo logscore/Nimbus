@@ -92,6 +92,9 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       target: runner
+      args:
+        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+        NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
     container_name: nimbus-web
     restart: unless-stopped
     env_file: .env
@@ -101,7 +104,6 @@ services:
       BACKEND_URL: ${BACKEND_URL}
       NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
       NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
-      NEXT_PUBLIC_CALLBACK_URL: ${NEXT_PUBLIC_CALLBACK_URL}
     ports:
       - "${WEB_PORT:-3000}:${WEB_PORT:-3000}"
     depends_on:

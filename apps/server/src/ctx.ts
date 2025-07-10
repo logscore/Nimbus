@@ -1,7 +1,7 @@
 import type { Auth, SessionUser } from "@nimbus/auth/auth";
 import type { DB } from "@nimbus/db";
 
-export interface HonoVars {
+interface HonoVars {
 	user?: SessionUser;
 	db: DB;
 	auth: Auth;

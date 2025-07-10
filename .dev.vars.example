@@ -21,11 +21,6 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=nimbus
 
-VALKEY_PORT=6379
-VALKEY_HOST=localhost
-VALKEY_USERNAME=valkey
-VALKEY_PASSWORD=valkey
-
 EMAIL_FROM=support@yourdomain.com
 RESEND_API_KEY=your_resend_api_key
 

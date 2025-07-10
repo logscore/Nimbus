@@ -5,7 +5,7 @@ import { Resend } from "resend";
 import env from "@nimbus/env";
 import { Hono } from "hono";
 
-const resend = new Resend(env.RESEND_API_KEY);
+const resend = new Resend(env.RESEND_API_KEY ?? "placeholder_key");
 
 const emailRouter = new Hono();
 

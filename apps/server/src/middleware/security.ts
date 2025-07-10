@@ -1,4 +1,3 @@
-import { RateLimiterRedis } from "rate-limiter-flexible";
 import type { SecurityOptions } from "@/routes/types";
 import type { Context, Next } from "hono";
 import { webcrypto } from "node:crypto";
@@ -57,31 +56,56 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 		// Rate limiting
 		if (rateLimiting.enabled && rateLimiting.rateLimiter) {
 			const user = c.get("user");
-			const ip = c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
+			const ip =
+				c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || c.req.header("cf-connecting-ip") || "unknown";
 			const identifier = user?.id || ip;
 
 			try {
 				const limiter = rateLimiting.rateLimiter(c);
-				if (limiter instanceof RateLimiterRedis) {
-					await limiter.consume(identifier); // Use consume() for RateLimiterRedis
+				if ("limit" in limiter) {
+					// Handle Upstash limit
+					const result = await limiter.limit(identifier);
+					if (!result.success) {
+						const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
+						c.header("Retry-After", retryAfter.toString());
+						return c.json(
+							{
+								success: false,
+								error: "Too many requests",
+								retryAfter: `${retryAfter} seconds`,
+							},
+							429
+						);
+					}
 				} else {
-					await limiter.limit(identifier); // Use limit() for UpstashRateLimit
+					// Handle Valkey limit
+					await limiter.consume(identifier);
 				}
 			} catch (error: any) {
-				if (error instanceof Error) {
-					console.error("Rate limiter error:", error);
-					return c.json({ error: "Internal server error" }, { status: 500 });
+				console.error("Rate limiter error:", error);
+
+				// Handle different types of rate limit errors
+				if (error.remaining === 0 || error.msBeforeNext) {
+					// This is a rate limit exceeded error for Valkey
+					const retryAfter = Math.ceil((error.msBeforeNext || 60000) / 1000);
+					c.header("Retry-After", retryAfter.toString());
+					return c.json(
+						{
+							success: false,
+							error: "Too many requests. Please try again later.",
+							retryAfter: `${retryAfter} seconds`,
+						},
+						429
+					);
 				}
 
-				// Rate limit exceeded
-				const retryAfter = Math.ceil(error.msBeforeNext / 1000) || 1;
-				c.header("Retry-After", retryAfter.toString());
+				// Generic errors
 				return c.json(
 					{
-						error: "Too many requests",
-						retryAfter: `${retryAfter} seconds`,
+						success: false,
+						error: "An error occurred while processing your request.",
 					},
-					{ status: 429 }
+					500
 				);
 			}
 		}

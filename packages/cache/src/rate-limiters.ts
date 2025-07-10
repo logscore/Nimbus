@@ -60,7 +60,7 @@ if (isEdge) {
 		new UpstashRateLimit({
 			redis: redisClient as UpstashRedisType,
 			prefix: `rl${ip}:waitlist`,
-			limiter: UpstashRateLimit.slidingWindow(1, "120 s"),
+			limiter: UpstashRateLimit.slidingWindow(3, "120 s"),
 			analytics: true,
 		});
 } else {
@@ -125,7 +125,7 @@ if (isEdge) {
 			keyPrefix: `rl${ip}:waitlist`,
 			points: 3,
 			duration: 120,
-			blockDuration: 60 * 60,
+			blockDuration: 60,
 		});
 }
 

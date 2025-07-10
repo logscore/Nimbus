@@ -16,7 +16,7 @@
 		"prettier-plugin-sort-imports": "^1.8.8",
 		"prettier-plugin-tailwindcss": "^0.6.12",
 		"typescript": "^5",
-		"wrangler": "^4.23.0"
+		"wrangler": "^4.24.3"
 	},
 	"private": true,
 	"scripts": {

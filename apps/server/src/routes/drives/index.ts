@@ -1,5 +1,4 @@
 import { getDriveManagerForUser } from "@/providers";
-import { getAccount } from "@/lib/utils/accounts";
 import type { ApiResponse } from "@/routes/types";
 import type { Context } from "hono";
 import { Hono } from "hono";

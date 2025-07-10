@@ -9,7 +9,7 @@
 		"dev:hot": "bun --hot src/index.ts",
 		"build": "bun build src/index.ts --target bun --outdir dist",
 		"start": "bun dist/index.js",
-		"deploy": "bunx wrangler deploy --env production",
+		"deploy": "bunx wrangler deploy --env production --keep-vars",
 		"docker:build": "bun run build && docker build -t nimbus-server-manual .",
 		"docker:run": "source .env && docker run --name nimbus-server-manual --env-file .env -p $SERVER_PORT:$SERVER_PORT nimbus-server-manual:latest",
 		"docker:up": "bun run build && docker compose up -d",
