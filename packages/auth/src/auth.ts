@@ -6,11 +6,11 @@ import schema from "@nimbus/db/schema";
 import { createDb } from "@nimbus/db";
 import env from "@nimbus/env";
 
-if (!env.FRONTEND_URL || !env.BACKEND_URL) {
-	throw new Error("Missing environment variables. FRONTEND_URL or BACKEND_URL is not defined");
+if (!env.FRONTEND_URL || !env.BACKEND_URL || !env.DATABASE_URL) {
+	throw new Error("Missing environment variables. FRONTEND_URL, BACKEND_URL, or DATABASE_URL is not defined");
 }
 
-export const auth = () =>
+export const createAuth = () =>
 	betterAuth({
 		baseURL: env.BACKEND_URL,
 		// Ensure state is properly handled
@@ -73,5 +73,5 @@ export const auth = () =>
 		},
 	});
 
-const authInstance = auth();
-export type Session = typeof authInstance.$Infer.Session;
+export type Auth = ReturnType<typeof createAuth>;
+export type SessionUser = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>["user"];

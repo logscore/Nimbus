@@ -1,6 +1,6 @@
-import { auth, type Session } from "@nimbus/auth/auth";
-import { createDb } from "@nimbus/db";
-import env from "@nimbus/env";
+import { type SessionUser } from "@nimbus/auth/auth";
+import { getContext } from "hono/context-storage";
+import type { HonoContext } from "@/ctx";
 
 class AccountError extends Error {
 	constructor(
@@ -12,14 +12,14 @@ class AccountError extends Error {
 	}
 }
 
-export const getAccount = async (user: Session["user"] | null, headers: Headers) => {
+export const getAccount = async (user: SessionUser | null, headers: Headers) => {
 	if (!user?.id) {
 		throw new AccountError("User session does not exist", "USER_SESSION_DOES_NOT_EXIST");
 	}
 
 	try {
-		const db = createDb(env.DATABASE_URL);
-		const account = await db.query.account.findFirst({
+		const c = getContext<HonoContext>();
+		const account = await c.var.db.query.account.findFirst({
 			where: (table, { eq }) => eq(table.userId, user.id),
 		});
 
@@ -27,7 +27,7 @@ export const getAccount = async (user: Session["user"] | null, headers: Headers)
 			throw new AccountError(`No account found`, "ACCOUNT_NOT_FOUND");
 		}
 
-		const { accessToken } = await auth().api.getAccessToken({
+		const { accessToken } = await c.var.auth.api.getAccessToken({
 			body: {
 				providerId: account.providerId,
 				accountId: account.id,

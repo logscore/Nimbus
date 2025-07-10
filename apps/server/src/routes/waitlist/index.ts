@@ -1,13 +1,13 @@
 import { waitlistRateLimiter } from "@nimbus/cache/rate-limiters";
+import { getContext } from "hono/context-storage";
 import { securityMiddleware } from "@/middleware";
 import { zValidator } from "@hono/zod-validator";
 import { waitlist } from "@nimbus/db/schema";
 import { emailSchema } from "@/validators";
+import type { HonoContext } from "@/ctx";
 import { count, eq } from "drizzle-orm";
-import { createDb } from "@nimbus/db";
 import type { Context } from "hono";
 import { nanoid } from "nanoid";
-import env from "@nimbus/env";
 import { Hono } from "hono";
 
 const waitlistRouter = new Hono();
@@ -24,7 +24,7 @@ waitlistRouter.post(
 			},
 		},
 	}),
-	zValidator("json", emailSchema, (result, c) => {
+	zValidator("json", emailSchema, (result, c: Context) => {
 		if (!result.success) {
 			// const firstError = result.error.errors[0];
 			return c.json(
@@ -37,10 +37,11 @@ waitlistRouter.post(
 		}
 	}),
 	async (c: Context) => {
+		const context = getContext<HonoContext>();
 		try {
 			const email = (await c.req.json()).email;
 
-			const existing = await createDb(env.DATABASE_URL)
+			const existing = await context.var.db
 				.select()
 				.from(waitlist)
 				.where(eq(waitlist.email, email.toLowerCase().trim()))
@@ -51,7 +52,7 @@ waitlistRouter.post(
 				return c.json({ success: false, error: "This email is already on the waitlist" }, 400);
 			}
 
-			await createDb(env.DATABASE_URL).insert(waitlist).values({
+			await context.var.db.insert(waitlist).values({
 				id: nanoid(),
 				email: email.toLowerCase().trim(),
 			});
@@ -63,9 +64,9 @@ waitlistRouter.post(
 	}
 );
 
-waitlistRouter.get("/count", async c => {
+waitlistRouter.get("/count", async (c: Context) => {
 	try {
-		const result = await createDb(env.DATABASE_URL).select({ count: count() }).from(waitlist);
+		const result = await c.var.db.select({ count: count() }).from(waitlist);
 		return c.json({ count: result[0]?.count || 0 });
 	} catch (error) {
 		console.error("Error getting waitlist count:", error);

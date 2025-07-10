@@ -1,21 +1,47 @@
-FROM oven/bun:alpine
-
+# Builder stage
+FROM oven/bun AS builder
 WORKDIR /app
+
+# Copy package files for dependency installation
+COPY package.json bun.lock ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/ ./packages/
+
+# Install dependencies
+RUN bun install
+
+# Copy source code
+COPY . .
+
+# Set environment variables for build
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Copy contents of standalone to (app/web{.env, .next, server.js}, node_modules, package.json)
-COPY .next/standalone ./
+# Build the application from web directory
+WORKDIR /app/apps/web
+RUN bun run build
+RUN bash scripts/handle-nextjs-standalone-build.sh
 
-# Remove .env from /app/apps/web/.env if it exists
-RUN if [ -f /app/apps/web/.env ]; then rm /app/apps/web/.env; fi
+# Production image
+FROM oven/bun AS runner
+WORKDIR /app
 
-# Copy static to /app/.next
-COPY .next/static ./apps/web/.next/static
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
 
-# Copy public to /app
-COPY public ./apps/web/public
+# Create non-root user
+RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
 
-EXPOSE 3000
+# Copy the standalone output
+COPY --from=builder --chown=nodejs:nodejs /app/apps/web/.next ./
+COPY --from=builder --chown=nodejs:nodejs /app/apps/web/public ./public
+COPY --from=builder --chown=nodejs:nodejs /app/packages/db ./packages/db
+
+# Switch to non-root user
+USER nodejs
+
+EXPOSE ${PORT}
 
 # Based on apps/web workspace path from root package.json
-CMD ["bun", "apps/web/server.js"]
+CMD ["bun", "run", "./build-start-folder/apps/web/server.js"]

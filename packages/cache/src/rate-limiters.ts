@@ -1,22 +1,22 @@
 import { RateLimiterRedis as ValkeyRateLimit } from "rate-limiter-flexible";
 import { Ratelimit as UpstashRateLimit } from "@upstash/ratelimit";
 import type { Redis as UpstashRedisType } from "@upstash/redis";
+import type { SessionUser } from "@nimbus/auth/auth";
 import redisClient, { isEdge } from "@nimbus/cache";
-import type { Session } from "@nimbus/auth/auth";
 import env from "@nimbus/env";
 
 const isProduction = env.NODE_ENV === "production";
 
-let fileRateLimiter: (user: Session["user"]) => UpstashRateLimit | ValkeyRateLimit;
-let fileGetRateLimiter: (user: Session["user"]) => UpstashRateLimit | ValkeyRateLimit;
-let fileUpdateRateLimiter: (user: Session["user"]) => UpstashRateLimit | ValkeyRateLimit;
-let fileDeleteRateLimiter: (user: Session["user"]) => UpstashRateLimit | ValkeyRateLimit;
-let fileUploadRateLimiter: (user: Session["user"]) => UpstashRateLimit | ValkeyRateLimit;
+let fileRateLimiter: (user: SessionUser) => UpstashRateLimit | ValkeyRateLimit;
+let fileGetRateLimiter: (user: SessionUser) => UpstashRateLimit | ValkeyRateLimit;
+let fileUpdateRateLimiter: (user: SessionUser) => UpstashRateLimit | ValkeyRateLimit;
+let fileDeleteRateLimiter: (user: SessionUser) => UpstashRateLimit | ValkeyRateLimit;
+let fileUploadRateLimiter: (user: SessionUser) => UpstashRateLimit | ValkeyRateLimit;
 let waitlistRateLimiter: (ip: string) => UpstashRateLimit | ValkeyRateLimit;
 
 // Initialize the rate limiters based on the environment (Valkey or Upstash)
 if (isEdge) {
-	fileRateLimiter = (user: Session["user"]) =>
+	fileRateLimiter = (user: SessionUser) =>
 		new UpstashRateLimit({
 			redis: redisClient as UpstashRedisType,
 			prefix: `rl${user.id}:files`,
@@ -24,7 +24,7 @@ if (isEdge) {
 			analytics: true,
 		});
 
-	fileGetRateLimiter = (user: Session["user"]) =>
+	fileGetRateLimiter = (user: SessionUser) =>
 		new UpstashRateLimit({
 			redis: redisClient as UpstashRedisType,
 			prefix: `rl${user.id}:files:get`,
@@ -32,7 +32,7 @@ if (isEdge) {
 			analytics: true,
 		});
 
-	fileUpdateRateLimiter = (user: Session["user"]) =>
+	fileUpdateRateLimiter = (user: SessionUser) =>
 		new UpstashRateLimit({
 			redis: redisClient as UpstashRedisType,
 			prefix: `rl${user.id}:files:update`,
@@ -40,7 +40,7 @@ if (isEdge) {
 			analytics: true,
 		});
 
-	fileDeleteRateLimiter = (user: Session["user"]) =>
+	fileDeleteRateLimiter = (user: SessionUser) =>
 		new UpstashRateLimit({
 			redis: redisClient as UpstashRedisType,
 			prefix: `rl${user.id}:files:delete`,
@@ -48,7 +48,7 @@ if (isEdge) {
 			analytics: true,
 		});
 
-	fileUploadRateLimiter = (user: Session["user"]) =>
+	fileUploadRateLimiter = (user: SessionUser) =>
 		new UpstashRateLimit({
 			redis: redisClient as UpstashRedisType,
 			prefix: `rl${user.id}:files:upload`,
@@ -64,7 +64,7 @@ if (isEdge) {
 			analytics: true,
 		});
 } else {
-	fileRateLimiter = (user: Session["user"]) =>
+	fileRateLimiter = (user: SessionUser) =>
 		new ValkeyRateLimit({
 			storeClient: redisClient,
 			keyPrefix: `rl${user.id}:files`,
@@ -75,7 +75,7 @@ if (isEdge) {
 			inMemoryBlockDuration: 60,
 		});
 
-	fileGetRateLimiter = (user: Session["user"]) =>
+	fileGetRateLimiter = (user: SessionUser) =>
 		new ValkeyRateLimit({
 			storeClient: redisClient,
 			keyPrefix: `rl${user.id}:files:get`,
@@ -86,7 +86,7 @@ if (isEdge) {
 			inMemoryBlockDuration: 60,
 		});
 
-	fileUpdateRateLimiter = (user: Session["user"]) =>
+	fileUpdateRateLimiter = (user: SessionUser) =>
 		new ValkeyRateLimit({
 			storeClient: redisClient,
 			keyPrefix: `rl${user.id}:files:update`,
@@ -97,7 +97,7 @@ if (isEdge) {
 			inMemoryBlockDuration: 60,
 		});
 
-	fileDeleteRateLimiter = (user: Session["user"]) =>
+	fileDeleteRateLimiter = (user: SessionUser) =>
 		new ValkeyRateLimit({
 			storeClient: redisClient,
 			keyPrefix: `rl${user.id}:files:delete`,
@@ -108,7 +108,7 @@ if (isEdge) {
 			inMemoryBlockDuration: 60,
 		});
 
-	fileUploadRateLimiter = (user: Session["user"]) =>
+	fileUploadRateLimiter = (user: SessionUser) =>
 		new ValkeyRateLimit({
 			storeClient: redisClient,
 			keyPrefix: `rl${user.id}:files:upload`,

@@ -26,28 +26,31 @@ services:
     image: valkey/valkey:latest
     container_name: nimbus-cache
     restart: unless-stopped
+    env_file: .env
+    environment:
+      VALKEY_USERNAME: valkey
+      VALKEY_PASSWORD: valkey
     ports:
       - "6379:6379"
     command:
       [
-        "sh",
-        "-c",
-        'valkey-server --requirepass "$VALKEY_PASSWORD" "--user $VALKEY_USERNAME on >$VALKEY_PASSWORD ~* +@all" "--user
-        default off"',
+        "valkey-server",
+        "--requirepass",
+        "valkey",
+        "--user",
+        "valkey",
+        "on",
+        "+@all",
+        "~*",
+        ">valkey",
+        "--appendonly",
+        "yes",
       ]
-    environment:
-      - VALKEY_USERNAME=${VALKEY_USERNAME}
-      - VALKEY_PASSWORD=${VALKEY_PASSWORD}
-    deploy:
-      resources:
-        limits:
-          cpus: "0.2"
-          memory: 256M
     volumes:
-      - valkey-data:/var/lib/valkey/data
+      - valkey-data:/data
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
-      interval: 10s
+      test: ["CMD", "valkey-cli", "-a", "${VALKEY_PASSWORD}", "ping"]
+      interval: 5s
       timeout: 3s
       retries: 5
     networks:
@@ -56,65 +59,54 @@ services:
   # Server Service
   server:
     build:
-      context: apps/server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/server/Dockerfile
+      target: runner
     container_name: nimbus-server
     restart: unless-stopped
     env_file: .env
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
-      DATABASE_HOST: db
+      PORT: ${SERVER_PORT:-1284}
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      # Valkey connection settings with username/password
       VALKEY_HOST: cache
+      VALKEY_PORT: 6379
+      VALKEY_USERNAME: valkey
+      VALKEY_PASSWORD: valkey
+      # Connection URL format with username and password
+      VALKEY_URL: valkey://valkey:valkey@cache:6379/0
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
+      - "${SERVER_PORT:-1284}:${SERVER_PORT:-1284}"
     depends_on:
       db:
         condition: service_healthy
       cache:
         condition: service_healthy
-    # image does not include curl
-    # healthcheck:
-    #   test: ["CMD", "curl", "-sf http://localhost:${SERVER_PORT}/kamehame > /dev/null || exit 1"]
-    #   test: ["CMD", "bun", "/app/health-check.js"]
-    #   interval: 2s
-    #   timeout: 1s
-    #   retries: 5
     networks:
       - nimbus-network
 
   # Web Service
   web:
     build:
-      context: apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: runner
     container_name: nimbus-web
     restart: unless-stopped
     env_file: .env
     environment:
       NODE_ENV: production
+      PORT: ${WEB_PORT:-3000}
+      BACKEND_URL: ${BACKEND_URL}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
+      NEXT_PUBLIC_CALLBACK_URL: ${NEXT_PUBLIC_CALLBACK_URL}
     ports:
-      - "${WEB_PORT}:${WEB_PORT}"
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 512M
-    # depends_on:
-    #   server:
-    #     condition: service_healthy
-    # image does not include curl
-    # healthcheck:
-    #   test: ["CMD", "curl", "-sf http://localhost:${WEB_PORT}/favicon.ico > /dev/null || exit 1"]
-    #   test: ["CMD", "bun", "/app/health-check.js"]
-    #   interval: 2s
-    #   timeout: 1s
-    #   retries: 5
+      - "${WEB_PORT:-3000}:${WEB_PORT:-3000}"
+    depends_on:
+      server:
+        condition: service_started
     networks:
       - nimbus-network
 

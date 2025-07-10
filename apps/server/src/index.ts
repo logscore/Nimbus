@@ -1,17 +1,13 @@
-import { auth, type Session } from "@nimbus/auth/auth";
-import { createDb, type DB } from "@nimbus/db";
+import { contextStorage } from "hono/context-storage";
+import { createAuth } from "@nimbus/auth/auth";
+import type { HonoContext } from "./ctx";
+import { createDb } from "@nimbus/db";
 import { cors } from "hono/cors";
 import env from "@nimbus/env";
 import routes from "@/routes";
 import { Hono } from "hono";
 
-export interface ReqVariables {
-	user: Session["user"] | null;
-	session: Session["session"] | null;
-	db: DB | null;
-}
-
-const app = new Hono<{ Variables: ReqVariables }>();
+const app = new Hono<HonoContext>();
 
 app.use(
 	cors({
@@ -23,22 +19,14 @@ app.use(
 	})
 );
 
-app.use("*", async (c, next) => {
-	const session = await auth().api.getSession({ headers: c.req.raw.headers });
-
-	// TODO: Add auth middleware and ratelimiting to the drive operations endpoints.
-	if (!session) {
-		c.set("db", null);
-		c.set("user", null);
-		c.set("session", null);
-		// return c.json({ error: "Unauthorized" }, 401);
-		return next();
-	}
-
-	c.set("db", createDb(env.DATABASE_URL));
-	c.set("user", session.user);
-	c.set("session", session.session);
-	return next();
+app.use(contextStorage()).use("*", async (c, next) => {
+	const db = createDb(env.DATABASE_URL);
+	c.set("db", db);
+	const auth = createAuth();
+	c.set("auth", auth);
+	const session = await auth.api.getSession({ headers: c.req.raw.headers });
+	c.set("user", session?.user);
+	await next();
 });
 
 app.get("/kamehame", c => c.text("HAAAAAAAAAAAAAA"));
