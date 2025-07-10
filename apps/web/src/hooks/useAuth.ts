@@ -247,7 +247,7 @@ export const useSignOut = () => {
 				}),
 				{
 					loading: "Signing you out...",
-					success: "Signed out successfully",
+					success: "Signed out successfully, see you soon!", // human touch
 					error: error => (error instanceof Error ? error.message : "Sign out failed"),
 				}
 			);
