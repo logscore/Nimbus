@@ -91,7 +91,7 @@ docker compose down
 
 ### 7. Enjoy!
 
-Your contianer should now be available at [http://localhost:3000](http://localhost:3000) or at the domain you set up!
+Your container should now be available at [http://localhost:3000](http://localhost:3000) or at the domain you set up!
 
 ---
 

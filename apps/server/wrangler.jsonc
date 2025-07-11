@@ -20,8 +20,8 @@
 		"production": {
 			"name": "nimbus-server",
 			"vars": {
-				"NEXT_PUBLIC_BACKEND_URL": "https://nimbus-server.logan-def.workers.dev/",
-				"NEXT_PUBLIC_FRONTEND_URL": "https://nimbus-web.logan-def.workers.dev/",
+				"NEXT_PUBLIC_BACKEND_URL": "https://nimbus-server.logan-def.workers.dev",
+				"NEXT_PUBLIC_FRONTEND_URL": "https://nimbus-web.logan-def.workers.dev",
 			},
 		},
 	},

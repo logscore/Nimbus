@@ -28,17 +28,17 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      VALKEY_USERNAME: valkey
-      VALKEY_PASSWORD: valkey
+      VALKEY_USERNAME: ${VALKEY_USERNAME}
+      VALKEY_PASSWORD: ${VALKEY_PASSWORD}
     ports:
       - "6379:6379"
     command:
       [
         "valkey-server",
         "--requirepass",
-        "valkey",
+        "${VALKEY_PASSWORD}",
         "--user",
-        "valkey",
+        "${VALKEY_USERNAME}",
         "on",
         "+@all",
         "~*",
@@ -50,7 +50,7 @@ services:
       - valkey-data:/data
     healthcheck:
       test: ["CMD", "valkey-cli", "-a", "${VALKEY_PASSWORD}", "ping"]
-      interval: 5s
+      interval: 10s
       timeout: 3s
       retries: 5
     networks:
@@ -70,14 +70,14 @@ services:
       PORT: ${SERVER_PORT:-1284}
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       # Valkey connection settings with username/password
-      VALKEY_HOST: cache
-      VALKEY_PORT: 6379
-      VALKEY_USERNAME: valkey
-      VALKEY_PASSWORD: valkey
+      VALKEY_HOST: ${VALKEY_HOST}
+      VALKEY_PORT: ${VALKEY_PORT}
+      VALKEY_USERNAME: ${VALKEY_USERNAME}
+      VALKEY_PASSWORD: ${VALKEY_PASSWORD}
       # Connection URL format with username and password
-      VALKEY_URL: valkey://valkey:valkey@cache:6379/0
+      VALKEY_URL: valkey://${VALKEY_USERNAME}:${VALKEY_PASSWORD}@${VALKEY_HOST}:${VALKEY_PORT}/0
     ports:
-      - "${SERVER_PORT:-1284}:${SERVER_PORT:-1284}"
+      - "1284:1284"
     depends_on:
       db:
         condition: service_healthy
@@ -100,12 +100,12 @@ services:
     env_file: .env
     environment:
       NODE_ENV: production
-      PORT: ${WEB_PORT:-3000}
+      PORT: ${WEB_PORT}
       BACKEND_URL: ${BACKEND_URL}
       NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
       NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
     ports:
-      - "${WEB_PORT:-3000}:${WEB_PORT:-3000}"
+      - "3000:3000"
     depends_on:
       server:
         condition: service_started

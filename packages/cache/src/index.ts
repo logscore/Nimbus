@@ -5,7 +5,7 @@ import env from "@nimbus/env";
 export const isEdge = typeof process === "undefined" || (globalThis as any).WebSocketPair !== undefined;
 
 async function redisClientInstance(): Promise<UpstashRedis | ValkeyRedis> {
-	if (typeof process === "undefined" || (globalThis as any).WebSocketPair !== undefined) {
+	if (isEdge) {
 		const redisClient = new UpstashRedis({
 			url: env.UPSTASH_REDIS_REST_URL,
 			token: env.UPSTASH_REDIS_REST_TOKEN,

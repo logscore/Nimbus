@@ -56,8 +56,22 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 		// Rate limiting
 		if (rateLimiting.enabled && rateLimiting.rateLimiter) {
 			const user = c.get("user");
-			const ip =
-				c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || c.req.header("cf-connecting-ip") || "unknown";
+			const getClientIP = () => {
+				// Prioritize CF header for Cloudflare deployments
+				const cfIP = c.req.header("cf-connecting-ip");
+				if (cfIP) return cfIP;
+
+				// Handle x-forwarded-for (may contain multiple IPs)
+				const forwarded = c.req.header("x-forwarded-for");
+				if (forwarded) {
+					// Take the first IP from the list
+					const firstIP = forwarded.split(",")[0]?.trim();
+					return firstIP || "unknown";
+				}
+
+				return c.req.header("x-real-ip") || "unknown";
+			};
+			const ip = getClientIP();
 			const identifier = user?.id || ip;
 
 			try {

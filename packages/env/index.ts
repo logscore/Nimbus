@@ -12,11 +12,8 @@ try {
 		env = CloudflareEnv;
 	}
 } catch (error) {
-	if (error instanceof Error) {
-		// If cloudflare:workers import fails (e.g., during build), fall back to process.env
-		throw new Error("Failed to load environment variables", error);
-	}
-	throw new Error("Failed to load environment variables");
+	// If cloudflare:workers import fails (e.g., during build), fall back to process.env
+	throw new Error("Failed to load environment variables", { cause: error });
 }
 
 export default env;
