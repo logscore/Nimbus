@@ -7,8 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AddAccountDialog } from "@/components/settings/add-account-dialog";
 import { authClient } from "@nimbus/auth/auth-client";
-import type { SocialProvider } from "@nimbus/shared";
 import { AppHeader } from "@/components/app/header";
+import type { DriveProvider } from "@nimbus/shared";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 type ConnectedAccount = {
-	provider: SocialProvider;
+	provider: DriveProvider;
 	email: string;
 	dateAdded: string;
 };
@@ -73,7 +73,7 @@ export default function SettingsPage() {
 		}
 	};
 
-	const handleDisconnectAccount = (provider: SocialProvider) => {
+	const handleDisconnectAccount = (provider: DriveProvider) => {
 		// TODO: Implement actual disconnect logic
 		setConnectedAccounts(prev => prev.filter(acc => acc.provider !== provider));
 		toast.success(`Disconnected ${provider} account`);

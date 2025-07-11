@@ -22,7 +22,7 @@ async function redisClientInstance() {
 	});
 
 	redisClient.on("connect", () => {
-		console.log(`Connected to Valkey over ${family === 4 ? "IPv4" : "IPv6"}`);
+		console.log(`Connected to Valkey over ${redisClient.options.family === 4 ? "IPv4" : "IPv6"}`);
 	});
 
 	return redisClient;

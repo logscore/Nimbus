@@ -1,10 +1,10 @@
 import { GoogleDriveProvider } from "@/providers/google/google-drive";
 import { OneDriveProvider } from "@/providers/microsoft/one-drive";
 import { type SessionUser } from "@nimbus/auth/auth";
-import type { SocialProvider } from "@nimbus/shared";
+import type { DriveProvider } from "@nimbus/shared";
 import { getAccount } from "@/lib/utils/accounts";
 
-const createDriveProvider = (providerName: SocialProvider, accessToken: string) => {
+const createDriveProvider = (providerName: DriveProvider, accessToken: string) => {
 	if (providerName === "google") {
 		return new GoogleDriveProvider(accessToken);
 	}
@@ -24,7 +24,7 @@ export const getDriveProvider = async (user: SessionUser | null, headers: Header
 		throw new Error("Missing account tokens");
 	}
 
-	const providerName = account.providerId as SocialProvider;
+	const providerName = account.providerId as DriveProvider;
 	if (!["google", "microsoft"].includes(providerName)) {
 		throw new Error(`Invalid provider: ${account.providerId}`);
 	}

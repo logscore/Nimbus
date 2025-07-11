@@ -1,10 +1,10 @@
 import type {
 	AuthState,
+	DriveProvider,
 	ForgotPasswordFormData,
 	ResetPasswordFormData,
 	SignInFormData,
 	SignUpFormData,
-	SocialProvider,
 } from "@nimbus/shared";
 import { useSearchParamsSafely } from "@/hooks/useSearchParamsSafely";
 import { authClient } from "@nimbus/auth/auth-client";
@@ -17,14 +17,14 @@ import axios from "axios";
 
 const API_BASE = `${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/auth`;
 
-const signInWithProvider = async (provider: SocialProvider) => {
+const signInWithProvider = async (provider: DriveProvider) => {
 	return authClient.signIn.social({
 		provider,
 		callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
 	});
 };
 
-const linkSessionWithProvider = async (provider: SocialProvider) => {
+const linkSessionWithProvider = async (provider: DriveProvider) => {
 	return authClient.linkSocial({
 		provider,
 		callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
@@ -38,11 +38,11 @@ const handleAuthError = (error: unknown, defaultMessage: string): string => {
 	return defaultMessage;
 };
 
-const getProviderDisplayName = (provider: SocialProvider): string => {
+const getProviderDisplayName = (provider: DriveProvider): string => {
 	return provider.charAt(0).toUpperCase() + provider.slice(1);
 };
 
-export const useSocialAuth = (provider: SocialProvider) => {
+export const useSocialAuth = (provider: DriveProvider) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const providerName = getProviderDisplayName(provider);
 
