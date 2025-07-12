@@ -10,14 +10,14 @@ import axios from "axios";
 const signInWithGoogle = async () => {
 	await authClient.signIn.social({
 		provider: "google",
-		callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/app`,
+		callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
 	});
 };
 
 const signInWithMicrosoft = async () => {
 	await authClient.signIn.social({
 		provider: "microsoft",
-		callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/app`,
+		callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
 	});
 };
 
@@ -31,7 +31,10 @@ export const useGoogleAuth = () => {
 
 			if (isLoggedIn.data?.session) {
 				toast.promise(
-					authClient.linkSocial({ provider: "google", callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/app` }),
+					authClient.linkSocial({
+						provider: "google",
+						callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
+					}),
 					{
 						loading: "Linking Google account...",
 						success: "Successfully linked Google account",
@@ -66,7 +69,10 @@ export const useMicrosoftAuth = () => {
 
 			if (isLoggedIn.data?.session) {
 				toast.promise(
-					authClient.linkSocial({ provider: "microsoft", callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/app` }),
+					authClient.linkSocial({
+						provider: "microsoft",
+						callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
+					}),
 					{
 						loading: "Linking Microsoft account...",
 						success: "Successfully linked Microsoft account",
@@ -101,9 +107,9 @@ export const useSignIn = () => {
 	const getRedirectUrl = () => {
 		if (typeof window !== "undefined") {
 			const searchParams = new URLSearchParams(window.location.search);
-			return searchParams.get("redirect") || "/app";
+			return searchParams.get("redirect") || "/dashboard";
 		}
-		return "/app";
+		return "/dashboard";
 	};
 
 	const signInWithCredentials = useCallback(
@@ -173,10 +179,10 @@ export const useSignUp = () => {
 							name: fullName,
 							email: data.email,
 							password: data.password,
-							callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/app`,
+							callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
 						});
 
-						router.push("/app");
+						router.push("/dashboard");
 					})(),
 					{
 						loading: "Creating your account...",
