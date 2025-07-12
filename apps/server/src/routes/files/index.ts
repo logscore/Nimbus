@@ -17,9 +17,9 @@ import {
 import type { ApiResponse, UploadedFile } from "@/routes/types";
 import type { File } from "@/providers/interface/types";
 import { TagService } from "@/routes/tags/tag-service";
+import { type SessionUser } from "@nimbus/auth/auth";
 import { getDriveManagerForUser } from "@/providers";
 import { securityMiddleware } from "@/middleware";
-import { type Session } from "@nimbus/auth/auth";
 import { Readable } from "node:stream";
 import type { Context } from "hono";
 import { Hono } from "hono";
@@ -32,12 +32,14 @@ filesRouter.get(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileGetRateLimiter,
+			rateLimiter(c) {
+				return fileGetRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
 	async (c: Context) => {
-		const user: Session["user"] = c.get("user");
+		const user: SessionUser = c.get("user");
 
 		const { data, error } = getFilesSchema.safeParse({
 			parentId: c.req.query("parentId"),
@@ -77,12 +79,14 @@ filesRouter.get(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileGetRateLimiter,
+			rateLimiter(c) {
+				return fileGetRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
 	async (c: Context) => {
-		const user: Session["user"] = c.get("user");
+		const user: SessionUser = c.get("user");
 
 		// Validation
 		const { error, data } = getFileByIdSchema.safeParse(c.req.param());
@@ -117,12 +121,14 @@ filesRouter.put(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileUpdateRateLimiter,
+			rateLimiter(c) {
+				return fileUpdateRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
 	async (c: Context) => {
-		const user: Session["user"] = c.get("user");
+		const user: SessionUser = c.get("user");
 
 		const fileId = c.req.query("fileId");
 		const reqName = (await c.req.json()).name;
@@ -154,12 +160,14 @@ filesRouter.delete(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileDeleteRateLimiter,
+			rateLimiter(c) {
+				return fileDeleteRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
 	async (c: Context) => {
-		const user: Session["user"] = c.get("user");
+		const user: SessionUser = c.get("user");
 
 		const { error, data } = deleteFileSchema.safeParse(c.req.query());
 		if (error) {
@@ -192,12 +200,14 @@ filesRouter.post(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileUploadRateLimiter,
+			rateLimiter(c) {
+				return fileUploadRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
 	async (c: Context) => {
-		const user: Session["user"] = c.get("user");
+		const user: SessionUser = c.get("user");
 
 		//Validation
 		const { error, data } = createFileSchema.safeParse(c.req.query());
@@ -226,12 +236,14 @@ filesRouter.post(
 	securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: fileUploadRateLimiter,
+			rateLimiter(c) {
+				return fileUploadRateLimiter(c.get("user"));
+			},
 		},
 		securityHeaders: true,
 	}),
 	async (c: Context) => {
-		const user: Session["user"] = c.get("user");
+		const user: SessionUser = c.get("user");
 
 		try {
 			const formData = await c.req.formData();

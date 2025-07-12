@@ -1,10 +1,9 @@
 import type { CreateFolderParams, DeleteFileParams, UpdateFileParams, UploadFileParams } from "@/lib/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { clientEnv } from "@/lib/env/client-env";
 import axios, { type AxiosError } from "axios";
 import { toast } from "sonner";
 
-const API_BASE = `${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/files`;
+const API_BASE = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/files`;
 const defaultAxiosConfig = {
 	headers: {
 		"Content-Type": "application/json",

@@ -8,6 +8,7 @@
 **/server/lib/one-drive/**
 **/node_modules
 **/.next
+**/.wrangler
 **/dist
 **/build
 **/coverage

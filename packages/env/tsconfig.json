@@ -1,0 +1,3 @@
+{
+	"extends": "@nimbus/tsconfig/base"
+}

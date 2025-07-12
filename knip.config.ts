@@ -9,7 +9,6 @@ const ignoreHealthCheck = ["health-check.js"];
 const ignoreLibraries = ["**/lib/google-drive/**", "**/lib/one-drive/**"];
 const ignoreComponents = ["**/components/**"];
 
-const ignoreBinaries = ["fly", "flyctl"];
 const ignoreTsconfigDependencies = ["@nimbus/tsconfig"];
 
 const config: KnipConfig = {
@@ -24,19 +23,16 @@ const config: KnipConfig = {
 			entry: indexEntry,
 			project,
 			ignore: [...ignoreHealthCheck, ...ignoreLibraries],
-			ignoreBinaries,
 		},
 
 		// https://knip.dev/reference/plugins/next#_top
 		"apps/web": {
 			ignore: [...ignoreHealthCheck, ...ignoreComponents],
-			ignoreBinaries,
 			ignoreDependencies: ["tailwindcss", "tw-animate-css", "eslint", "eslint-config-next", "postcss"],
 		},
 
 		"packages/cache": {
 			ignore: ignoreUtils,
-			ignoreBinaries,
 		},
 
 		"packages/db": {

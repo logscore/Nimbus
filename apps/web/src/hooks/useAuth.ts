@@ -1,7 +1,6 @@
 import type { ForgotPasswordFormData, ResetPasswordFormData, SignInFormData, SignUpFormData } from "@/schemas";
 import { authClient } from "@nimbus/auth/auth-client";
 import { useMutation } from "@tanstack/react-query";
-import { clientEnv } from "@/lib/env/client-env";
 import { useCallback, useState } from "react";
 import type { AuthState } from "@/lib/types";
 import { useRouter } from "next/navigation";
@@ -11,14 +10,14 @@ import axios from "axios";
 const signInWithGoogle = async () => {
 	await authClient.signIn.social({
 		provider: "google",
-		callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
+		callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
 	});
 };
 
 const signInWithMicrosoft = async () => {
 	await authClient.signIn.social({
 		provider: "microsoft",
-		callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
+		callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
 	});
 };
 
@@ -31,11 +30,17 @@ export const useGoogleAuth = () => {
 			const isLoggedIn = await authClient.getSession();
 
 			if (isLoggedIn.data?.session) {
-				toast.promise(authClient.linkSocial({ provider: "google", callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL }), {
-					loading: "Linking Google account...",
-					success: "Successfully linked Google account",
-					error: error => (error instanceof Error ? error.message : "Failed to link Google account"),
-				});
+				toast.promise(
+					authClient.linkSocial({
+						provider: "google",
+						callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
+					}),
+					{
+						loading: "Linking Google account...",
+						success: "Successfully linked Google account",
+						error: error => (error instanceof Error ? error.message : "Failed to link Google account"),
+					}
+				);
 			} else {
 				toast.promise(signInWithGoogle(), {
 					loading: "Signing in with Google...",
@@ -64,7 +69,10 @@ export const useMicrosoftAuth = () => {
 
 			if (isLoggedIn.data?.session) {
 				toast.promise(
-					authClient.linkSocial({ provider: "microsoft", callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL }),
+					authClient.linkSocial({
+						provider: "microsoft",
+						callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
+					}),
 					{
 						loading: "Linking Microsoft account...",
 						success: "Successfully linked Microsoft account",
@@ -99,9 +107,9 @@ export const useSignIn = () => {
 	const getRedirectUrl = () => {
 		if (typeof window !== "undefined") {
 			const searchParams = new URLSearchParams(window.location.search);
-			return searchParams.get("redirect") || "/app";
+			return searchParams.get("redirect") || "/dashboard";
 		}
-		return "/app";
+		return "/dashboard";
 	};
 
 	const signInWithCredentials = useCallback(
@@ -171,10 +179,10 @@ export const useSignUp = () => {
 							name: fullName,
 							email: data.email,
 							password: data.password,
-							callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
+							callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
 						});
 
-						router.push("/app");
+						router.push("/dashboard");
 					})(),
 					{
 						loading: "Creating your account...",
@@ -266,7 +274,7 @@ export const useSignOut = () => {
 };
 
 const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
-	const response = await axios.post(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/auth/check-email`, { email });
+	const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/check-email`, { email });
 	return response.data;
 };
 

@@ -2,7 +2,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const protectedRoutes = ["/app"];
+const protectedRoutes = ["/dashboard"];
 const publicRoutes = new Set(["/", "/signin", "/signup", "/forgot-password", "/reset-password"]);
 
 export async function middleware(request: NextRequest) {
@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
 		}
 
 		if (isPublic && sessionCookie && pathname !== "/") {
-			return NextResponse.redirect(new URL("/app", request.url));
+			return NextResponse.redirect(new URL("/dashboard", request.url));
 		}
 	} catch (error) {
 		console.error("Auth middleware error:", error);

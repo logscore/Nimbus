@@ -1,7 +1,6 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { clientEnv } from "@/lib/env/client-env";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import NumberFlow from "@number-flow/react";
@@ -21,7 +20,7 @@ type FormSchema = z.infer<typeof formSchema>;
 
 // API functions for Hono backend
 async function getWaitlistCount(): Promise<{ count: number }> {
-	return fetch(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/count`).then(res => {
+	return fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/count`).then(res => {
 		if (!res.ok) {
 			throw new Error("Failed to get waitlist count");
 		}
@@ -30,7 +29,7 @@ async function getWaitlistCount(): Promise<{ count: number }> {
 }
 
 async function joinWaitlist(email: string): Promise<void> {
-	const response = await fetch(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/join`, {
+	const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/join`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -38,8 +37,8 @@ async function joinWaitlist(email: string): Promise<void> {
 		body: JSON.stringify({ email }),
 	});
 	if (!response.ok) {
-		const errorData = await response.json().catch(() => ({}));
-		throw new Error(errorData.error || "Failed to join waitlist");
+		const errorData: { success: boolean; message?: string } = await response.json();
+		throw new Error(errorData?.message || "Failed to join waitlist");
 	}
 }
 

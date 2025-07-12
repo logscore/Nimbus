@@ -27,7 +27,9 @@
 		"typescript": "^5"
 	},
 	"dependencies": {
+		"@nimbus/env": "workspace:*",
 		"drizzle-orm": "^0.43.1",
-		"pg": "^8.16.1"
+		"pg": "^8.16.1",
+		"postgres": "^3.4.7"
 	}
 }

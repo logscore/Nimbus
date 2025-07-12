@@ -8,22 +8,25 @@
 	},
 	"scripts": {
 		"dev": "next dev --turbopack",
+		"dev:cf": "bunx wrangler dev -c ./wrangler.jsonc",
 		"build": "next build && bash scripts/handle-nextjs-standalone-build.sh",
 		"start": "bun run .next/build-start-folder/apps/web/server.js",
 		"lint": "next lint",
+		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env production",
+		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
 		"docker:build": "bun run build && docker build -t nimbus-web-manual .",
 		"docker:run": "source .env && docker run --name nimbus-web-manual --env-file .env -p $WEB_PORT:$WEB_PORT nimbus-web-manual:latest",
 		"docker:up": "bun run build && docker compose up -d",
 		"docker:down": "docker compose down",
 		"docker:remove": "docker compose down --rmi local -v",
-		"docker:reset": "bun run docker:remove && bun run docker:up",
-		"fly:secrets:stage": "flyctl secrets import --stage < .env",
-		"fly:deploy": "bun run build && bash ../../scripts/fly:deploy.sh web"
+		"docker:reset": "bun run docker:remove && bun run docker:up"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.1.1",
 		"@nimbus/auth": "workspace:*",
 		"@number-flow/react": "^0.5.10",
+		"@opennextjs/cloudflare": "^1.4.0",
 		"@radix-ui/react-avatar": "^1.1.10",
 		"@radix-ui/react-checkbox": "^1.3.2",
 		"@radix-ui/react-collapsible": "^1.1.11",
@@ -35,7 +38,6 @@
 		"@radix-ui/react-slot": "^1.2.3",
 		"@radix-ui/react-tabs": "^1.1.12",
 		"@radix-ui/react-tooltip": "^1.2.7",
-		"@t3-oss/env-core": "^0.13.8",
 		"@tailwindcss/postcss": "^4",
 		"@tanstack/react-query": "^5.80.7",
 		"axios": "^1.10.0",
@@ -57,13 +59,13 @@
 		"zod": "^3.25.67"
 	},
 	"devDependencies": {
+		"@eslint/eslintrc": "^3",
 		"@nimbus/eslint": "workspace:*",
 		"@nimbus/tsconfig": "workspace:*",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
-		"typescript": "^5",
 		"eslint": "^9",
 		"eslint-config-next": "15.3.4",
-		"@eslint/eslintrc": "^3"
+		"typescript": "^5"
 	}
 }

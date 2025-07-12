@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Nimbus! This guide will help you 
 
 - [Bun](https://bun.sh/) (JavaScript runtime)
 - [Docker](https://www.docker.com/) (for running PostgreSQL)
-- Git
+- [Git](https://git-scm.com/)
 
 ## Quickstart
 
@@ -23,52 +23,7 @@ cd Nimbus
 bun i
 ```
 
-### 3. Set Up Postgres and Valkey with Docker
-
-We use Docker to run a PostgreSQL database and Valkey for local development. Follow these steps to set it up:
-
-1. **Start the database and valkey**:
-
-   ```bash
-   bun db:up
-   ```
-
-   This will start a Postgres container with default credentials:
-   - Host: `localhost`
-   - Port: `5432`
-   - Database: `nimbus`
-   - Username: `postgres`
-   - Password: `postgres`
-
-   And a Valkey container with credentials:
-   - Host: `localhost`
-   - Port: `6379`
-   - Username: `valkey`
-   - Password: `valkey`
-
-2. **Verify the database and valkey is running if running a detached container**:
-
-   ```bash
-   docker compose ps
-   ```
-
-   You should see the `nimbus-db` and `nimbus-valkey` containers in the list with a status of "Up".
-
-3. **Connect to the database** (optional):
-
-   ```bash
-   # Using psql client inside the container
-   docker compose exec postgres psql -U postgres -d nimbus
-   ```
-
-4. **Connect to the valkey** (optional):
-
-   ```bash
-   # Using valkey-cli inside the container
-   docker compose exec valkey valkey-cli --user valkey --pass valkey
-   ```
-
-### 4. Environment Setup
+### 3. Environment Setup
 
 Copy the `.env.example` file to `.env` using this command, `cp .env.example .env` and fill in these values. Follow the
 instructions on the first step of this [guide](https://www.better-auth.com/docs/authentication/google).
@@ -152,6 +107,51 @@ BETTER_AUTH_SECRET=
    RESEND_API_KEY=your-api-key-here
    ```
 
+### 4. Set Up Postgres and Valkey with Docker
+
+We use Docker to run a PostgreSQL database and Valkey for local development. Follow these steps to set it up:
+
+1. **Start the database and valkey**:
+
+   ```bash
+   bun db:up
+   ```
+
+   This will start a Postgres container with default credentials:
+   - Host: `localhost`
+   - Port: `5432`
+   - Database: `nimbus`
+   - Username: `postgres`
+   - Password: `postgres`
+
+   And a Valkey container with credentials:
+   - Host: `localhost`
+   - Port: `6379`
+   - Username: `valkey`
+   - Password: `valkey`
+
+2. **Verify the database and valkey is running if running a detached container**:
+
+   ```bash
+   docker compose ps
+   ```
+
+   You should see the `nimbus-db` and `nimbus-valkey` containers in the list with a status of "Up".
+
+3. **Connect to the database** (optional):
+
+   ```bash
+   # Using psql client inside the container
+   docker compose exec postgres psql -U postgres -d nimbus
+   ```
+
+4. **Connect to the valkey** (optional):
+
+   ```bash
+   # Using valkey-cli inside the container
+   docker compose exec valkey valkey-cli --user valkey --pass valkey
+   ```
+
 ### 5. Run Database Migrations
 
 After setting up the database, run the migrations:
@@ -200,8 +200,8 @@ The application should now be running at http://localhost:3000
 ### Clone your fork locally
 
 ```bash
-git clone https://github.com/\<yourusername\>/nimbus.git
-cd nimbus
+git clone https://github.com/\<yourusername\>/Nimbus.git
+cd Nimbus
 ```
 
 ### Create a feature branch
@@ -213,7 +213,7 @@ git checkout -b feature/your-feature-name
 Add the original repo as a remote:
 
 ```bash
-git remote add upstream https://github.com/nimbusdotstorage/nimbus.git
+git remote add upstream https://github.com/nimbusdotstorage/Nimbus.git
 ```
 
 > Make sure to pull from the upstream repo to keep your fork up to date using `git pull upstream main`
@@ -273,8 +273,7 @@ By contributing to this project, you agree that your contributions will be licen
 ## For new contributors
 
 We want everyone to be able to contribute something to Nimbus. So we set up a list of a few items that can get you
-started contributing to the project. You can also check out the [roadmap](https://nimbus.nolt.io/) for ideas. This will
-be updated as needed.
+started contributing to the project. This will be updated as needed.
 
 ### 1. Storage source support
 
@@ -305,7 +304,7 @@ dummy data so we can see the UI and make sure it works as expected before adding
 Some items to get started with:
 
 - Any security related changes
-- tRPC support with [Hono](https://hono.dev/docs/guides/rpc). Add the provider and migrate a few routes that haven't
+- Add RPC support with [Hono](https://hono.dev/docs/guides/rpc). Add the provider and migrate a few routes that haven't
   been migrated.
 - Add in storage support drivers like OneDrive, S3, etc.
 - Add account linking to the Better-Auth config if needed.
@@ -319,7 +318,6 @@ Some items to get started with:
 
 Some items to get started with:
 
-- We need a logo.
 - Tag color selection
 - Visual hierarchy improvements
 - Transitions and component design

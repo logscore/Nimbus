@@ -1,3 +1,4 @@
+import type { SessionUser } from "@nimbus/auth/auth";
 import waitlistRoutes from "@/routes/waitlist";
 import drivesRoutes from "@/routes/drives";
 import type { Context, Next } from "hono";
@@ -10,7 +11,7 @@ import { Hono } from "hono";
 const router = new Hono();
 
 async function authCheck(c: Context, next: Next) {
-	const user = c.get("user");
+	const user: SessionUser = c.get("user");
 	if (!user) {
 		return c.json({ success: false, message: "Unauthorized" }, 401);
 	}

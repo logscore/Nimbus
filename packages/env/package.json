@@ -1,0 +1,15 @@
+{
+	"name": "@nimbus/env",
+	"module": "index.ts",
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"private": true,
+	"type": "module",
+	"dependencies": {
+		"cloudflare": "^4.4.1"
+	}
+}
