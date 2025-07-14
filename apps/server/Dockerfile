@@ -41,5 +41,7 @@ WORKDIR /app/apps/server
 
 EXPOSE ${PORT}
 
+RUN bun --cwd /app/packages/db push
+
 # Start the application with db push
-CMD bun --cwd /app/packages/db push && bun dist/index.js
+CMD bun dist/index.js

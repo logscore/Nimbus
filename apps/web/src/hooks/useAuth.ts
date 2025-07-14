@@ -15,6 +15,7 @@ import env from "@nimbus/env/client";
 import { toast } from "sonner";
 import axios from "axios";
 
+// <<<<<<< HEAD
 const BASE_AUTH_URL = `${env.NEXT_PUBLIC_BACKEND_URL}/api/auth`;
 
 const signInWithProvider = async (provider: DriveProvider) => {
@@ -95,7 +96,7 @@ const useRedirect = () => {
 	const { getParam } = useSearchParamsSafely();
 
 	const getRedirectUrl = useCallback(() => {
-		return getParam("redirect") || "/app";
+		return getParam("redirect") || "/dashboard";
 	}, [getParam]);
 
 	const redirectToApp = useCallback(() => {
@@ -111,6 +112,7 @@ export const useSignIn = () => {
 	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
+
 	const { redirectToApp } = useRedirect();
 
 	const signInWithCredentials = useCallback(
@@ -172,6 +174,7 @@ export const useSignUp = () => {
 
 				toast.promise(
 					(async () => {
+						// <<<<<<< HEAD
 						try {
 							await authClient.signUp.email({
 								name: fullName,
@@ -185,6 +188,16 @@ export const useSignUp = () => {
 							throw error;
 						}
 						// >>>>>>> feat/onedrive-multiple-providers
+						// =======
+						// 						await authClient.signUp.email({
+						// 							name: fullName,
+						// 							email: data.email,
+						// 							password: data.password,
+						// 							callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
+						// 						});
+
+						// 						router.push("/dashboard");
+						// >>>>>>> cloudflare-docker
 					})(),
 					{
 						loading: "Creating your account...",

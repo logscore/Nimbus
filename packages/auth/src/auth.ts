@@ -1,21 +1,24 @@
+import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import { extractTokenFromUrl } from "./utils/extract-token";
 import { type Account, betterAuth } from "better-auth";
+import type { Redis as ValkeyRedis } from "iovalkey";
+import env, { isEdge } from "@nimbus/env/server";
 import { sendMail } from "./utils/send-mail";
 import redisClient from "@nimbus/cache";
 import { createDb } from "@nimbus/db";
-import env from "@nimbus/env/server";
 import { eq } from "drizzle-orm";
 
 // TODO(shared): move constants to shared package. use in validation.
 
 const db = createDb(env.DATABASE_URL);
 
-export const createAuth = () =>
-	betterAuth({
+export const createAuth = () => {
+	return betterAuth({
 		appName: "Nimbus",
 		baseURL: env.BACKEND_URL,
+		trustedOrigins: [env.FRONTEND_URL, env.BACKEND_URL],
 
 		// Ensure state is properly handled
 		state: {
@@ -29,8 +32,6 @@ export const createAuth = () =>
 				...schema,
 			},
 		}),
-
-		trustedOrigins: [env.FRONTEND_URL, env.BACKEND_URL],
 
 		emailAndPassword: {
 			enabled: true,
@@ -89,17 +90,23 @@ export const createAuth = () =>
 			},
 		},
 
+		// Experimental cache storage of auth data
 		secondaryStorage: {
-			get: async (key: string): Promise<string | null> => {
-				const value = await redisClient.get(key);
-				const returnValue = value ? String(value) : null;
-				return returnValue;
+			get: async (key: string) => {
+				return await redisClient.get(key);
 			},
-			set: async (key: string, value: string, ttl?: number): Promise<void> => {
-				if (ttl) await redisClient.set(key, value, { ex: ttl });
-				else await redisClient.set(key, value);
+			set: async (key: string, value: string, ttl?: number) => {
+				if (ttl) {
+					if (isEdge) {
+						await (redisClient as UpstashRedis).set(key, value, { ex: ttl });
+					} else {
+						await (redisClient as unknown as ValkeyRedis).set(key, value, "EX", ttl);
+					}
+				} else {
+					await redisClient.set(key, value);
+				}
 			},
-			delete: async (key: string): Promise<void> => {
+			delete: async (key: string) => {
 				await redisClient.del(key);
 			},
 		},
@@ -165,6 +172,12 @@ export const createAuth = () =>
 			},
 		},
 
+		advanced: {
+			crossSubDomainCookies: {
+				enabled: true,
+			},
+		},
+
 		hooks: {},
 
 		// https://www.better-auth.com/docs/reference/options#databasehooks
@@ -176,6 +189,7 @@ export const createAuth = () =>
 			},
 		},
 	});
+};
 
 export type Auth = ReturnType<typeof createAuth>;
 export type AuthSession = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;

@@ -9,6 +9,9 @@
 		"host": "localhost",
 		"local_protocol": "http",
 	},
+	"observability": {
+		"enabled": true,
+	},
 	"env": {
 		"local": {
 			"name": "nimbus-local-server",
