@@ -48,8 +48,18 @@ export const fileUploadRateLimiter = new RateLimiterRedis({
 	storeClient: redisClient,
 	keyPrefix: "rl:files:upload",
 	points: isProduction ? 50 : 500,
-	duration: 60 * 5,
-	blockDuration: 60 * 4,
+	duration: 60 * 6,
+	blockDuration: 60 * 6,
+	inMemoryBlockOnConsumed: isProduction ? 150 : 1500,
+	inMemoryBlockDuration: 60,
+});
+
+export const fileSearchRateLimiter = new RateLimiterRedis({
+	storeClient: redisClient,
+	keyPrefix: "rl:files:search",
+	points: isProduction ? 50 : 500,
+	duration: 60 * 6,
+	blockDuration: 60 * 6,
 	inMemoryBlockOnConsumed: isProduction ? 150 : 1500,
 	inMemoryBlockDuration: 60,
 });

@@ -43,6 +43,22 @@ export function useGetFile(fileId: string, returnedValues: string[]) {
 	});
 }
 
+export function useSearchFiles(query: string, pageSize: number, returnedValues: string[], nextPageToken?: string) {
+	return useQuery({
+		queryKey: ["files", "search", query, nextPageToken, pageSize],
+		queryFn: async () => {
+			const response = await axios.get(`${API_BASE}/search`, {
+				params: { query, pageSize, returnedValues, pageToken: nextPageToken },
+				...defaultAxiosConfig,
+			});
+			return response.data;
+		},
+		staleTime: 2 * 60 * 1000, // 2 minutes (shorter for search results)
+		retry: 2,
+		enabled: !!query.trim(), // Only run query if there's a search term
+	});
+}
+
 export function useDeleteFile() {
 	const queryClient = useQueryClient();
 	return useMutation({

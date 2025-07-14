@@ -5,6 +5,7 @@ import {
 	getFilesSchema,
 	updateFileSchema,
 	uploadFileSchema,
+	searchFilesSchema,
 	MAX_FILE_SIZE,
 	ALLOWED_MIME_TYPES,
 } from "@/validators";
@@ -13,6 +14,7 @@ import {
 	fileGetRateLimiter,
 	fileUpdateRateLimiter,
 	fileUploadRateLimiter,
+	fileSearchRateLimiter,
 } from "@nimbus/cache/rate-limiters";
 import type { ApiResponse, UploadedFile } from "@/routes/types";
 import type { File } from "@/providers/interface/types";
@@ -67,6 +69,168 @@ filesRouter.get(
 		);
 
 		return c.json(filesWithTags as File[]);
+	}
+);
+
+// Search files route
+filesRouter.get(
+	"/search",
+	securityMiddleware({
+		rateLimiting: {
+			enabled: true,
+			rateLimiter: fileSearchRateLimiter,
+		},
+		securityHeaders: true,
+	}),
+	async (c: Context) => {
+		const user: Session["user"] = c.get("user");
+
+		const { data, error } = searchFilesSchema.safeParse({
+			query: c.req.query("query"),
+			pageSize: c.req.query("pageSize"),
+			returnedValues: c.req.queries("returnedValues[]"),
+			pageToken: c.req.query("pageToken") ?? undefined,
+		});
+
+		if (error) {
+			return c.json<ApiResponse>({ success: false, message: error.errors[0]?.message }, 400);
+		}
+
+		// Parse query to separate tag searches from file name searches
+		const originalQuery = data.query;
+		const queryTokens = originalQuery.split(/\s+/);
+
+		// Extract tag-related tokens
+		const tagTokens = queryTokens.filter(token => token.startsWith("tag:") || token.startsWith("+tag:"));
+		const regularTagTokens = queryTokens.filter(token => token.startsWith("tag:"));
+		const andTagTokens = queryTokens.filter(token => token.startsWith("+tag:"));
+
+		// Extract non-tag tokens for Google Drive search
+		const fileSearchTokens = queryTokens.filter(token => !token.startsWith("tag:") && !token.startsWith("+tag:"));
+		const fileSearchQuery = fileSearchTokens.join(" ").trim();
+
+		let filesWithTags: File[] = [];
+		let nextPageToken: string | undefined = undefined;
+
+		// Determine search strategy
+		const isPureTagSearch = tagTokens.length > 0 && fileSearchTokens.length === 0;
+		const hasMixedSearch = tagTokens.length > 0 && fileSearchTokens.length > 0;
+		const hasFileSearchOnly = tagTokens.length === 0 && fileSearchTokens.length > 0;
+
+		if (isPureTagSearch) {
+			// Pure tag search: get files by tag IDs from local DB, then fetch from Google Drive
+			const searchTagNames = regularTagTokens.map(token => token.substring(4).toLowerCase());
+			const andTagNames = andTagTokens.map(token => token.substring(5).toLowerCase());
+
+			let taggedFileIds: string[] = [];
+
+			if (andTagNames.length > 0) {
+				// AND operation: get files that have ALL specified tags
+				const allUserTags = await tagService.getUserTags(user.id);
+				const flatTags = allUserTags.flatMap(tag => [tag, ...(tag.children || [])]);
+
+				const matchingTagIds = flatTags
+					.filter(tag => andTagNames.some(searchTag => tag.name.toLowerCase().includes(searchTag)))
+					.map(tag => tag.id);
+
+				if (matchingTagIds.length === andTagNames.length) {
+					// Get file IDs that have ALL the required tags
+					taggedFileIds = await tagService.getFileIdsByAllTags(matchingTagIds, user.id);
+				}
+			} else {
+				// OR operation: get files that have ANY of the specified tags
+				const allUserTags = await tagService.getUserTags(user.id);
+				const flatTags = allUserTags.flatMap(tag => [tag, ...(tag.children || [])]);
+
+				const matchingTagIds = flatTags
+					.filter(tag => searchTagNames.some(searchTag => tag.name.toLowerCase().includes(searchTag)))
+					.map(tag => tag.id);
+
+				if (matchingTagIds.length > 0) {
+					taggedFileIds = await tagService.getFileIdsByAnyTags(matchingTagIds, user.id);
+				}
+			}
+
+			// Fetch specific files from Google Drive
+			if (taggedFileIds.length > 0) {
+				const drive = await getDriveManagerForUser(user, c.req.raw.headers);
+				const filePromises = taggedFileIds.slice(0, data.pageSize).map(async fileId => {
+					try {
+						return await drive.getFileById(fileId, data.returnedValues);
+					} catch (error) {
+						console.warn(`Failed to fetch file ${fileId}:`, error);
+						return null;
+					}
+				});
+
+				const fetchedFiles = (await Promise.all(filePromises)).filter(file => file !== null);
+
+				// Add tags to fetched files
+				filesWithTags = await Promise.all(
+					fetchedFiles.map(async file => {
+						if (!file.id) return { ...file, tags: [] };
+						const tags = await tagService.getFileTags(file.id, user.id);
+						return { ...file, tags };
+					})
+				);
+			}
+			// Pure tag search doesn't support pagination from Google Drive
+			nextPageToken = undefined;
+		} else {
+			// File search (with or without tag filtering)
+			// Use existing search logic - send only non-tag terms to Google Drive
+			const searchQuery = hasFileSearchOnly ? originalQuery : fileSearchQuery;
+
+			if (!searchQuery.trim()) {
+				// If no file search terms, return empty results
+				return c.json({ files: [], nextPageToken: undefined });
+			}
+
+			const drive = await getDriveManagerForUser(user, c.req.raw.headers);
+			const res = await drive.searchFiles(searchQuery, data.pageSize, data.returnedValues, data.pageToken);
+
+			if (!res.files) {
+				return c.json<ApiResponse>({ success: false, message: "No files found" }, 404);
+			}
+
+			// Store pagination token
+			nextPageToken = res.nextPageToken;
+
+			// Add tags to files (existing logic preserved)
+			filesWithTags = await Promise.all(
+				res.files.map(async file => {
+					if (!file.id) return { ...file, tags: [] };
+					const tags = await tagService.getFileTags(file.id, user.id);
+					return { ...file, tags };
+				})
+			);
+
+			// Apply tag filtering for mixed searches (existing logic preserved)
+			if (hasMixedSearch) {
+				let filteredFiles = filesWithTags;
+				const searchTagNames = regularTagTokens.map(token => token.substring(4).toLowerCase());
+				const andTagNames = andTagTokens.map(token => token.substring(5).toLowerCase());
+
+				if (andTagNames.length > 0) {
+					// AND operation: file must have ALL specified tags
+					filteredFiles = filesWithTags.filter(file =>
+						andTagNames.every(searchTag => file.tags?.some(tag => tag.name.toLowerCase().includes(searchTag)))
+					);
+				} else {
+					// OR operation: file must have ANY of the specified tags (default behavior)
+					filteredFiles = filesWithTags.filter(file =>
+						file.tags?.some(tag => searchTagNames.some(searchTag => tag.name.toLowerCase().includes(searchTag)))
+					);
+				}
+
+				filesWithTags = filteredFiles;
+			}
+		}
+
+		return c.json({
+			files: filesWithTags,
+			nextPageToken,
+		});
 	}
 );
 

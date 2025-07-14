@@ -48,6 +48,21 @@ export interface Provider {
 	 */
 	deleteFile(fileId: string): Promise<boolean>;
 
+	/**
+	 * Search files in the user's drive
+	 * @param query The search query
+	 * @param pageSize The number of files to return per page
+	 * @param returnedValues The values the file object will contain
+	 * @param pageToken The next page token for pagination
+	 * @returns An array of files matching the search query and the next page token
+	 */
+	searchFiles(
+		query: string,
+		pageSize: number,
+		returnedValues: string[],
+		pageToken?: string
+	): Promise<{ files: File[]; nextPageToken?: string }>;
+
 	// Future methods:
 	// copyFile(fileId: string, newName?: string, parent?: string): Promise<File | null>;
 	// exportFile(fileId: string, mimeType: string): Promise<Blob | null>;

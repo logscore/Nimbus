@@ -48,6 +48,19 @@ export const getFileByIdSchema = z.object({
 	returnedValues: z.string().array(),
 });
 
+export const searchFilesSchema = z.object({
+	query: z
+		.string()
+		.min(1, "Search query cannot be empty")
+		.max(200, "Search query cannot be longer than 200 characters"),
+	pageSize: z.coerce.number().int().min(1).max(100).default(30),
+	returnedValues: z
+		.string()
+		.array()
+		.default(["id", "name", "mimeType", "size", "modificationDate", "webContentLink", "webViewLink"]),
+	pageToken: z.string().optional(),
+});
+
 export const deleteFileSchema = z.object({
 	fileId: fileIdSchema,
 });

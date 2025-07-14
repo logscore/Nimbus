@@ -211,6 +211,120 @@ export class GoogleDriveProvider implements Provider {
 			usageInTrash: driveAbout.data.storageQuota?.usageInDriveTrash,
 		} as DriveInfo;
 	}
+
+	/**
+	 * Search files in Google Drive
+	 * @param query The search query
+	 * @param pageSize The number of files to return per page
+	 * @param returnedValues The values the file object will contain
+	 * @param pageToken The next page token for pagination
+	 * @returns An array of files matching the search query and the next page token
+	 */
+	async searchFiles(
+		query: string,
+		pageSize: number,
+		returnedValues: string[],
+		pageToken?: string
+	): Promise<{ files: File[]; nextPageToken?: string }> {
+		// Build Google Drive search query
+		const searchQuery = this.buildSearchQuery(query);
+
+		const response = await this.drive.files.list({
+			fields: `files(${returnedValuesToFields(returnedValues)}), nextPageToken`,
+			pageSize,
+			pageToken,
+			q: searchQuery,
+		});
+
+		if (!response.data.files) {
+			return { files: [] };
+		}
+
+		const files: File[] = response.data.files.map(file => convertGoogleDriveFileToProviderFile(file));
+
+		return {
+			files,
+			nextPageToken: response.data.nextPageToken || undefined,
+		};
+	}
+
+	/**
+	 * Build Google Drive search query from user input
+	 * Supports various search patterns like type:pdf, tag:important, etc.
+	 */
+	private buildSearchQuery(userQuery: string): string {
+		const queryParts: string[] = [];
+		const tokens = userQuery.trim().split(/\s+/);
+		const nameTokens: string[] = [];
+
+		for (const token of tokens) {
+			if (token.startsWith("type:")) {
+				// Handle file type search (e.g., type:pdf)
+				const fileType = token.substring(5).toLowerCase();
+				const mimeType = this.getGoogleDriveMimeType(fileType);
+				if (mimeType) {
+					queryParts.push(`mimeType='${mimeType}'`);
+				}
+			} else if (token.startsWith("tag:")) {
+				// Handle tag search - we'll need to filter by tags in the route handler
+				// For now, we'll treat it as a name search
+				nameTokens.push(token.substring(4));
+			} else {
+				// Regular name search
+				nameTokens.push(token);
+			}
+		}
+
+		// Add name search if we have name tokens
+		if (nameTokens.length > 0) {
+			const nameQuery = nameTokens.join(" ");
+			queryParts.push(`name contains '${this.escapeSearchQuery(nameQuery)}'`);
+		}
+
+		// Always exclude trashed files
+		queryParts.push("trashed=false");
+
+		return queryParts.join(" and ");
+	}
+
+	/**
+	 * Get Google Drive MIME type for common file types
+	 */
+	private getGoogleDriveMimeType(fileType: string): string | null {
+		const mimeTypeMap: Record<string, string> = {
+			pdf: "application/pdf",
+			doc: "application/vnd.google-apps.document",
+			docs: "application/vnd.google-apps.document", // Google Docs
+			docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			xls: "application/vnd.google-apps.spreadsheet",
+			xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			ppt: "application/vnd.google-apps.presentation",
+			pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+			txt: "text/plain",
+			jpg: "image/jpeg",
+			jpeg: "image/jpeg",
+			png: "image/png",
+			gif: "image/gif",
+			zip: "application/zip", // ZIP archives
+			rar: "application/vnd.rar", // RAR archives
+			"7z": "application/x-7z-compressed", // 7-Zip archives
+			tar: "application/x-tar", // TAR archives
+			gz: "application/gzip", // GZIP archives
+			folder: "application/vnd.google-apps.folder",
+			document: "application/vnd.google-apps.document",
+			spreadsheet: "application/vnd.google-apps.spreadsheet",
+			presentation: "application/vnd.google-apps.presentation",
+		};
+
+		return mimeTypeMap[fileType] || null;
+	}
+
+	/**
+	 * Escape special characters in search query for Google Drive
+	 */
+	private escapeSearchQuery(query: string): string {
+		return query.replace(/'/g, "\\'").replace(/\\/g, "\\\\");
+	}
 }
 
 // Helper functions
@@ -231,8 +345,16 @@ function convertGoogleDriveFileToProviderFile(file: drive_v3.Schema$File): File 
 }
 
 function returnedValuesToFields(returnedValues: string[]) {
-	// Handle undefined behavior
-	return returnedValues.join(", ");
+	// Map frontend field names to Google Drive API field names
+	const fieldMap: Record<string, string> = {
+		modificationDate: "modifiedTime",
+		creationDate: "createdTime",
+		webContentLink: "webContentLink",
+		webViewLink: "webViewLink",
+	};
+
+	const mappedFields = returnedValues.map(field => fieldMap[field] || field);
+	return mappedFields.join(", ");
 }
 
 function genericTypeToProviderMimeType(type: string): string {
