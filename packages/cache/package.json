@@ -21,8 +21,7 @@
 		"iovalkey": "^0.3.3",
 		"rate-limiter-flexible": "^7.1.1",
 		"@nimbus/auth": "workspace:*",
-		"@nimbus/env": "workspace:*",
-		"zod": "^4.0.5"
+		"@nimbus/env": "workspace:*"
 	},
 	"devDependencies": {
 		"@nimbus/tsconfig": "workspace:*",

@@ -5,7 +5,6 @@
 		"@cloudflare/workers-types": "^4.20250712.0",
 		"@nimbus/eslint": "workspace:*",
 		"@nimbus/tsconfig": "workspace:*",
-		"biome": "^0.3.3",
 		"concurrently": "^9.2.0",
 		"eslint": "^9.31.0",
 		"glob": "^11.0.3",
@@ -62,5 +61,8 @@
 	"workspaces": [
 		"apps/*",
 		"packages/*"
-	]
+	],
+	"dependencies": {
+		"nimbus": "."
+	}
 }

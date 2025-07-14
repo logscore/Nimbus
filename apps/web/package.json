@@ -25,6 +25,7 @@
 	"dependencies": {
 		"@hookform/resolvers": "^5.1.1",
 		"@nimbus/auth": "workspace:*",
+		"@nimbus/env": "workspace:*",
 		"@nimbus/shared": "workspace:*",
 		"@number-flow/react": "^0.5.10",
 		"@opennextjs/cloudflare": "^1.5.1",
