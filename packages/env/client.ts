@@ -8,6 +8,7 @@ export const env = createEnv({
 		NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
 		NEXT_PUBLIC_FRONTEND_URL: process.env.NEXT_PUBLIC_FRONTEND_URL,
 	},
+
 	clientPrefix: "NEXT_PUBLIC_",
 	client: {
 		// Client-side environment variables
