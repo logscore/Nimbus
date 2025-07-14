@@ -61,8 +61,5 @@
 	"workspaces": [
 		"apps/*",
 		"packages/*"
-	],
-	"dependencies": {
-		"nimbus": "."
-	}
+	]
 }

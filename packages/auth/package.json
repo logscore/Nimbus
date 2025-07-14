@@ -18,8 +18,10 @@
 		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
 		"@nimbus/env": "workspace:*",
+		"@upstash/redis": "^1.35.1",
 		"axios": "^1.10.0",
 		"better-auth": "^1.2.12",
-		"drizzle-orm": "^0.44.2"
+		"drizzle-orm": "^0.44.2",
+		"iovalkey": "^0.3.3"
 	}
 }
