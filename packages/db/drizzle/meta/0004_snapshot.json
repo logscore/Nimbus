@@ -1,5 +1,5 @@
 {
-  "id": "fa00948d-6459-4a7d-8479-7870d4ee1236",
+  "id": "5abbe0ef-63ac-40eb-aead-2fdbecdb0714",
   "prevId": "7f29aa25-f88d-4acb-a697-2fed6b5c0f3f",
   "version": "7",
   "dialect": "postgresql",
@@ -87,7 +87,23 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "account_user_id_idx": {
+          "name": "account_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "account_user_id_user_id_fk": {
           "name": "account_user_id_user_id_fk",
@@ -227,12 +243,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "provider_id": {
-          "name": "provider_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "token": {
           "name": "token",
           "type": "text",
@@ -283,19 +293,6 @@
             "id"
           ],
           "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "session_provider_id_account_provider_id_fk": {
-          "name": "session_provider_id_account_provider_id_fk",
-          "tableFrom": "session",
-          "tableTo": "account",
-          "columnsFrom": [
-            "provider_id"
-          ],
-          "columnsTo": [
-            "provider_id"
-          ],
-          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -430,11 +427,17 @@
           "primaryKey": false,
           "notNull": false
         },
-        "default_provider": {
-          "name": "default_provider",
+        "default_account_id": {
+          "name": "default_account_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "default_provider_id": {
+          "name": "default_provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -497,13 +500,13 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         }
       },
       "indexes": {},

@@ -1,12 +1,12 @@
-import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
+// import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import { extractTokenFromUrl } from "./utils/extract-token";
 import { type Account, betterAuth } from "better-auth";
-import type { Redis as ValkeyRedis } from "iovalkey";
-import env, { isEdge } from "@nimbus/env/server";
+// import type { Redis as ValkeyRedis } from "iovalkey";
+import env /*, { isEdge }*/ from "@nimbus/env/server";
 import { sendMail } from "./utils/send-mail";
-import redisClient from "@nimbus/cache";
+// import redisClient from "@nimbus/cache";
 import { createDb } from "@nimbus/db";
 import { eq } from "drizzle-orm";
 
@@ -90,26 +90,25 @@ export const createAuth = () => {
 			},
 		},
 
-		// Experimental cache storage of auth data
-		secondaryStorage: {
-			get: async (key: string) => {
-				return await redisClient.get(key);
-			},
-			set: async (key: string, value: string, ttl?: number) => {
-				if (ttl) {
-					if (isEdge) {
-						await (redisClient as UpstashRedis).set(key, value, { ex: ttl });
-					} else {
-						await (redisClient as unknown as ValkeyRedis).set(key, value, "EX", ttl);
-					}
-				} else {
-					await redisClient.set(key, value);
-				}
-			},
-			delete: async (key: string) => {
-				await redisClient.del(key);
-			},
-		},
+		// secondaryStorage: {
+		// 	get: async (key: string) => {
+		// 		return await redisClient.get(key);
+		// 	},
+		// 	set: async (key: string, value: string, ttl?: number) => {
+		// 		if (ttl) {
+		// 			if (isEdge) {
+		// 				await (redisClient as UpstashRedis).set(key, value, { ex: ttl });
+		// 			} else {
+		// 				await (redisClient as unknown as ValkeyRedis).set(key, value, "EX", ttl);
+		// 			}
+		// 		} else {
+		// 			await redisClient.set(key, value);
+		// 		}
+		// 	},
+		// 	delete: async (key: string) => {
+		// 		await redisClient.del(key);
+		// 	},
+		// },
 
 		// https://www.better-auth.com/docs/reference/options#user
 		user: {
@@ -201,11 +200,12 @@ async function afterAccountCreation(account: Account) {
 		where: (table, { eq }) => eq(table.id, account.userId),
 	});
 
-	if (!user || user.defaultProviderId) {
+	if (!user || user.defaultAccountId || user.defaultProviderId) {
 		return;
 	}
 
+	const defaultAccountId = account.accountId;
 	const defaultProviderId = account.providerId;
 
-	await db.update(userTable).set({ defaultProviderId }).where(eq(userTable.id, account.userId));
+	await db.update(userTable).set({ defaultAccountId, defaultProviderId }).where(eq(userTable.id, account.userId));
 }
