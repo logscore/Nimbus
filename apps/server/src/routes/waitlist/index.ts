@@ -13,32 +13,48 @@ const waitlistRouter = new Hono();
 
 const waitlistRateLimiterMiddleware = createRateLimiterMiddleware({ limiter: waitlistRateLimiter });
 
-waitlistRouter.post("/join", waitlistRateLimiterMiddleware, zValidator("json", emailSchema), async (c: Context) => {
-	try {
-		const email = (await c.req.json()).email;
-
-		const existing = await db
-			.select()
-			.from(waitlist)
-			.where(eq(waitlist.email, email.toLowerCase().trim()))
-			.limit(1)
-			.then(rows => rows[0]);
-
-		if (existing) {
-			return c.json({ success: false, error: "This email is already on the waitlist" }, 400);
+waitlistRouter.post(
+	"/join",
+	waitlistRateLimiterMiddleware,
+	zValidator("json", emailSchema, (result, c) => {
+		if (!result.success) {
+			// const firstError = result.error.errors[0];
+			return c.json(
+				{
+					success: false,
+					error: result.error.errors[0]?.message,
+				},
+				400
+			);
 		}
+	}),
+	async (c: Context) => {
+		try {
+			const email = (await c.req.json()).email;
 
-		await db.insert(waitlist).values({
-			id: nanoid(),
-			email: email.toLowerCase().trim(),
-		});
+			const existing = await db
+				.select()
+				.from(waitlist)
+				.where(eq(waitlist.email, email.toLowerCase().trim()))
+				.limit(1)
+				.then(rows => rows[0]);
 
-		return c.json({ success: true }, 201);
-	} catch (error) {
-		console.error("Error adding email to waitlist:", error);
-		return c.json({ success: false, error: "Internal server error" }, 500);
+			if (existing) {
+				return c.json({ success: false, error: "This email is already on the waitlist" }, 400);
+			}
+
+			await db.insert(waitlist).values({
+				id: nanoid(),
+				email: email.toLowerCase().trim(),
+			});
+
+			return c.json({ success: true }, 201);
+		} catch (error) {
+			console.error("Error adding email to waitlist:", error);
+			return c.json({ success: false, error: "Internal server error" }, 500);
+		}
 	}
-});
+);
 
 waitlistRouter.get("/count", async c => {
 	try {

@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-const ALLOWED_DOMAINS = ["gmail.com", "outlook.com", "yahoo.com", "proton.me"];
-
 const fileIdSchema = z
 	.string()
 	.min(1, "File ID cannot be empty")
@@ -21,43 +19,92 @@ export const emailSchema = z.object({
 			const [, domain] = email.split("@");
 			if (!domain) return false;
 
-			const allowed = ALLOWED_DOMAINS.some(allowed => domain === allowed || domain.endsWith(`.${allowed}`));
-			if (!allowed) return false;
-
 			const labels = domain.split(".");
-			if (labels.length < 2 || labels.length > 3) return false;
+			if (labels.length < 2) return false;
 
+			// Check each label
+			const validLabel = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/;
+			if (!labels.every(label => label.length > 0 && label.length <= 15 && validLabel.test(label))) {
+				return false;
+			}
+
+			// TLD validation
 			const tld = labels.at(-1);
-			if (!tld) return false;
+			if (!tld || tld.length < 2 || !/^[a-zA-Z]{2,}$/.test(tld)) return false;
 
-			return /^[a-z]{2,63}$/i.test(tld);
-		}, "Invalid email, please try again"),
+			return true;
+		}, "Please enter a valid email address and try again"),
+});
+
+export const getFilesSchema = z.object({
+	parentId: z.string().min(1).default("root"),
+	pageSize: z.coerce.number().int().min(1).max(100).default(30),
+	returnedValues: z.string().array(),
+	pageToken: z.string().optional(),
 });
 
 export const getFileByIdSchema = z.object({
-	id: fileIdSchema,
+	fileId: fileIdSchema,
+	returnedValues: z.string().array(),
 });
 
 export const deleteFileSchema = z.object({
-	id: fileIdSchema,
+	fileId: fileIdSchema,
 });
 
 export const updateFileSchema = z.object({
-	id: fileIdSchema,
+	fileId: fileIdSchema,
 	name: z.string().min(1, "Name cannot be empty").max(100, "Name cannot be longer than 100 characters"),
 });
+
+// Maximum file size: 100MB
+export const MAX_FILE_SIZE = 100 * 1024 * 1024;
+// Allowed MIME types
+// TODO: Determine a better way to handle mimeType enforcement.
+export const ALLOWED_MIME_TYPES = [
+	"image/jpeg",
+	"image/png",
+	"image/gif",
+	"image/webp",
+	"image/avif",
+	"image/bmp",
+	"image/svg+xml",
+	"image/tiff",
+	"image/x-icon",
+	"video/mp4",
+	"video/mpeg",
+	"video/quicktime",
+	"video/webm",
+	"video/x-msvideo",
+	"video/x-ms-wmv",
+	"application/pdf",
+	"text/plain",
+	"application/msword",
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+	"application/vnd.ms-excel",
+	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+	"application/vnd.ms-powerpoint",
+	"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+];
 
 export const createFileSchema = z.object({
 	name: z.string().min(1, "Name cannot be empty").max(100, "Name cannot be longer than 100 characters"),
 	mimeType: z.string().min(1, "MIME type cannot be empty").max(100, "MIME type cannot be longer than 100 characters"),
-	parents: fileIdSchema.optional(),
+	parent: fileIdSchema.optional(),
+});
+
+export const uploadFileSchema = z.object({
+	parentId: fileIdSchema,
+	// File size and mime is validated here and on the backend
+	file: z
+		.custom<File>(file => file instanceof File, { message: "Invalid file" })
+		.refine(file => file.size <= MAX_FILE_SIZE, { message: "File size must be less than 100MB" })
+		.refine(file => ALLOWED_MIME_TYPES.includes(file.type), { message: "Invalid file type" }),
+	returnedValues: z.string().array(),
 });
 
 // Tag schemas
-export const tagIdSchema = z
-	.string()
-	.min(1, "Tag ID cannot be empty")
-	.max(250, "Tag ID cannot be longer than 250 characters");
+const tagIdSchema = z.string().min(1, "Tag ID cannot be empty").max(250, "Tag ID cannot be longer than 250 characters");
 
 export const createTagSchema = z.object({
 	name: z

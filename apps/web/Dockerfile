@@ -7,7 +7,7 @@ ENV NODE_ENV=production
 COPY .next/standalone ./
 
 # Remove .env from /app/apps/web/.env if it exists
-RUN rm /app/apps/web/.env
+RUN if [ -f /app/apps/web/.env ]; then rm /app/apps/web/.env; fi
 
 # Copy static to /app/.next
 COPY .next/static ./apps/web/.next/static

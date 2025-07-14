@@ -16,6 +16,11 @@ export const auth = betterAuth({
 			...schema,
 		},
 	}),
+	account: {
+		accountLinking: {
+			enabled: true,
+		},
+	},
 
 	trustedOrigins: [process.env.FRONTEND_URL, process.env.BACKEND_URL],
 
@@ -48,6 +53,14 @@ export const auth = betterAuth({
 			],
 			accessType: "offline",
 			prompt: "consent",
+		},
+
+		microsoft: {
+			clientId: process.env.MICROSOFT_CLIENT_ID as string,
+			clientSecret: process.env.MICROSOFT_CLIENT_SECRET as string,
+			scope: ["https://graph.microsoft.com/User.Read", "https://graph.microsoft.com/Files.ReadWrite.All"],
+			tenantId: "common",
+			prompt: "select_account",
 		},
 	},
 });

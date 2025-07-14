@@ -8,7 +8,6 @@ import {
 } from "@/validators";
 import type { TagOperationResponse, FileTagOperationResponse } from "@/routes/types";
 import { TagService } from "@/routes/tags/tag-service";
-import { getAccount } from "@/lib/utils/accounts";
 import type { Context } from "hono";
 import { Hono } from "hono";
 
@@ -18,14 +17,6 @@ const tagService = new TagService();
 // Get all tags for the authenticated user
 tagsRouter.get("/", async (c: Context) => {
 	const user = c.get("user");
-	if (!user) {
-		return c.json<TagOperationResponse>({ success: false, message: "User not authenticated" }, 401);
-	}
-
-	const account = await getAccount(user, c.req.raw.headers);
-	if (!account || !account.accessToken) {
-		return c.json<TagOperationResponse>({ success: false, message: "Unauthorized access" }, 401);
-	}
 
 	try {
 		const tags = await tagService.getUserTags(user.id);
@@ -41,14 +32,6 @@ tagsRouter.get("/", async (c: Context) => {
 // Get a specific tag by tag id (and the authenticated user id)
 tagsRouter.get("/:id", async (c: Context) => {
 	const user = c.get("user");
-	if (!user) {
-		return c.json<TagOperationResponse>({ success: false, message: "User not authenticated" }, 401);
-	}
-
-	const account = await getAccount(user, c.req.raw.headers);
-	if (!account || !account.accessToken) {
-		return c.json<TagOperationResponse>({ success: false, message: "Unauthorized access" }, 401);
-	}
 
 	// Validation
 	const { error, data } = getTagByIdSchema.safeParse(c.req.param());
@@ -76,14 +59,6 @@ tagsRouter.get("/:id", async (c: Context) => {
 // Create a new tag
 tagsRouter.post("/", async (c: Context) => {
 	const user = c.get("user");
-	if (!user) {
-		return c.json<TagOperationResponse>({ success: false, message: "User not authenticated" }, 401);
-	}
-
-	const account = await getAccount(user, c.req.raw.headers);
-	if (!account || !account.accessToken) {
-		return c.json<TagOperationResponse>({ success: false, message: "Unauthorized access" }, 401);
-	}
 
 	try {
 		// Validation
@@ -109,14 +84,6 @@ tagsRouter.post("/", async (c: Context) => {
 // Update an existing tag
 tagsRouter.put("/:id", async (c: Context) => {
 	const user = c.get("user");
-	if (!user) {
-		return c.json<TagOperationResponse>({ success: false, message: "User not authenticated" }, 401);
-	}
-
-	const account = await getAccount(user, c.req.raw.headers);
-	if (!account || !account.accessToken) {
-		return c.json<TagOperationResponse>({ success: false, message: "Unauthorized access" }, 401);
-	}
 
 	// Validation
 	const { error: paramError, data: paramData } = getTagByIdSchema.safeParse(c.req.param());
@@ -148,14 +115,6 @@ tagsRouter.put("/:id", async (c: Context) => {
 // Delete a tag
 tagsRouter.delete("/:id", async (c: Context) => {
 	const user = c.get("user");
-	if (!user) {
-		return c.json<TagOperationResponse>({ success: false, message: "User not authenticated" }, 401);
-	}
-
-	const account = await getAccount(user, c.req.raw.headers);
-	if (!account || !account.accessToken) {
-		return c.json<TagOperationResponse>({ success: false, message: "Unauthorized access" }, 401);
-	}
 
 	// Validation
 	const { error, data } = deleteTagSchema.safeParse(c.req.param());
@@ -180,14 +139,6 @@ tagsRouter.delete("/:id", async (c: Context) => {
 // Add tags to a file
 tagsRouter.post("/files/:fileId", async (c: Context) => {
 	const user = c.get("user");
-	if (!user) {
-		return c.json<FileTagOperationResponse>({ success: false, message: "User not authenticated" }, 401);
-	}
-
-	const account = await getAccount(user, c.req.raw.headers);
-	if (!account || !account.accessToken) {
-		return c.json<FileTagOperationResponse>({ success: false, message: "Unauthorized access" }, 401);
-	}
 
 	try {
 		// Validation
@@ -220,14 +171,6 @@ tagsRouter.post("/files/:fileId", async (c: Context) => {
 // Remove tags from a file
 tagsRouter.delete("/files/:fileId", async (c: Context) => {
 	const user = c.get("user");
-	if (!user) {
-		return c.json<FileTagOperationResponse>({ success: false, message: "User not authenticated" }, 401);
-	}
-
-	const account = await getAccount(user, c.req.raw.headers);
-	if (!account || !account.accessToken) {
-		return c.json<FileTagOperationResponse>({ success: false, message: "Unauthorized access" }, 401);
-	}
 
 	try {
 		// Validation
@@ -255,14 +198,6 @@ tagsRouter.delete("/files/:fileId", async (c: Context) => {
 // Get all tags for a specific file
 tagsRouter.get("/files/:fileId", async (c: Context) => {
 	const user = c.get("user");
-	if (!user) {
-		return c.json<TagOperationResponse>({ success: false, message: "User not authenticated" }, 401);
-	}
-
-	const account = await getAccount(user, c.req.raw.headers);
-	if (!account || !account.accessToken) {
-		return c.json<TagOperationResponse>({ success: false, message: "Unauthorized access" }, 401);
-	}
 
 	try {
 		const fileId = c.req.param("fileId");

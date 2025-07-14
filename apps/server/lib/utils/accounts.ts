@@ -1,7 +1,7 @@
 import { auth } from "@nimbus/auth/auth";
 import { db } from "@nimbus/db";
 
-export class AccountError extends Error {
+class AccountError extends Error {
 	constructor(
 		message: string,
 		public code = "ACCOUNT_ERROR"

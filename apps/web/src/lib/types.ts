@@ -1,33 +1,22 @@
 // This file holds all the custom interfaces and types for the Next.js front end app.
-import type { ChangeEvent, ComponentProps, ComponentType, ReactNode } from "react";
+import type { ChangeEvent, ComponentProps, ReactNode } from "react";
 import type { Button } from "@/components/ui/button";
 import type { Input } from "@/components/ui/input";
 
-// Strict types for validation
-export type TagName = string & { readonly __brand: "TagName" };
-export type HexColor = string & { readonly __brand: "HexColor" };
-
-// Validation functions
-export function isValidTagName(name: string): boolean {
-	return /^[a-zA-Z0-9-_\s]+$/.test(name) && name.trim().length > 0;
-}
-
-export function isValidHexColor(color: string): boolean {
-	return /^#[0-9A-Fa-f]{6}$/.test(color);
-}
-
-export function createTagName(name: string): TagName {
-	if (!isValidTagName(name)) {
-		throw new Error("Tag name must contain only alphabetic characters, numbers and spaces");
-	}
-	return name as TagName;
-}
-
-export function createHexColor(color: string): HexColor {
-	if (!isValidHexColor(color)) {
-		throw new Error("Color must be a valid 6-digit hex code (e.g., #FF0000)");
-	}
-	return color as HexColor;
+export interface _File {
+	id: string;
+	name: string;
+	parent: string;
+	mimeType: string;
+	// TODO: (string or number): determine how Google, OneDrive, etc format their size and how to convert them. a string that represent bytes might make sense
+	size: string | null;
+	// TODO: (format): determine how Google, OneDrive, etc format their dates
+	creationDate: string | null;
+	modificationDate: string | null;
+	tags?: Tag[];
+	// ! these are temporary Google drive specific properties. Remove them when we have a better implementation
+	webContentLink: string | null;
+	webViewLink: string | null;
 }
 
 export interface Tag {
@@ -42,54 +31,49 @@ export interface Tag {
 	children?: Tag[]; // For nested tags
 }
 
-export interface FileTag {
-	id: string;
-	fileId: string;
-	tagId: string;
-	userId: string;
-	createdAt: string;
-}
-
-export interface FileItem {
-	id: string;
-	name: string;
-	type: "folder" | "document" | "image" | "video";
-	size?: string;
-	modified: string;
-	tags?: Tag[]; // Tags associated with this file
-}
+// Dialog prop types
 
 export interface CreateFolderDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onCreateFolder: (folderName: string, parentId?: string | undefined) => void;
+	parentId: string;
 }
 
 export interface UploadFileDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onUpload: (files: FileList) => void;
+	parentId: string;
 }
 
-export interface FolderContentItem extends FileItem {
-	path?: string;
+// File operation hook types
+
+export interface DeleteFileParams {
+	fileId: string;
 }
 
-export interface Source {
+export interface CreateFolderParams {
 	name: string;
-	icon: ComponentType<{ className?: string }>;
-	value: string;
-	backgroundColor: string;
-	textColor?: string;
+	parentId?: string;
 }
+
+export interface UpdateFileParams {
+	fileId: string;
+	name?: string;
+	// Add other update properties like descriptions later
+}
+
+export interface UploadFileParams {
+	file: File; // Node file type
+	parentId: string;
+	onProgress?: (progress: number) => void;
+	returnedValues: string[];
+}
+
+// Auth types
 
 export interface AuthState {
 	isLoading: boolean;
 	error: string | null;
-}
-
-export interface DeleteFileParams {
-	id: string;
 }
 
 export interface AuthCardProps extends ComponentProps<"div"> {
@@ -99,34 +83,8 @@ export interface AuthCardProps extends ComponentProps<"div"> {
 	children: ReactNode;
 }
 
-export type Params = Record<string, string | number | null | undefined>;
-
-export interface CreateRequestOptions {
-	path: string;
-	pathParams?: Params;
-	queryParams?: Params;
-}
-
-export interface UseRequestParams {
-	request: (signal: AbortSignal) => Promise<Response>;
-	triggers?: unknown[];
-	manual?: boolean;
-}
-
-export interface UseRequestReturn<ResponseBody> {
-	data: ResponseBody | null;
-	error: Error | null;
-	isLoading: boolean;
-	refetch: () => Promise<void>;
-}
-
-export interface CreateFolderParams {
-	name: string;
-	parentId?: string;
-}
-
-export type SocialProvider = "google";
-export type AuthAction = "signin" | "signup";
+type SocialProvider = "google" | "microsoft";
+type AuthAction = "signin" | "signup";
 
 export interface SocialAuthButtonProps extends Omit<ComponentProps<typeof Button>, "children" | "variant" | "type"> {
 	provider: SocialProvider;
@@ -138,7 +96,10 @@ export interface PasswordInputProps extends Omit<ComponentProps<typeof Input>, "
 	onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export interface DriveStorageDetails {
-	limit: number;
-	usage: number;
+// Drive route types
+
+export interface DriveInfo {
+	usage: string;
+	limit: string;
+	usageInTrash: string;
 }

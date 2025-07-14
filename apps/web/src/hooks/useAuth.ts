@@ -1,16 +1,23 @@
-import type { SignInFormData, SignUpFormData, ForgotPasswordFormData, ResetPasswordFormData } from "@/schemas";
+import type { ForgotPasswordFormData, ResetPasswordFormData, SignInFormData, SignUpFormData } from "@/schemas";
 import { authClient } from "@nimbus/auth/auth-client";
 import { useMutation } from "@tanstack/react-query";
 import { clientEnv } from "@/lib/env/client-env";
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import type { AuthState } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import axios from "axios";
 
-export const signInWithGoogle = async () => {
+const signInWithGoogle = async () => {
 	await authClient.signIn.social({
 		provider: "google",
+		callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
+	});
+};
+
+const signInWithMicrosoft = async () => {
+	await authClient.signIn.social({
+		provider: "microsoft",
 		callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL,
 	});
 };
@@ -21,11 +28,21 @@ export const useGoogleAuth = () => {
 	const signInWithGoogleProvider = useCallback(async () => {
 		setIsLoading(true);
 		try {
-			toast.promise(signInWithGoogle(), {
-				loading: "Signing in with Google...",
-				success: "Signed in with Google",
-				error: error => (error instanceof Error ? error.message : "Google authentication failed"),
-			});
+			const isLoggedIn = await authClient.getSession();
+
+			if (isLoggedIn.data?.session) {
+				toast.promise(authClient.linkSocial({ provider: "google", callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL }), {
+					loading: "Linking Google account...",
+					success: "Successfully linked Google account",
+					error: error => (error instanceof Error ? error.message : "Failed to link Google account"),
+				});
+			} else {
+				toast.promise(signInWithGoogle(), {
+					loading: "Signing in with Google...",
+					success: "Signed in with Google",
+					error: error => (error instanceof Error ? error.message : "Google authentication failed"),
+				});
+			}
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : "Google authentication failed";
 			toast.error(errorMessage);
@@ -37,10 +54,46 @@ export const useGoogleAuth = () => {
 	return { signInWithGoogleProvider, isLoading };
 };
 
+export const useMicrosoftAuth = () => {
+	const [isLoading, setIsLoading] = useState(false);
+
+	const signInWithMicrosoftProvider = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const isLoggedIn = await authClient.getSession();
+
+			if (isLoggedIn.data?.session) {
+				toast.promise(
+					authClient.linkSocial({ provider: "microsoft", callbackURL: clientEnv.NEXT_PUBLIC_CALLBACK_URL }),
+					{
+						loading: "Linking Microsoft account...",
+						success: "Successfully linked Microsoft account",
+						error: error => (error instanceof Error ? error.message : "Failed to link Microsoft account"),
+					}
+				);
+			} else {
+				toast.promise(signInWithMicrosoft(), {
+					loading: "Signing in with Microsoft...",
+					success: "Signed in with Microsoft",
+					error: error => (error instanceof Error ? error.message : "Microsoft authentication failed"),
+				});
+			}
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : "Microsoft authentication failed";
+			toast.error(errorMessage);
+		} finally {
+			setIsLoading(false);
+		}
+	}, []);
+
+	return { signInWithMicrosoftProvider, isLoading };
+};
+
 export const useSignIn = () => {
 	const router = useRouter();
 	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
 	const { signInWithGoogleProvider } = useGoogleAuth();
+	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
 
 	// Get redirect URL from search params
 	const getRedirectUrl = () => {
@@ -95,6 +148,7 @@ export const useSignIn = () => {
 		...state,
 		signInWithCredentials,
 		signInWithGoogleProvider,
+		signInWithMicrosoftProvider,
 	};
 };
 
@@ -102,6 +156,7 @@ export const useSignUp = () => {
 	const router = useRouter();
 	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
 	const { signInWithGoogleProvider } = useGoogleAuth();
+	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
 
 	const signUpWithCredentials = useCallback(
 		async (data: SignUpFormData) => {
@@ -167,6 +222,7 @@ export const useSignUp = () => {
 		...state,
 		signUpWithCredentials,
 		signInWithGoogleProvider,
+		signInWithMicrosoftProvider,
 	};
 };
 

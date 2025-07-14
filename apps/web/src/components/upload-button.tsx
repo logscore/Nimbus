@@ -9,21 +9,16 @@ import { UploadFolderDialog } from "@/components/dialogs/upload-folder-dialog";
 import { CreateFolderDialog } from "@/components/dialogs/create-folder-dialog";
 import { UploadFileDialog } from "@/components/dialogs/upload-files-dialog";
 import { FolderPlus, Plus, Upload } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useUpload } from "@/hooks/useUpload";
+import { useState } from "react";
 
 export function UploadButton() {
-	const {
-		uploadFileOpen,
-		uploadFolderOpen,
-		createFolderOpen,
-		setUploadFileOpen,
-		setUploadFolderOpen,
-		setCreateFolderOpen,
-		handleFileUpload,
-		handleFolderUpload,
-		handleCreateFolder,
-	} = useUpload();
+	const [uploadFileOpen, setUploadFileOpen] = useState(false);
+	const [uploadFolderOpen, setUploadFolderOpen] = useState(false);
+	const [createFolderOpen, setCreateFolderOpen] = useState(false);
+	const searchParams = useSearchParams();
+	const folderId = searchParams.get("folderId") ?? "root";
 
 	return (
 		<>
@@ -50,15 +45,11 @@ export function UploadButton() {
 				</DropdownMenuContent>
 			</DropdownMenu>
 
-			<UploadFileDialog open={uploadFileOpen} onOpenChange={setUploadFileOpen} onUpload={handleFileUpload} />
+			<UploadFileDialog open={uploadFileOpen} onOpenChange={setUploadFileOpen} parentId={folderId} />
 
-			<UploadFolderDialog open={uploadFolderOpen} onOpenChange={setUploadFolderOpen} onUpload={handleFolderUpload} />
+			<UploadFolderDialog open={uploadFolderOpen} onOpenChange={setUploadFolderOpen} parentId={folderId} />
 
-			<CreateFolderDialog
-				open={createFolderOpen}
-				onOpenChange={setCreateFolderOpen}
-				onCreateFolder={handleCreateFolder}
-			/>
+			<CreateFolderDialog open={createFolderOpen} onOpenChange={setCreateFolderOpen} parentId={folderId} />
 		</>
 	);
 }

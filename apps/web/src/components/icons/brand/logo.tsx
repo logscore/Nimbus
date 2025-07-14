@@ -1,6 +1,6 @@
 import type { HTMLAttributes } from "react";
 
-export default function Logo(props: HTMLAttributes<SVGElement>) {
+export function NimbusLogo(props: HTMLAttributes<SVGElement>) {
 	return (
 		<svg {...props} width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
 			<path

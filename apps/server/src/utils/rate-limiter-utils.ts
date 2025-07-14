@@ -1,7 +1,7 @@
 import { RateLimiterRes, type RateLimiterAbstract } from "rate-limiter-flexible";
 import type { Context, Next } from "hono";
 
-export function getIp(c: Context) {
+function getIp(c: Context) {
 	const key =
 		c.req.header("x-forwarded-for") ||
 		c.req.raw.headers.get("cf-connecting-ip") ||
@@ -10,7 +10,7 @@ export function getIp(c: Context) {
 	return key;
 }
 
-export function setRateLimitHeaders(c: Context, rateLimiterRes: RateLimiterRes, limiter: RateLimiterAbstract) {
+function setRateLimitHeaders(c: Context, rateLimiterRes: RateLimiterRes, limiter: RateLimiterAbstract) {
 	const limit = limiter.points.toString();
 	const remaining = rateLimiterRes.remainingPoints.toString();
 	const reset = Math.ceil((Date.now() + rateLimiterRes.msBeforeNext) / 1000).toString();
@@ -31,7 +31,6 @@ export function createRateLimiterMiddleware({ limiter }: { limiter: RateLimiterA
 			return next();
 		} catch (err) {
 			if (err instanceof RateLimiterRes) {
-				console.log(`Rate limit exceeded for IP ${key}.`);
 				setRateLimitHeaders(c, err, limiter);
 				return c.json(
 					{
@@ -41,7 +40,7 @@ export function createRateLimiterMiddleware({ limiter }: { limiter: RateLimiterA
 					429
 				);
 			}
-			console.log("Error in rate limiter middleware:", err);
+			console.error("Error in rate limiter middleware:", err);
 			return c.json({ success: false, error: "Internal server error" }, 500);
 		}
 	};

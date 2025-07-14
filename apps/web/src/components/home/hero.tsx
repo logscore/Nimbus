@@ -1,22 +1,19 @@
+import HeroBgDark from "@/public/images/hero-dithered-black.png";
+import HeroBgLight from "public/images/hero-dithered-white.png";
 import { AnimatedGroup } from "@/components/ui/animated-group";
 import { WaitlistForm } from "@/components/home/waitlist";
 import HeroLight from "@/public/images/hero-light.png";
 import HeroDark from "@/public/images/hero-dark.png";
-import { TextLoop } from "@/components/ui/text-loop";
-import GoogleDriveIcon from "@/public/googledrive";
 
+import { useIsMobile } from "@/hooks/use-mobile";
 import Header from "@/components/home/header";
-import OneDriveIcon from "@/public/onedrive";
 import { type Variants } from "motion/react";
-import DropboxIcon from "@/public/dropbox";
-import ICloudIcon from "@/public/icloud";
 import Image from "next/image";
 
 const transitionVariants: { item: Variants } = {
 	item: {
 		hidden: {
 			opacity: 0,
-			filter: "blur(12px)",
 			y: 12,
 		},
 		visible: {
@@ -33,60 +30,94 @@ const transitionVariants: { item: Variants } = {
 };
 
 export default function Hero() {
+	const isMobile = useIsMobile();
+
 	return (
-		<div className="flex w-full flex-1 flex-col items-center justify-center gap-12 overflow-hidden px-4 py-40 md:gap-16">
+		<div className="font-manrope flex w-full flex-1 flex-col items-center justify-center gap-12 overflow-hidden px-4 py-40 md:gap-16">
 			<Header />
 			<AnimatedGroup variants={transitionVariants} className="w-full">
-				<div className="flex flex-col gap-12 px-4 md:px-6">
-					<div className="flex flex-col items-center justify-center gap-3 text-center md:gap-6">
-						<h1 className="inline-flex flex-col items-center justify-center gap-1.5 text-[2.5rem] leading-tight font-semibold sm:flex-row md:text-5xl lg:text-7xl">
-							The open source
-							<TextLoop
-								transition={{
-									type: "spring",
-									stiffness: 900,
-									damping: 95,
-									mass: 5,
-								}}
-								variants={{
-									initial: {
-										y: 5,
-										rotateX: 90,
-										opacity: 0,
-										filter: "blur(10px)",
-									},
-									animate: {
-										y: 0,
-										rotateX: 0,
-										opacity: 1,
-										filter: "blur(0px)",
-									},
-									exit: {
-										y: -5,
-										rotateX: -90,
-										opacity: 0,
-										filter: "blur(10px)",
-									},
-								}}
-							>
-								<GoogleDriveIcon className="relative top-[-2px] inline size-12 md:size-14 lg:size-16.5" />
-								<OneDriveIcon className="inline size-12 md:size-14 lg:size-16.5" />
-								<DropboxIcon className="inline size-12 md:size-14 lg:size-16.5" />
-								<ICloudIcon className="inline size-12 md:size-14 lg:size-16.5" />
-							</TextLoop>
-							alternative
-						</h1>
-						<p className="text-muted-foreground max-w-xl text-base md:text-xl">
-							They&apos;re your files, you control them.
-						</p>
-					</div>
+				<div className="relative flex w-full flex-col gap-12 px-4 md:px-6">
+					{isMobile && (
+						<>
+							<Image
+								src={HeroBgDark}
+								alt="hero bg"
+								width={478}
+								height={718}
+								className="pointer-events-none absolute -top-40 left-40 z-0 hidden h-auto rotate-12 opacity-50 dark:block"
+								priority
+							/>
+							<Image
+								src={HeroBgLight}
+								alt="hero bg"
+								width={478}
+								height={718}
+								className="pointer-events-none absolute -top-40 left-40 z-0 block h-auto rotate-12 opacity-50 dark:hidden"
+								priority
+							/>
+						</>
+					)}
 
+					<div className="relative mx-auto w-full max-w-3xl sm:max-w-4xl md:max-w-5xl lg:max-w-6xl">
+						<div className="pointer-events-none absolute top-1/2 left-1/2 z-0 block h-[60vw] w-[120vw] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.7)_60%,rgba(255,255,255,0.2)_100%)] blur-[100px] sm:h-[80%] sm:w-[120%] dark:hidden" />
+
+						<div className="pointer-events-none absolute top-1/2 left-1/2 z-0 hidden h-[60vw] w-[120vw] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(ellipse_at_center,rgba(10,10,20,0.7)_60%,rgba(10,10,20,0.2)_100%)] blur-[100px] sm:h-[80%] sm:w-[120%] dark:block" />
+
+						<div className="absolute bottom-[-100%] left-[-100px] z-0 hidden sm:block">
+							<Image
+								src={HeroBgDark}
+								alt="angel left"
+								width={386}
+								height={579}
+								className="hidden scale-x-[-1] -rotate-12 opacity-40 dark:block"
+								priority
+							/>
+							<Image
+								src={HeroBgLight}
+								alt="angel left"
+								width={386}
+								height={579}
+								className="block scale-x-[-1] -rotate-12 opacity-60 dark:hidden"
+								priority
+							/>
+						</div>
+
+						<div className="absolute right-[-100px] bottom-[-100%] z-0 hidden sm:block">
+							<Image
+								src={HeroBgDark}
+								alt="angel right"
+								width={386}
+								height={579}
+								className="hidden rotate-12 opacity-40 dark:block"
+								priority
+							/>
+							<Image
+								src={HeroBgLight}
+								alt="angel right"
+								width={386}
+								height={579}
+								className="block rotate-12 opacity-60 dark:hidden"
+								priority
+							/>
+						</div>
+
+						<div className="relative z-10 flex flex-col items-center justify-center gap-8 text-center md:gap-12 lg:gap-12">
+							<h1 className="text-4xl leading-[1.1] font-bold tracking-[-0.02em] sm:flex-row md:text-4xl lg:text-6xl">
+								Cloud you <br /> can actually{" "}
+								<span className="bg-gradient-to-br from-black to-white/5 bg-clip-text text-transparent dark:from-white dark:to-black/5">
+									trust.
+								</span>
+							</h1>
+							<p className="mx-auto max-w-xs text-sm leading-tight sm:text-[16px]">
+								{`Take charge of your files with a cloud that's open, secure, and built for you.`}
+							</p>
+						</div>
+					</div>
 					<WaitlistForm />
 				</div>
 			</AnimatedGroup>
 
 			<AnimatedGroup
-				className="flex w-full justify-start sm:max-w-[300vw] sm:justify-center"
 				variants={{
 					container: {
 						visible: {
@@ -99,18 +130,21 @@ export default function Hero() {
 					...transitionVariants,
 				}}
 			>
-				<div className="ml-0 min-w-[300vw] sm:mx-auto sm:max-w-7xl sm:min-w-0 sm:translate-x-0">
+				<div className="border-border mx-auto w-full max-w-3xl rounded-xl border bg-gray-50/5 p-2 backdrop-blur-xs sm:max-w-4xl sm:min-w-0 sm:translate-x-0">
+					<div className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-black to-[#7FBEE4] opacity-30 blur-[60px]" />
 					<Image
 						src={HeroDark}
 						alt="Hero"
-						className="ml-0 hidden rounded-lg shadow-[0_0_20px_rgba(30,30,30,0.8)] sm:mx-auto dark:block"
+						className="z-10 ml-0 hidden h-auto w-full rounded-lg object-cover sm:mx-auto dark:block"
 						unoptimized
+						sizes="(max-width: 768px) 100vw, 80vw"
 					/>
 					<Image
 						src={HeroLight}
 						alt="Hero"
-						className="ml-0 block rounded-lg shadow-[0_0_20px_rgba(30,30,30,0.2)] sm:mx-auto dark:hidden"
+						className="z-10 ml-0 block h-auto w-full rounded-lg object-cover sm:mx-auto dark:hidden"
 						unoptimized
+						sizes="(max-width: 768px) 100vw, 80vw"
 					/>
 				</div>
 			</AnimatedGroup>

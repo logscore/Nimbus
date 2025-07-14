@@ -38,6 +38,11 @@ services:
     environment:
       - VALKEY_USERNAME=${VALKEY_USERNAME}
       - VALKEY_PASSWORD=${VALKEY_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: 256M
     volumes:
       - valkey-data:/var/lib/valkey/data
     healthcheck:
@@ -63,6 +68,11 @@ services:
       VALKEY_HOST: cache
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
     depends_on:
       db:
         condition: service_healthy
@@ -90,6 +100,11 @@ services:
       NODE_ENV: production
     ports:
       - "${WEB_PORT}:${WEB_PORT}"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
     # depends_on:
     #   server:
     #     condition: service_healthy

@@ -1,6 +1,6 @@
 import { SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-import { useStorageDetails } from "@/hooks/useDriveOps";
 import { Progress } from "@/components/ui/progress";
+import { useDriveInfo } from "@/hooks/useDriveOps";
 import { Moon, Settings, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fileSize } from "@/utils/fileSize";
@@ -9,7 +9,7 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 
 export default function StorageFooter() {
-	const { data, error, isError, isPending } = useStorageDetails();
+	const { data, error, isError, isPending } = useDriveInfo();
 	const { theme, setTheme } = useTheme();
 
 	useEffect(() => {
@@ -18,7 +18,8 @@ export default function StorageFooter() {
 		}
 	}, [isError, error]);
 
-	const usagePercent: number = data && data.limit > 0 ? Math.floor((data.usage / data.limit) * 100) : 0;
+	const usagePercent: number =
+		data && Number(data.limit) > 0 ? Math.floor((Number(data.usage) / Number(data.limit)) * 100) : 0;
 
 	const toggleTheme = (): void => {
 		setTheme(theme === "dark" ? "light" : "dark");
