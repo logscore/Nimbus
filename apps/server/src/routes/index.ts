@@ -7,10 +7,10 @@ import tagsRoutes from "@/routes/tags";
 import authRoutes from "@/routes/auth";
 import { sendError } from "./utils";
 
-const publicRoutePaths = ["/auth", "/waitlist", "/email"] as const;
-const publicRouteRouters = [authRoutes, waitlistRoutes, emailRoutes] as const;
 const protectedRoutePaths = ["/files", "/drives", "/tags"] as const;
 const protectedRouteRouters = [filesRoutes, drivesRoutes, tagsRoutes] as const;
+const publicRoutePaths = ["/auth", "/waitlist", "/email"] as const;
+const publicRouteRouters = [authRoutes, waitlistRoutes, emailRoutes] as const;
 
 if (
 	publicRoutePaths.length !== publicRouteRouters.length ||

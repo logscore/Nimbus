@@ -11,13 +11,11 @@ import { authClient } from "@nimbus/auth/auth-client";
 import Profile from "@/components/user-profile";
 import { Button } from "@/components/ui/button";
 import { useSignOut } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export function UserProfileDropdown() {
-	const router = useRouter();
 	const { signOut, isLoading } = useSignOut();
 	const { data: session, isPending } = authClient.useSession();
 
@@ -27,9 +25,9 @@ export function UserProfileDropdown() {
 
 	const handleSignOut = async () => {
 		try {
-			await signOut();
-			toast.success("Signed out successfully");
-			router.push("/signin");
+			await signOut({
+				redirectTo: "/signin?from=profile",
+			});
 		} catch (error) {
 			console.error("Failed to sign out:", error);
 			toast.error("Failed to sign out");
@@ -60,7 +58,11 @@ export function UserProfileDropdown() {
 							<div className="text-muted-foreground text-xs">{userEmail || "No email"}</div>
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem onClick={handleSignOut} className="cursor-pointer" disabled={isLoading}>
+						<DropdownMenuItem
+							onClick={handleSignOut}
+							className="cursor-pointer text-red-500 focus:text-red-500"
+							disabled={isLoading}
+						>
 							<LogOut className="mr-2 h-4 w-4" />
 							<span>{isLoading ? "Signing out..." : "Sign Out"}</span>
 						</DropdownMenuItem>

@@ -16,7 +16,6 @@ import env from "@nimbus/env/client";
 import { toast } from "sonner";
 import axios from "axios";
 
-// <<<<<<< HEAD
 const BASE_AUTH_URL = `${env.NEXT_PUBLIC_BACKEND_URL}/api/auth`;
 
 const signInWithProvider = async (provider: DriveProvider) => {
@@ -100,13 +99,13 @@ const useRedirect = () => {
 		return getParam("redirect") || "/dashboard";
 	}, [getParam]);
 
-	const redirectToApp = useCallback(() => {
+	const redirectToDashboard = useCallback(() => {
 		const redirectUrl = getRedirectUrl();
 		router.push(redirectUrl);
 		router.refresh();
 	}, [router, getRedirectUrl]);
 
-	return { getRedirectUrl, redirectToApp };
+	return { getRedirectUrl, redirectToDashboard };
 };
 
 export const useSignIn = () => {
@@ -114,7 +113,7 @@ export const useSignIn = () => {
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
 
-	const { redirectToApp } = useRedirect();
+	const { redirectToDashboard } = useRedirect();
 
 	const signInWithCredentials = useCallback(
 		async (data: SignInFormData) => {
@@ -129,7 +128,7 @@ export const useSignIn = () => {
 							rememberMe: data.remember,
 						},
 						{
-							onSuccess: redirectToApp,
+							onSuccess: redirectToDashboard,
 							onError: ctx => {
 								throw ctx.error;
 							},
@@ -149,7 +148,7 @@ export const useSignIn = () => {
 				setState(prev => ({ ...prev, isLoading: false }));
 			}
 		},
-		[redirectToApp]
+		[redirectToDashboard]
 	);
 
 	return {
@@ -164,7 +163,7 @@ export const useSignUp = () => {
 	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
-	const { redirectToApp } = useRedirect();
+	const { redirectToDashboard } = useRedirect();
 
 	const signUpWithCredentials = useCallback(
 		async (data: SignUpFormData) => {
@@ -175,7 +174,6 @@ export const useSignUp = () => {
 
 				toast.promise(
 					(async () => {
-						// <<<<<<< HEAD
 						try {
 							await authClient.signUp.email({
 								name: fullName,
@@ -183,22 +181,11 @@ export const useSignUp = () => {
 								password: data.password,
 								callbackURL: BASE_CALLBACK_URL,
 							});
-							redirectToApp();
+							redirectToDashboard();
 						} catch (error) {
 							console.error("Sign up error:", error);
 							throw error;
 						}
-						// >>>>>>> feat/onedrive-multiple-providers
-						// =======
-						// 						await authClient.signUp.email({
-						// 							name: fullName,
-						// 							email: data.email,
-						// 							password: data.password,
-						// 							callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
-						// 						});
-
-						// 						router.push("/dashboard");
-						// >>>>>>> cloudflare-docker
 					})(),
 					{
 						loading: "Creating your account...",
@@ -224,7 +211,7 @@ export const useSignUp = () => {
 				setState(prev => ({ ...prev, isLoading: false }));
 			}
 		},
-		[redirectToApp]
+		[redirectToDashboard]
 	);
 
 	return {
@@ -239,34 +226,36 @@ export const useSignOut = () => {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 
-	const signOut = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			toast.promise(
-				authClient.signOut({
-					fetchOptions: {
-						onSuccess: () => {
-							router.push("/");
-							router.refresh();
-						},
-						onError: ctx => {
-							throw ctx.error;
-						},
-					},
-				}),
-				{
-					loading: "Signing you out...",
-					success: "Signed out successfully",
-					error: error => (error instanceof Error ? error.message : "Sign out failed"),
+	const signOut = useCallback(
+		async (options?: { redirectTo?: string }) => {
+			setIsLoading(true);
+			try {
+				const response = await authClient.signOut();
+				const data = response.data;
+				const success = data?.success ?? false;
+
+				if (!success) {
+					throw new Error("Sign out failed");
 				}
-			);
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : "Sign out failed";
-			toast.error(errorMessage);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [router]);
+
+				toast.success("Signed out successfully");
+
+				// Redirect to the specified path or default to signin
+				const redirectPath = options?.redirectTo || "/signin";
+				router.push(redirectPath);
+				router.refresh();
+
+				return { success: true };
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : "Sign out failed";
+				toast.error(errorMessage);
+				return { success: false, error: errorMessage };
+			} finally {
+				setIsLoading(false);
+			}
+		},
+		[router]
+	);
 
 	return {
 		signOut,
