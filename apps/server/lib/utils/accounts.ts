@@ -1,3 +1,4 @@
+import { type AccountTableSelect } from "@nimbus/db/schema";
 import { type SessionUser } from "@nimbus/auth/auth";
 import { getProtectedContext } from "@/hono";
 
@@ -11,11 +12,7 @@ class AccountError extends Error {
 	}
 }
 
-export const getAccount = async (user: SessionUser | null, headers: Headers) => {
-	if (!user?.id) {
-		throw new AccountError("User session does not exist", "USER_SESSION_DOES_NOT_EXIST");
-	}
-
+export async function getAccount(user: SessionUser, headers: Headers): Promise<AccountTableSelect | null> {
 	try {
 		const c = getProtectedContext();
 		const account = await c.var.db.query.account.findFirst({
@@ -45,4 +42,4 @@ export const getAccount = async (user: SessionUser | null, headers: Headers) => 
 		}
 		throw new AccountError("Failed to retrieve account information", "ACCOUNT_RETRIEVAL_FAILED");
 	}
-};
+}

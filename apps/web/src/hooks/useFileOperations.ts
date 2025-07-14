@@ -1,27 +1,18 @@
 import type { CreateFolderParams, DeleteFileParams, UpdateFileParams, UploadFileParams } from "@nimbus/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios, { type AxiosError } from "axios";
-import env from "@nimbus/env/client";
+import { protectedClient } from "@/utils/client";
 import { toast } from "sonner";
 
-const BASE_FILE_URL = `${env.NEXT_PUBLIC_BACKEND_URL}/api/files`;
-const defaultAxiosConfig = {
-	headers: {
-		"Content-Type": "application/json",
-	},
-	withCredentials: true,
-	signal: new AbortController().signal,
-};
+const BASE_FILE_CLIENT = protectedClient.api.files;
 
 export function useGetFiles(parentId: string, pageSize: number, returnedValues: string[], nextPageToken?: string) {
 	return useQuery({
 		queryKey: ["files", parentId, nextPageToken, pageSize],
 		queryFn: async () => {
-			const response = await axios.get(BASE_FILE_URL, {
-				params: { parentId, pageSize, returnedValues, pageToken: nextPageToken },
-				...defaultAxiosConfig,
+			const response = await BASE_FILE_CLIENT.$get({
+				query: { parentId, pageSize, returnedValues, pageToken: nextPageToken },
 			});
-			return response.data;
+			return response.json();
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		retry: 2,
@@ -32,11 +23,10 @@ export function useGetFile(fileId: string, returnedValues: string[]) {
 	return useQuery({
 		queryKey: ["file", fileId, returnedValues],
 		queryFn: async () => {
-			const response = await axios.get(`${BASE_FILE_URL}/${fileId}`, {
-				params: { returnedValues },
-				...defaultAxiosConfig,
+			const response = await BASE_FILE_CLIENT[":fileId"].$get({
+				param: { fileId, returnedValues },
 			});
-			return response.data;
+			return response.json();
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		retry: 2,
@@ -47,16 +37,15 @@ export function useDeleteFile() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: async ({ fileId }: DeleteFileParams) => {
-			const response = await axios.delete(BASE_FILE_URL, {
-				params: { fileId },
-				...defaultAxiosConfig,
+			const response = await BASE_FILE_CLIENT.$delete({
+				query: { fileId },
 			});
-			return response.data;
+			return response.json();
 		},
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["files"] });
 		},
-		onError: (error: AxiosError) => {
+		onError: error => {
 			console.error("Error deleting file:", error);
 			const errorMessage = error.message || "Failed to delete file";
 			toast.error(errorMessage);
@@ -68,17 +57,16 @@ export function useUpdateFile() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: async ({ fileId, ...dataToUpdate }: UpdateFileParams) => {
-			const response = await axios.put(`${BASE_FILE_URL}`, dataToUpdate, {
-				params: { fileId },
-				...defaultAxiosConfig,
+			const response = await BASE_FILE_CLIENT.$put(dataToUpdate, {
+				query: { fileId },
 			});
-			return response.data;
+			return response.json();
 		},
 		onSuccess: async () => {
 			toast.success("File updated successfully");
 			await queryClient.invalidateQueries({ queryKey: ["files"] });
 		},
-		onError: (error: AxiosError) => {
+		onError: error => {
 			console.error("Error updating file:", error);
 			const errorMessage = error.message || "Failed to update file";
 			toast.error(errorMessage);
@@ -90,21 +78,20 @@ export function useCreateFolder() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: async ({ name, parentId }: CreateFolderParams) => {
-			const response = await axios.post(BASE_FILE_URL, null, {
-				...defaultAxiosConfig,
-				params: {
+			const response = await BASE_FILE_CLIENT.$post(null, {
+				query: {
 					name,
 					mimeType: "folder",
 					parent: parentId,
 				},
 			});
-			return response.data;
+			return response.json();
 		},
 		onSuccess: async () => {
 			toast.success("Folder created successfully");
 			await queryClient.invalidateQueries({ queryKey: ["files"] });
 		},
-		onError: (error: AxiosError) => {
+		onError: error => {
 			console.error("Error creating folder:", error);
 			const errorMessage = error.message || "Failed to create folder";
 			toast.error(errorMessage);
@@ -121,12 +108,11 @@ export function useUploadFile() {
 			const formData = new FormData();
 			formData.append("file", file);
 
-			const response = await axios.post(`${BASE_FILE_URL}/upload`, formData, {
+			const response = await BASE_FILE_CLIENT.upload.$post(formData, {
 				headers: {
 					"Content-Type": "multipart/form-data",
 				},
-				withCredentials: true,
-				params: {
+				query: {
 					parentId,
 				},
 				onUploadProgress: progressEvent => {
@@ -137,14 +123,16 @@ export function useUploadFile() {
 				},
 			});
 
-			return response.data;
+			return response.json();
 		},
 		onSuccess: async () => {
 			// Invalidate the files query to refetch the updated list
 			await queryClient.invalidateQueries({ queryKey: ["files"] });
 		},
-		onError: (error: AxiosError<{ message?: string }>) => {
+		onError: error => {
 			console.error("Error uploading file:", error);
+			const errorMessage = error.message || "Failed to upload file";
+			toast.error(errorMessage);
 		},
 	});
 }
@@ -169,12 +157,8 @@ export function useDownloadFile() {
 				params.append("exportMimeType", exportMimeType);
 			}
 
-			const response = await fetch(`${BASE_FILE_URL}/download/${fileId}?${params.toString()}`, {
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
+			const response = await BASE_FILE_CLIENT.download.$get({
+				param: { fileId },
 			});
 
 			if (!response.ok) {

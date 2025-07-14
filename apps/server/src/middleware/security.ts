@@ -1,4 +1,4 @@
-import type { UserRateLimiter } from "@nimbus/cache/rate-limiters";
+import { waitlistRateLimiter, type UserRateLimiter } from "@nimbus/cache/rate-limiters";
 import type { RateLimiter } from "@nimbus/cache";
 import type { Context, Next } from "hono";
 import { webcrypto } from "node:crypto";
@@ -14,13 +14,23 @@ export interface SecurityOptions {
 	securityHeaders?: boolean;
 }
 
-export function buildSecurityMiddleware(rateLimiter: UserRateLimiter) {
+export function buildUserSecurityMiddleware(rateLimiter: UserRateLimiter) {
+	return buildSecurityMiddleware(c => rateLimiter(c.var.user));
+}
+
+export function buildWaitlistSecurityMiddleware() {
+	return buildSecurityMiddleware(c =>
+		waitlistRateLimiter(
+			c.req.header("cf-connecting-ip") || c.req.header("x-real-ip") || c.req.header("x-forwarded-for") || "unknown"
+		)
+	);
+}
+
+function buildSecurityMiddleware(rateLimiter: (c: Context) => RateLimiter) {
 	return securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter(c) {
-				return rateLimiter(c.var.user);
-			},
+			rateLimiter,
 		},
 		securityHeaders: true,
 	});

@@ -3,7 +3,9 @@
 	"version": "0.0.3",
 	"type": "module",
 	"private": true,
-	"module": "src/index.ts",
+	"exports": {
+		".": "./src/index.ts"
+	},
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"dev:hot": "bun --hot src/index.ts",
@@ -32,7 +34,6 @@
 		"hono": "^4.8.5",
 		"nanoid": "^5.1.5",
 		"pg": "^8.16.3",
-		"resend": "^4.6.0",
 		"zod": "^4.0.5"
 	},
 	"devDependencies": {

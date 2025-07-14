@@ -12,7 +12,6 @@ import { useUploadFile } from "@/hooks/useFileOperations";
 import type { UploadFileDialogProps } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/loader";
-import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 export function UploadFileDialog({ open, onOpenChange, parentId }: UploadFileDialogProps) {
@@ -75,11 +74,11 @@ export function UploadFileDialog({ open, onOpenChange, parentId }: UploadFileDia
 							toast.success(`Successfully uploaded ${files.length} ${files.length === 1 ? "file" : "files"}`);
 						}
 					},
-					onError: (error: AxiosError<{ message?: string }>) => {
+					onError: error => {
 						console.error("Upload error:", error);
 						setIsUploading(false);
 						const fileName = files[index]?.name || "file";
-						const errorMessage = error.response?.data?.message || `Failed to upload file: ${fileName}`;
+						const errorMessage = error.message || `Failed to upload file: ${fileName}`;
 						toast.error(errorMessage);
 					},
 				}

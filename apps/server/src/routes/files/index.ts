@@ -16,7 +16,7 @@ import {
 	fileUploadRateLimiter,
 } from "@nimbus/cache/rate-limiters";
 import { handleUploadError, sendError, sendSuccess } from "@/routes/utils";
-import { buildSecurityMiddleware } from "@/middleware";
+import { buildUserSecurityMiddleware } from "@/middleware";
 import { createProtectedRouter } from "@/hono";
 import { FileService } from "./file-service";
 import type { UploadedFile } from "../types";
@@ -29,14 +29,18 @@ export type FilesRouter = typeof filesRouter;
 
 // Get files
 // TODO: Grab fileId from url path, not the params
-filesRouter.get("/", buildSecurityMiddleware(fileGetRateLimiter), async c => {
+filesRouter.get("/", buildUserSecurityMiddleware(fileGetRateLimiter), async c => {
 	const user = c.var.user;
 
+	const parentId = c.req.query("parentId");
+	const pageSize = c.req.query("pageSize");
+	// const returnedValues = c.req.queries("returnedValues[]");
+	const pageToken = c.req.query("pageToken") ?? undefined;
+
 	const { data, error } = getFilesSchema.safeParse({
-		parentId: c.req.query("parentId"),
-		pageSize: c.req.query("pageSize"),
-		returnedValues: c.req.queries("returnedValues[]"),
-		pageToken: c.req.query("pageToken") ?? undefined,
+		parentId,
+		pageSize,
+		pageToken,
 	});
 
 	if (error) {
@@ -52,7 +56,7 @@ filesRouter.get("/", buildSecurityMiddleware(fileGetRateLimiter), async c => {
 });
 
 // Get file by ID
-filesRouter.get("/:id", buildSecurityMiddleware(fileGetRateLimiter), async c => {
+filesRouter.get("/:id", buildUserSecurityMiddleware(fileGetRateLimiter), async c => {
 	const user = c.var.user;
 
 	const { error, data } = getFileByIdSchema.safeParse(c.req.param());
@@ -60,7 +64,7 @@ filesRouter.get("/:id", buildSecurityMiddleware(fileGetRateLimiter), async c => 
 		return sendError(c, error);
 	}
 
-	const file = await fileService.getById(user, c.req.raw.headers, data.fileId, data.returnedValues);
+	const file = await fileService.getById(user, c.req.raw.headers, data.fileId);
 	if (!file) {
 		return sendError(c, { message: "File not found", status: 404 });
 	}
@@ -70,7 +74,7 @@ filesRouter.get("/:id", buildSecurityMiddleware(fileGetRateLimiter), async c => 
 
 // Update file
 // TODO: Note that the validation only works for renaming, this will need to be updated as we support more update features
-filesRouter.put("/", buildSecurityMiddleware(fileUpdateRateLimiter), async c => {
+filesRouter.put("/", buildUserSecurityMiddleware(fileUpdateRateLimiter), async c => {
 	const user = c.var.user;
 	const fileId = c.req.query("fileId");
 	const reqName = (await c.req.json()).name;
@@ -90,7 +94,7 @@ filesRouter.put("/", buildSecurityMiddleware(fileUpdateRateLimiter), async c => 
 
 // Delete file
 // TODO: implement delete multiple files/folders
-filesRouter.delete("/", buildSecurityMiddleware(fileDeleteRateLimiter), async c => {
+filesRouter.delete("/", buildUserSecurityMiddleware(fileDeleteRateLimiter), async c => {
 	const user = c.var.user;
 
 	const { error, data } = deleteFileSchema.safeParse(c.req.query());
@@ -107,7 +111,7 @@ filesRouter.delete("/", buildSecurityMiddleware(fileDeleteRateLimiter), async c 
 });
 
 // Create file/folder
-filesRouter.post("/", buildSecurityMiddleware(fileUploadRateLimiter), async c => {
+filesRouter.post("/", buildUserSecurityMiddleware(fileUploadRateLimiter), async c => {
 	const user = c.var.user;
 
 	const { error, data } = createFileSchema.safeParse(c.req.query());
@@ -129,7 +133,7 @@ filesRouter.post("/", buildSecurityMiddleware(fileUploadRateLimiter), async c =>
 });
 
 // Upload file
-filesRouter.post("/upload", buildSecurityMiddleware(fileUploadRateLimiter), async c => {
+filesRouter.post("/upload", buildUserSecurityMiddleware(fileUploadRateLimiter), async c => {
 	const user = c.var.user;
 
 	try {
@@ -197,7 +201,7 @@ filesRouter.post("/upload", buildSecurityMiddleware(fileUploadRateLimiter), asyn
 });
 
 // Download file
-filesRouter.get("/download/:fileId", buildSecurityMiddleware(fileGetRateLimiter), async c => {
+filesRouter.get("/download/:fileId", buildUserSecurityMiddleware(fileGetRateLimiter), async c => {
 	const user = c.var.user;
 
 	// Validation

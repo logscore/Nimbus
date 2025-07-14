@@ -10,13 +10,10 @@ import {
 import { authClient, BASE_CALLBACK_URL } from "@nimbus/auth/auth-client";
 import { useSearchParamsSafely } from "@/hooks/useSearchParamsSafely";
 import { useMutation } from "@tanstack/react-query";
+import { publicClient } from "@/utils/client";
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import env from "@nimbus/env/client";
 import { toast } from "sonner";
-import axios from "axios";
-
-const BASE_AUTH_URL = `${env.NEXT_PUBLIC_BACKEND_URL}/api/auth`;
 
 const signInWithProvider = async (provider: DriveProvider) => {
 	return authClient.signIn.social({
@@ -272,11 +269,11 @@ export const checkEmailExists = async (email: string): Promise<{ exists: boolean
 		if (!result.success) {
 			throw new Error(result.error.message);
 		}
-		const response = await axios.post<{ exists: boolean }>(`${BASE_AUTH_URL}/check-email`, body);
-		return response.data;
+		const response = await publicClient.api.auth.checkEmail.$post({ json: body });
+		return response.json();
 	} catch (error) {
-		if (axios.isAxiosError(error)) {
-			throw new Error(error.response?.data?.message || "Failed to check email existence");
+		if (error instanceof Error) {
+			throw new Error(error.message || "Failed to check email existence");
 		}
 		throw error;
 	}

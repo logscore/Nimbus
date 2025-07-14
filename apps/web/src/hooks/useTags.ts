@@ -1,12 +1,11 @@
 import { createTagSchema, updateTagSchema, type CreateTagInput, type UpdateTagInput } from "@nimbus/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios, { type AxiosError } from "axios";
+import { protectedClient } from "@/utils/client";
 import type { Tag } from "@nimbus/shared";
-import env from "@nimbus/env/client";
 import { toast } from "sonner";
 
 const TAGS_QUERY_KEY = "tags";
-const BASE_TAG_URL = `${env.NEXT_PUBLIC_BACKEND_URL}/api/tags`;
+const BASE_TAG_CLIENT = protectedClient.api.tags;
 
 export function useTags() {
 	const queryClient = useQueryClient();
@@ -47,11 +46,11 @@ export function useTags() {
 				return [...oldData, newTag];
 			});
 		},
-		onError: (error: AxiosError<{ message: string }> | Error) => {
+		onError: (error: Error) => {
 			if (error instanceof Error && error.name === "ZodError") {
 				toast.error("Invalid tag data. Please check your input.");
 			} else {
-				toast.error((error as AxiosError<{ message: string }>).response?.data?.message || "Failed to create tag");
+				toast.error(error.message || "Failed to create tag");
 			}
 		},
 	});
@@ -67,11 +66,11 @@ export function useTags() {
 			// Invalidate the query to get the latest data
 			void queryClient.invalidateQueries({ queryKey: [TAGS_QUERY_KEY] });
 		},
-		onError: (error: AxiosError<{ message: string }> | Error) => {
+		onError: error => {
 			if (error instanceof Error && error.name === "ZodError") {
 				toast.error("Invalid tag data. Please check your input.");
 			} else {
-				toast.error((error as AxiosError<{ message: string }>).response?.data?.message || "Failed to update tag");
+				toast.error(error.message || "Failed to update tag");
 			}
 		},
 	});
@@ -131,8 +130,8 @@ export function useTags() {
 				return removeRecursive(oldData, allIdsToRemove);
 			});
 		},
-		onError: (error: AxiosError<{ message: string }>) => {
-			toast.error(error.response?.data?.message || "Failed to delete tag");
+		onError: error => {
+			toast.error(error.message || "Failed to delete tag");
 		},
 	});
 
@@ -157,8 +156,8 @@ export function useTags() {
 			});
 			variables.onSuccess?.();
 		},
-		onError: (error: AxiosError<{ message: string }>) => {
-			toast.error(error.response?.data?.message || "Failed to add tag to file");
+		onError: error => {
+			toast.error(error.message || "Failed to add tag to file");
 		},
 	});
 
@@ -183,8 +182,8 @@ export function useTags() {
 			});
 			variables.onSuccess?.();
 		},
-		onError: (error: AxiosError<{ message: string }>) => {
-			toast.error(error.response?.data?.message || "Failed to remove tag from file");
+		onError: error => {
+			toast.error(error.message || "Failed to remove tag from file");
 		},
 	});
 
@@ -201,41 +200,37 @@ export function useTags() {
 }
 
 async function getTags(): Promise<Tag[]> {
-	const response = await axios.get(`${BASE_TAG_URL}`, {
-		withCredentials: true,
-	});
-	return response.data || [];
+	const response = await BASE_TAG_CLIENT.$get();
+	return response.json();
 }
 
 async function createTag(data: CreateTagInput): Promise<Tag> {
-	const response = await axios.post(`${BASE_TAG_URL}`, data, {
-		withCredentials: true,
-	});
-	return response.data;
+	const response = await BASE_TAG_CLIENT.$post({ json: data });
+	return response.json();
 }
 
 async function updateTag(data: UpdateTagInput): Promise<Tag> {
 	const { id, ...updateData } = data;
-	const response = await axios.put(`${BASE_TAG_URL}/${id}`, updateData, {
-		withCredentials: true,
-	});
-	return response.data;
+	const response = await BASE_TAG_CLIENT[":id"].$put(
+		{ json: updateData },
+		{
+			param: { id },
+		}
+	);
+	return response.json();
 }
 
 async function deleteTag(id: string): Promise<void> {
-	await axios.delete(`${BASE_TAG_URL}/${id}`, {
-		withCredentials: true,
+	await BASE_TAG_CLIENT[":id"].$delete({
+		param: { id },
 	});
 }
 
 async function addTagsToFile(variables: { fileId: string; tagIds: string[]; onSuccess?: () => void }): Promise<void> {
-	await axios.post(
-		`${BASE_TAG_URL}/files/${variables.fileId}`,
-		{ tagIds: variables.tagIds },
-		{
-			withCredentials: true,
-		}
-	);
+	await BASE_TAG_CLIENT.files[":fileId"].$post({
+		param: { fileId: variables.fileId },
+		json: { tagIds: variables.tagIds },
+	});
 }
 
 async function removeTagsFromFile(variables: {
@@ -243,8 +238,8 @@ async function removeTagsFromFile(variables: {
 	tagIds: string[];
 	onSuccess?: () => void;
 }): Promise<void> {
-	await axios.delete(`${BASE_TAG_URL}/files/${variables.fileId}`, {
-		data: { tagIds: variables.tagIds },
-		withCredentials: true,
+	await BASE_TAG_CLIENT.files[":fileId"].$delete({
+		param: { fileId: variables.fileId },
+		json: { tagIds: variables.tagIds },
 	});
 }

@@ -1,6 +1,5 @@
 // TODO:(analytics): add posthog
 
-import { DownloadProvider } from "@/components/providers/download-provider";
 import { ReactQueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -81,12 +80,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			<body className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} antialiased`}>
 				<ReactQueryProvider>
 					<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-						<DownloadProvider>
-							<div className="relative min-h-screen">
-								<main className="flex flex-1 justify-center">{children}</main>
-								<Toaster position="top-center" richColors theme="system" />
-							</div>
-						</DownloadProvider>
+						<div className="relative min-h-screen">
+							<main className="flex flex-1 justify-center">{children}</main>
+							<Toaster position="top-center" richColors theme="system" />
+						</div>
 					</ThemeProvider>
 				</ReactQueryProvider>
 			</body>

@@ -3,17 +3,19 @@
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AddAccountDialog } from "@/components/settings/add-account-dialog";
 import { authClient } from "@nimbus/auth/auth-client";
 import { AppHeader } from "@/components/app/header";
 import type { DriveProvider } from "@nimbus/shared";
+import Profile from "@/components/user-profile";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
+import env from "@nimbus/env/client";
 import { Plus } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 
 type ConnectedAccount = {
@@ -23,16 +25,30 @@ type ConnectedAccount = {
 };
 
 export default function SettingsPage() {
-	const { data: session } = authClient.useSession();
-	const [name, setName] = useState(session?.user?.name || "");
-	const [email, setEmail] = useState(session?.user?.email || "");
-	const [isLoading, setIsLoading] = useState(false);
+	const context = useUserInfoProvider();
+
+	if (!context) {
+		throw new Error("SettingsPage must be used within a UserInfoProvider");
+	}
+
+	const { user, isLoading: isUserLoading } = context;
+	const [name, setName] = useState(user?.name || "");
+	const [email, setEmail] = useState(user?.email || "");
+	const [isSaving, setIsSaving] = useState(false);
 	// const [selectedFile, setSelectedFile] = useState<File | null>(null);
-	const [previewUrl, setPreviewUrl] = useState<string | null>(session?.user?.image || null);
+	const [previewUrl, setPreviewUrl] = useState<string | null>(user?.image || null);
+
+	useEffect(() => {
+		if (user) {
+			setName(user.name || "");
+			setEmail(user.email || "");
+			setPreviewUrl(user.image || null);
+		}
+	}, [user]);
 
 	// Mock data for connected accounts
 	const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([
-		{ provider: "google", email: session?.user?.email || "", dateAdded: "2023-01-15" },
+		{ provider: "google", email: user?.email || "", dateAdded: "2023-01-15" },
 		// Add more connected accounts as needed
 	]);
 
@@ -46,30 +62,38 @@ export default function SettingsPage() {
 		}
 	};
 
+	if (isUserLoading) {
+		return (
+			<div className="flex h-full items-center justify-center">
+				<div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+			</div>
+		);
+	}
+
 	const handleSaveChanges = async () => {
 		try {
-			setIsLoading(true);
-			// TODO: Implement actual API calls to update user data
-			await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+			setIsSaving(true);
 
-			// Update session with new data
-			// TODO(auth): figure out how to update the session
-			// await authClient.multiSession.updateSession({
-			//   ...session,
-			//   user: {
-			//     ...session?.user,
-			//     name,
-			//     email,
-			//     image: previewUrl || session?.user?.image,
-			//   },
-			// });
+			if (user?.email !== email) {
+				await authClient.changeEmail({
+					newEmail: email,
+					callbackURL: `${env.NEXT_PUBLIC_FRONTEND_URL}/verify-email`,
+				});
+			}
+
+			if (user?.name !== name || user?.image !== previewUrl) {
+				await authClient.updateUser({
+					name,
+					image: previewUrl,
+				});
+			}
 
 			toast.success("Profile updated successfully!");
 		} catch (error) {
 			console.error("Failed to update profile:", error);
 			toast.error("Failed to update profile. Please try again.");
 		} finally {
-			setIsLoading(false);
+			setIsSaving(false);
 		}
 	};
 
@@ -100,10 +124,7 @@ export default function SettingsPage() {
 								<div className="flex items-center gap-6">
 									<div className="space-y-2 text-center">
 										<div className="relative mx-auto">
-											<Avatar className="h-24 w-24">
-												<AvatarImage src={previewUrl || undefined} alt={name} />
-												<AvatarFallback className="text-2xl">{name?.slice(0, 2).toUpperCase() || "US"}</AvatarFallback>
-											</Avatar>
+											<Profile url={previewUrl} name={name} size="xxxxxxl" />
 											<TooltipProvider>
 												<Tooltip>
 													<TooltipTrigger asChild>
@@ -158,8 +179,8 @@ export default function SettingsPage() {
 								<TooltipProvider>
 									<Tooltip>
 										<TooltipTrigger asChild>
-											<Button onClick={handleSaveChanges} disabled={isLoading}>
-												{isLoading ? "Saving..." : "Save Changes"}
+											<Button onClick={handleSaveChanges} disabled={isSaving || isUserLoading}>
+												{isSaving ? "Saving..." : "Save Changes"}
 											</Button>
 										</TooltipTrigger>
 										<TooltipContent>

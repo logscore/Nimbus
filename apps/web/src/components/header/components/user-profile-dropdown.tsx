@@ -7,7 +7,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { authClient } from "@nimbus/auth/auth-client";
+import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import Profile from "@/components/user-profile";
 import { Button } from "@/components/ui/button";
 import { useSignOut } from "@/hooks/useAuth";
@@ -17,11 +17,16 @@ import Link from "next/link";
 
 export function UserProfileDropdown() {
 	const { signOut, isLoading } = useSignOut();
-	const { data: session, isPending } = authClient.useSession();
+	const context = useUserInfoProvider();
 
-	const userImage = session?.user?.image || null;
-	const userName = session?.user?.name || null;
-	const userEmail = session?.user?.email || null;
+	if (!context) {
+		throw new Error("UserProfileDropdown must be used within a UserInfoProvider");
+	}
+
+	const { user, isLoading: isUserLoading } = context;
+	const userImage = user?.image || null;
+	const userName = user?.name || null;
+	const userEmail = user?.email || null;
 
 	const handleSignOut = async () => {
 		try {
@@ -47,9 +52,11 @@ export function UserProfileDropdown() {
 				<TooltipContent side="bottom">{userName ? `${userName}'s profile` : "User profile"}</TooltipContent>
 			</Tooltip>
 			<DropdownMenuContent align="end">
-				{isPending ? (
-					<DropdownMenuItem>Loading...</DropdownMenuItem>
-				) : userName ? (
+				{!user || isUserLoading ? (
+					<DropdownMenuItem asChild className="cursor-pointer">
+						<Link href="/signin">Sign in</Link>
+					</DropdownMenuItem>
+				) : (
 					<>
 						<DropdownMenuLabel>My Account</DropdownMenuLabel>
 						<DropdownMenuSeparator />
@@ -67,10 +74,6 @@ export function UserProfileDropdown() {
 							<span>{isLoading ? "Signing out..." : "Sign Out"}</span>
 						</DropdownMenuItem>
 					</>
-				) : (
-					<DropdownMenuItem asChild className="cursor-pointer">
-						<Link href="/signin">Sign in</Link>
-					</DropdownMenuItem>
 				)}
 			</DropdownMenuContent>
 		</DropdownMenu>

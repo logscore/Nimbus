@@ -9,13 +9,11 @@ export const fileIdSchema = z
 export const getFilesSchema = z.object({
 	parentId: z.string().min(1).default("root"),
 	pageSize: z.coerce.number().int().min(1).max(100).default(30),
-	returnedValues: z.string().array(),
 	pageToken: z.string().optional(),
 });
 
 export const getFileByIdSchema = z.object({
 	fileId: fileIdSchema,
-	returnedValues: z.string().array(),
 });
 
 export const deleteFileSchema = z.object({

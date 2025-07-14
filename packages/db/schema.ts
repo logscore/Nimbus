@@ -146,5 +146,6 @@ const schema = {
 };
 
 export type SessionTableInsert = typeof session.$inferInsert;
+export type AccountTableSelect = typeof account.$inferSelect;
 
 export default schema;

@@ -2,15 +2,14 @@ import { createProtectedRouter, createPublicRouter } from "@/hono";
 import waitlistRoutes from "@/routes/waitlist";
 import drivesRoutes from "@/routes/drives";
 import filesRoutes from "@/routes/files";
-import emailRoutes from "@/routes/email";
 import tagsRoutes from "@/routes/tags";
 import authRoutes from "@/routes/auth";
 import { sendError } from "./utils";
 
 const protectedRoutePaths = ["/files", "/drives", "/tags"] as const;
 const protectedRouteRouters = [filesRoutes, drivesRoutes, tagsRoutes] as const;
-const publicRoutePaths = ["/auth", "/waitlist", "/email"] as const;
-const publicRouteRouters = [authRoutes, waitlistRoutes, emailRoutes] as const;
+const publicRoutePaths = ["/auth", "/waitlist"] as const;
+const publicRouteRouters = [authRoutes, waitlistRoutes] as const;
 
 if (
 	publicRoutePaths.length !== publicRouteRouters.length ||
@@ -36,7 +35,6 @@ const protectedRouter = createProtectedRouter()
 const routes = createPublicRouter()
 	.route(publicRoutePaths[0], publicRouteRouters[0])
 	.route(publicRoutePaths[1], publicRouteRouters[1])
-	.route(publicRoutePaths[2], publicRouteRouters[2])
 	.route("/", protectedRouter);
 
 export default routes;

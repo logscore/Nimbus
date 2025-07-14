@@ -86,7 +86,7 @@ export default function StorageFooter() {
 					<span>Theme</span>
 				</SidebarMenuButton>
 				<SidebarMenuButton asChild>
-					<Link href="/app/settings">
+					<Link href="/dashboard/settings">
 						<Settings className="size-4" />
 						<span>Settings</span>
 					</Link>

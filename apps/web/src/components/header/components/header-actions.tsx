@@ -44,7 +44,7 @@ export function HeaderActions({
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button variant="ghost" size="icon" className="h-9 w-9" asChild>
-							<Link href="/app/settings">
+							<Link href="/dashboard/settings">
 								<Settings className="h-5 w-5" />
 								<span className="sr-only">Settings</span>
 							</Link>

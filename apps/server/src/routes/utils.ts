@@ -16,6 +16,7 @@ interface SuccessResponseOptions<T> {
 export function sendError(c: Context, options?: ErrorResponseOptions): Response {
 	const success = false;
 	const { message = "Internal server error", status = 500 } = options ?? {};
+	console.error(options);
 	return c.json<ApiResponse>({ success, message }, status);
 }
 

@@ -1,10 +1,10 @@
 // import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
-import { extractTokenFromUrl } from "./utils/extract-token";
 import { type Account, betterAuth } from "better-auth";
 // import type { Redis as ValkeyRedis } from "iovalkey";
 import env /*, { isEdge }*/ from "@nimbus/env/server";
+// import { providerSchema } from "@nimbus/shared";
 import { sendMail } from "./utils/send-mail";
 // import redisClient from "@nimbus/cache";
 import { createDb } from "@nimbus/db";
@@ -39,27 +39,31 @@ export const createAuth = () => {
 			minPasswordLength: 8,
 			maxPasswordLength: 100,
 			resetPasswordTokenExpiresIn: 600, // 10 minutes
-			// requireEmailVerification: true,
-			sendResetPassword: async ({ user, url }) => {
-				const token = extractTokenFromUrl(url);
+			requireEmailVerification: true,
+			sendResetPassword: async ({ user, token }) => {
 				const frontendResetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
-
 				await sendMail({
 					to: user.email,
-					subject: "Reset your password",
+					subject: "Reset your Nimbus password",
 					text: `Click the link to reset your password: ${frontendResetUrl}`,
 				});
 			},
 		},
 
-		// emailVerification: {
-		// 	sendVerificationEmail: async ({ user, url, token }) => {
-		// 		// TODO: Send verification email to user
-		// 	},
-		// 	sendOnSignUp: true,
-		// 	autoSignInAfterVerification: true,
-		// 	expiresIn: 3600, // 1 hour
-		// },
+		emailVerification: {
+			sendVerificationEmail: async ({ user, url }) => {
+				const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
+				const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
+				await sendMail({
+					to: user.email,
+					subject: "Verify your Nimbus email address",
+					text: `Click the link to verify your email address: ${emailUrl}`,
+				});
+			},
+			sendOnSignUp: true,
+			autoSignInAfterVerification: true,
+			expiresIn: 3600, // 1 hour
+		},
 
 		socialProviders: {
 			google: {
@@ -144,20 +148,28 @@ export const createAuth = () => {
 			},
 			changeEmail: {
 				enabled: true,
-				sendChangeEmailVerification: async ({ user, newEmail, url, token }) => {
-					// Send change email verification
+				sendChangeEmailVerification: async ({ user, newEmail, url }) => {
+					console.log("sendChangeEmailVerification", { user, newEmail, url });
+					const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
+					const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
+					await sendMail({
+						to: user.email,
+						subject: "Approve Nimbus email address change",
+						text: `Someone tried to change your email address to: ${newEmail}.\nClick the link to approve your email address change: ${emailUrl}`,
+					});
 				},
 			},
 			deleteUser: {
 				enabled: true,
-				sendDeleteAccountVerification: async ({ user, url, token }) => {
-					// Send delete account verification
-				},
-				beforeDelete: async user => {
-					// Perform actions before user deletion
-				},
-				afterDelete: async user => {
-					// Perform cleanup after user deletion
+				// TODO(test): make sure this works, add frontend page to handle delete accoun
+				sendDeleteAccountVerification: async ({ user, url }) => {
+					const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
+					const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
+					await sendMail({
+						to: user.email,
+						subject: "Request to delete your Nimbus account",
+						text: `Click the link to delete your account: ${emailUrl}`,
+					});
 				},
 			},
 		},
@@ -177,7 +189,10 @@ export const createAuth = () => {
 			},
 		},
 
-		hooks: {},
+		hooks: {
+			// hook for allow unlinking all
+			// hook for update user info on link based on preferences
+		},
 
 		// https://www.better-auth.com/docs/reference/options#databasehooks
 		databaseHooks: {
