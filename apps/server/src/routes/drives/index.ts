@@ -1,5 +1,5 @@
-import { createProtectedRouter, getSessionUserFromContext } from "@/hono";
 import { getDriveProvider } from "@/providers";
+import { createProtectedRouter } from "@/hono";
 import { sendError } from "../utils";
 
 const drivesRouter = createProtectedRouter();
@@ -7,7 +7,7 @@ const drivesRouter = createProtectedRouter();
 // Get drive storage info
 drivesRouter.get("/about", async c => {
 	try {
-		const user = getSessionUserFromContext(c);
+		const user = c.var.user;
 
 		const drive = await getDriveProvider(user ?? null, c.req.raw.headers);
 		const driveInfo = await drive.getDriveInfo();

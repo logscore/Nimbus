@@ -6,17 +6,16 @@ import {
 	removeTagsFromFileSchema,
 	updateTagSchema,
 } from "@nimbus/shared";
-import type { FileTagOperationResponse, TagOperationResponse } from "@nimbus/shared";
-import { createProtectedRouter, getSessionUserFromContext } from "@/hono";
 import { sendError, sendSuccess } from "@/routes/utils";
 import { TagService } from "@/routes/tags/tag-service";
+import { createProtectedRouter } from "@/hono";
 
 const tagsRouter = createProtectedRouter();
 const tagService = new TagService();
 
 // Get all tags for the authenticated user
 tagsRouter.get("/", async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	try {
 		const tags = await tagService.getUserTags(user.id);
@@ -30,7 +29,7 @@ tagsRouter.get("/", async c => {
 
 // Get a specific tag by tag id (and the authenticated user id)
 tagsRouter.get("/:id", async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	// Validation
 	const { error, data } = getTagByIdSchema.safeParse(c.req.param());
@@ -53,7 +52,7 @@ tagsRouter.get("/:id", async c => {
 
 // Create a new tag
 tagsRouter.post("/", async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	try {
 		// Validation
@@ -74,7 +73,7 @@ tagsRouter.post("/", async c => {
 
 // Update an existing tag
 tagsRouter.put("/:id", async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	// Validation
 	const { error: paramError, data: paramData } = getTagByIdSchema.safeParse(c.req.param());
@@ -98,7 +97,7 @@ tagsRouter.put("/:id", async c => {
 
 // Delete a tag
 tagsRouter.delete("/:id", async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	// Validation
 	const { error, data } = deleteTagSchema.safeParse(c.req.param());
@@ -118,7 +117,7 @@ tagsRouter.delete("/:id", async c => {
 
 // Add tags to a file
 tagsRouter.post("/files/:fileId", async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	try {
 		// Validation
@@ -142,7 +141,7 @@ tagsRouter.post("/files/:fileId", async c => {
 
 // Remove tags from a file
 tagsRouter.delete("/files/:fileId", async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	try {
 		// Validation
@@ -165,7 +164,7 @@ tagsRouter.delete("/files/:fileId", async c => {
 
 // Get all tags for a specific file
 tagsRouter.get("/files/:fileId", async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	try {
 		const fileId = c.req.param("fileId");

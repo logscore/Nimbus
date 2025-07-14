@@ -1,10 +1,11 @@
-import type {
-	AuthState,
-	DriveProvider,
-	ForgotPasswordFormData,
-	ResetPasswordFormData,
-	SignInFormData,
-	SignUpFormData,
+import {
+	emailObjectSchema,
+	type AuthState,
+	type DriveProvider,
+	type ForgotPasswordFormData,
+	type ResetPasswordFormData,
+	type SignInFormData,
+	type SignUpFormData,
 } from "@nimbus/shared";
 import { authClient, BASE_CALLBACK_URL } from "@nimbus/auth/auth-client";
 import { useSearchParamsSafely } from "@/hooks/useSearchParamsSafely";
@@ -275,9 +276,14 @@ export const useSignOut = () => {
 
 export const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
 	try {
-		const response = await axios.post<{ exists: boolean }>(`${BASE_AUTH_URL}/check-email`, {
+		const body = {
 			email,
-		});
+		};
+		const result = emailObjectSchema.safeParse(body);
+		if (!result.success) {
+			throw new Error(result.error.message);
+		}
+		const response = await axios.post<{ exists: boolean }>(`${BASE_AUTH_URL}/check-email`, body);
 		return response.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {

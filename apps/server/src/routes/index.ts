@@ -1,5 +1,4 @@
 import { createProtectedRouter, createPublicRouter } from "@/hono";
-import { createAuth } from "@nimbus/auth/auth";
 import waitlistRoutes from "@/routes/waitlist";
 import drivesRoutes from "@/routes/drives";
 import filesRoutes from "@/routes/files";
@@ -8,34 +7,36 @@ import tagsRoutes from "@/routes/tags";
 import authRoutes from "@/routes/auth";
 import { sendError } from "./utils";
 
-// Create protected router with auth middleware
+const publicRoutePaths = ["/auth", "/waitlist", "/email"] as const;
+const publicRouteRouters = [authRoutes, waitlistRoutes, emailRoutes] as const;
+const protectedRoutePaths = ["/files", "/drives", "/tags"] as const;
+const protectedRouteRouters = [filesRoutes, drivesRoutes, tagsRoutes] as const;
+
+if (
+	publicRoutePaths.length !== publicRouteRouters.length ||
+	protectedRoutePaths.length !== protectedRouteRouters.length
+) {
+	throw new Error("Route paths and routers do not match");
+}
+
 const protectedRouter = createProtectedRouter()
 	.use("*", async (c, next) => {
-		const auth = createAuth();
-		const session = await auth.api.getSession({ headers: c.req.raw.headers });
+		const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
 		const user = session?.user;
 		if (!user) {
 			return sendError(c, { message: "Unauthorized", status: 401 });
 		}
 		c.set("user", user);
-		c.set("auth", auth);
 		return next();
 	})
-	.route("/files", filesRoutes)
-	.route("/drives", drivesRoutes)
-	.route("/tags", tagsRoutes);
+	.route(protectedRoutePaths[0], protectedRouteRouters[0])
+	.route(protectedRoutePaths[1], protectedRouteRouters[1])
+	.route(protectedRoutePaths[2], protectedRouteRouters[2]);
 
-// Create public router for unauthenticated routes
-const publicRouter = createPublicRouter()
-	.route("/auth", authRoutes)
-	.route("/waitlist", waitlistRoutes)
-	.route("/email", emailRoutes);
+const routes = createPublicRouter()
+	.route(publicRoutePaths[0], publicRouteRouters[0])
+	.route(publicRoutePaths[1], publicRouteRouters[1])
+	.route(publicRoutePaths[2], publicRouteRouters[2])
+	.route("/", protectedRouter);
 
-// Combine all routes under /api
-const routes = createPublicRouter().route("/", protectedRouter).route("/", publicRouter);
-
-// Export the main routes as default
 export default routes;
-
-// Export individual routers for testing or other purposes
-export { protectedRouter, publicRouter };

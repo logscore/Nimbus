@@ -7,7 +7,6 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface TagOperationResponse extends ApiResponse<Tag | Tag[]> {}
-
 export interface FileTagOperationResponse extends ApiResponse<FileTag[]> {}
 
 export interface AuthState {

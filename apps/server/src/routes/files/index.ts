@@ -16,8 +16,8 @@ import {
 	fileUploadRateLimiter,
 } from "@nimbus/cache/rate-limiters";
 import { handleUploadError, sendError, sendSuccess } from "@/routes/utils";
-import { createProtectedRouter, getSessionUserFromContext } from "@/hono";
 import { buildSecurityMiddleware } from "@/middleware";
+import { createProtectedRouter } from "@/hono";
 import { FileService } from "./file-service";
 import type { UploadedFile } from "../types";
 import { Readable } from "node:stream";
@@ -30,7 +30,7 @@ export type FilesRouter = typeof filesRouter;
 // Get files
 // TODO: Grab fileId from url path, not the params
 filesRouter.get("/", buildSecurityMiddleware(fileGetRateLimiter), async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	const { data, error } = getFilesSchema.safeParse({
 		parentId: c.req.query("parentId"),
@@ -53,7 +53,7 @@ filesRouter.get("/", buildSecurityMiddleware(fileGetRateLimiter), async c => {
 
 // Get file by ID
 filesRouter.get("/:id", buildSecurityMiddleware(fileGetRateLimiter), async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	const { error, data } = getFileByIdSchema.safeParse(c.req.param());
 	if (error) {
@@ -71,7 +71,7 @@ filesRouter.get("/:id", buildSecurityMiddleware(fileGetRateLimiter), async c => 
 // Update file
 // TODO: Note that the validation only works for renaming, this will need to be updated as we support more update features
 filesRouter.put("/", buildSecurityMiddleware(fileUpdateRateLimiter), async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 	const fileId = c.req.query("fileId");
 	const reqName = (await c.req.json()).name;
 
@@ -91,7 +91,7 @@ filesRouter.put("/", buildSecurityMiddleware(fileUpdateRateLimiter), async c => 
 // Delete file
 // TODO: implement delete multiple files/folders
 filesRouter.delete("/", buildSecurityMiddleware(fileDeleteRateLimiter), async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	const { error, data } = deleteFileSchema.safeParse(c.req.query());
 	if (error) {
@@ -108,7 +108,7 @@ filesRouter.delete("/", buildSecurityMiddleware(fileDeleteRateLimiter), async c 
 
 // Create file/folder
 filesRouter.post("/", buildSecurityMiddleware(fileUploadRateLimiter), async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	const { error, data } = createFileSchema.safeParse(c.req.query());
 	if (error) {
@@ -130,7 +130,7 @@ filesRouter.post("/", buildSecurityMiddleware(fileUploadRateLimiter), async c =>
 
 // Upload file
 filesRouter.post("/upload", buildSecurityMiddleware(fileUploadRateLimiter), async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	try {
 		const formData = await c.req.formData();
@@ -198,7 +198,7 @@ filesRouter.post("/upload", buildSecurityMiddleware(fileUploadRateLimiter), asyn
 
 // Download file
 filesRouter.get("/download/:fileId", buildSecurityMiddleware(fileGetRateLimiter), async c => {
-	const user = getSessionUserFromContext(c);
+	const user = c.var.user;
 
 	// Validation
 	const { error, data } = downloadFileSchema.safeParse({

@@ -1,9 +1,9 @@
 import { waitlistRateLimiter } from "@nimbus/cache/rate-limiters";
+import { emailObjectSchema, emailSchema } from "@nimbus/shared";
 import { sendError, sendSuccess } from "@/routes/utils";
 import { securityMiddleware } from "@/middleware";
 import { zValidator } from "@hono/zod-validator";
 import { waitlist } from "@nimbus/db/schema";
-import { emailSchema } from "@nimbus/shared";
 import { createPublicRouter } from "@/hono";
 import { count, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
@@ -22,7 +22,7 @@ waitlistRouter.post(
 			},
 		},
 	}),
-	zValidator("json", emailSchema, (result, c) => {
+	zValidator("json", emailObjectSchema, (result, c) => {
 		if (!result.success) {
 			return sendError(c, { message: result.error.message, status: 400 });
 		}

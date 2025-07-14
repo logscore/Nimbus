@@ -2,9 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { emailObjectSchema } from "@nimbus/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { emailSchema } from "@nimbus/shared";
 import NumberFlow from "@number-flow/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -13,9 +13,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import z from "zod";
 
-const formSchema = z.object({
-	email: emailSchema,
-});
+const formSchema = emailObjectSchema;
 
 // this is a copy of Analogs waitlist component with some changes
 // https://github.com/analogdotnow/Analog/blob/main/apps/web/src/components/sections/home/waitlist-form.tsx
@@ -32,12 +30,15 @@ async function getWaitlistCount(): Promise<{ count: number }> {
 }
 
 async function joinWaitlist(email: string): Promise<void> {
+	const body = {
+		email,
+	};
 	const response = await fetch(`${env.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/join`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ email }),
+		body: JSON.stringify(body),
 	});
 	if (!response.ok) {
 		const errorData: { success: boolean; message?: string } = await response.json();

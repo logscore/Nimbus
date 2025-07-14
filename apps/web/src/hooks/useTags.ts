@@ -204,14 +204,14 @@ async function getTags(): Promise<Tag[]> {
 	const response = await axios.get(`${BASE_TAG_URL}`, {
 		withCredentials: true,
 	});
-	return response.data.data;
+	return response.data || [];
 }
 
 async function createTag(data: CreateTagInput): Promise<Tag> {
 	const response = await axios.post(`${BASE_TAG_URL}`, data, {
 		withCredentials: true,
 	});
-	return response.data.data;
+	return response.data;
 }
 
 async function updateTag(data: UpdateTagInput): Promise<Tag> {
@@ -219,7 +219,7 @@ async function updateTag(data: UpdateTagInput): Promise<Tag> {
 	const response = await axios.put(`${BASE_TAG_URL}/${id}`, updateData, {
 		withCredentials: true,
 	});
-	return response.data.data;
+	return response.data;
 }
 
 async function deleteTag(id: string): Promise<void> {

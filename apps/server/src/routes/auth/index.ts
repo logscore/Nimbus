@@ -1,11 +1,11 @@
-import { checkEmailSchema } from "@nimbus/shared";
+import { emailObjectSchema } from "@nimbus/shared";
 import { zValidator } from "@hono/zod-validator";
-import { createProtectedRouter } from "@/hono";
+import { createPublicRouter } from "@/hono";
 import { sendError } from "../utils";
 
-const authRouter = createProtectedRouter();
+const authRouter = createPublicRouter();
 
-authRouter.post("/check-email", zValidator("json", checkEmailSchema), async c => {
+authRouter.post("/check-email", zValidator("json", emailObjectSchema), async c => {
 	try {
 		const { email } = (await c.req.json()) as { email: string };
 

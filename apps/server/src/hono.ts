@@ -5,11 +5,11 @@ import type { DB } from "@nimbus/db";
 
 interface publicRouterVars {
 	db: DB;
+	auth: Auth;
 }
 
 interface protectedRouterVars extends publicRouterVars {
 	user: SessionUser;
-	auth: Auth;
 }
 
 export interface PublicRouterEnv {
@@ -41,8 +41,4 @@ export function getPublicContext() {
 
 export function getProtectedContext() {
 	return getContext<ProtectedRouterEnv>();
-}
-
-export function getSessionUserFromContext(c: Context<ProtectedRouterEnv>) {
-	return c.get("user");
 }

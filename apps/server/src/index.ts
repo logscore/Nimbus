@@ -1,4 +1,5 @@
 import { contextStorage } from "hono/context-storage";
+import { createAuth } from "@nimbus/auth/auth";
 import { createPublicRouter } from "./hono";
 import { createDb } from "@nimbus/db";
 import env from "@nimbus/env/server";
@@ -18,7 +19,9 @@ const app = createPublicRouter()
 	.use(contextStorage())
 	.use("*", async (c, next) => {
 		const db = createDb(env.DATABASE_URL);
+		const auth = createAuth();
 		c.set("db", db);
+		c.set("auth", auth);
 		await next();
 	})
 	.get("/kamehame", c => c.text("HAAAAAAAAAAAAAA"))
@@ -27,6 +30,6 @@ const app = createPublicRouter()
 export type AppType = typeof app;
 
 export default {
-	port: 1284,
+	port: env.SERVER_PORT,
 	fetch: app.fetch,
 };
