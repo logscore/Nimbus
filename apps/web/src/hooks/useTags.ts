@@ -1,10 +1,12 @@
-import { createTagSchema, updateTagSchema, type CreateTagInput, type UpdateTagInput } from "@/schemas";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createTagSchema, updateTagSchema, type CreateTagInput, type UpdateTagInput } from "@nimbus/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios, { type AxiosError } from "axios";
-import type { Tag } from "@/lib/types";
+import type { Tag } from "@nimbus/shared";
+import env from "@nimbus/env/client";
 import { toast } from "sonner";
 
 const TAGS_QUERY_KEY = "tags";
+const BASE_TAG_URL = `${env.NEXT_PUBLIC_BACKEND_URL}/api/tags`;
 
 export function useTags() {
 	const queryClient = useQueryClient();
@@ -199,14 +201,14 @@ export function useTags() {
 }
 
 async function getTags(): Promise<Tag[]> {
-	const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tags`, {
+	const response = await axios.get(`${BASE_TAG_URL}`, {
 		withCredentials: true,
 	});
 	return response.data.data;
 }
 
 async function createTag(data: CreateTagInput): Promise<Tag> {
-	const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tags`, data, {
+	const response = await axios.post(`${BASE_TAG_URL}`, data, {
 		withCredentials: true,
 	});
 	return response.data.data;
@@ -214,21 +216,21 @@ async function createTag(data: CreateTagInput): Promise<Tag> {
 
 async function updateTag(data: UpdateTagInput): Promise<Tag> {
 	const { id, ...updateData } = data;
-	const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tags/${id}`, updateData, {
+	const response = await axios.put(`${BASE_TAG_URL}/${id}`, updateData, {
 		withCredentials: true,
 	});
 	return response.data.data;
 }
 
 async function deleteTag(id: string): Promise<void> {
-	await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tags/${id}`, {
+	await axios.delete(`${BASE_TAG_URL}/${id}`, {
 		withCredentials: true,
 	});
 }
 
 async function addTagsToFile(variables: { fileId: string; tagIds: string[]; onSuccess?: () => void }): Promise<void> {
 	await axios.post(
-		`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tags/files/${variables.fileId}`,
+		`${BASE_TAG_URL}/files/${variables.fileId}`,
 		{ tagIds: variables.tagIds },
 		{
 			withCredentials: true,
@@ -241,7 +243,7 @@ async function removeTagsFromFile(variables: {
 	tagIds: string[];
 	onSuccess?: () => void;
 }): Promise<void> {
-	await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tags/files/${variables.fileId}`, {
+	await axios.delete(`${BASE_TAG_URL}/files/${variables.fileId}`, {
 		data: { tagIds: variables.tagIds },
 		withCredentials: true,
 	});

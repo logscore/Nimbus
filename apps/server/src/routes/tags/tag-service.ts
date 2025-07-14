@@ -1,13 +1,12 @@
-import { eq, and, inArray, count, isNull } from "drizzle-orm";
-import type { Tag, FileTag } from "@/routes/types";
-import { getContext } from "hono/context-storage";
-import { tag, fileTag } from "@nimbus/db/schema";
-import type { HonoContext } from "@/ctx";
+import { and, count, eq, inArray, isNull } from "drizzle-orm";
+import type { FileTag, Tag } from "@nimbus/shared";
+import { fileTag, tag } from "@nimbus/db/schema";
+import { getProtectedContext } from "@/hono";
 import { nanoid } from "nanoid";
 
 export class TagService {
 	private get c() {
-		const context = getContext<HonoContext>();
+		const context = getProtectedContext();
 		if (!context) {
 			throw new Error("Context is not available in TagService. It must be used within a request cycle.");
 		}

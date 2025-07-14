@@ -1,140 +1,109 @@
-import { RateLimiterRedis as ValkeyRateLimit } from "rate-limiter-flexible";
-import { Ratelimit as UpstashRateLimit } from "@upstash/ratelimit";
-import type { Redis as UpstashRedisType } from "@upstash/redis";
+import redisClient, { type RateLimiter, UpstashRateLimit, ValkeyRateLimit } from "@nimbus/cache";
 import type { SessionUser } from "@nimbus/auth/auth";
-import redisClient, { isEdge } from "@nimbus/cache";
-import env from "@nimbus/env";
+import env, { isEdge } from "@nimbus/env/server";
 
 const isProduction = env.NODE_ENV === "production";
 
-let fileRateLimiter: (user: SessionUser) => UpstashRateLimit | ValkeyRateLimit;
-let fileGetRateLimiter: (user: SessionUser) => UpstashRateLimit | ValkeyRateLimit;
-let fileUpdateRateLimiter: (user: SessionUser) => UpstashRateLimit | ValkeyRateLimit;
-let fileDeleteRateLimiter: (user: SessionUser) => UpstashRateLimit | ValkeyRateLimit;
-let fileUploadRateLimiter: (user: SessionUser) => UpstashRateLimit | ValkeyRateLimit;
-let waitlistRateLimiter: (ip: string) => UpstashRateLimit | ValkeyRateLimit;
+interface RateLimiterConfig {
+	points: number;
+	duration: number;
+	blockDuration?: number;
+	keyPrefix: string;
+}
 
-// Initialize the rate limiters based on the environment (Valkey or Upstash)
-if (isEdge) {
-	fileRateLimiter = (user: SessionUser) =>
+interface RateLimiterFactory<T extends RateLimiter> {
+	(identifier: string): T;
+}
+
+// File operation rate limiters configuration
+const fileRateLimiters = {
+	default: {
+		points: isProduction ? 100 : 1000,
+		duration: 360, // 6 minutes
+		blockDuration: 180, // 3 minutes
+		keyPrefix: "rl:files",
+	},
+	get: {
+		points: isProduction ? 100 : 1000,
+		duration: 360,
+		blockDuration: 360,
+		keyPrefix: "rl:files:get",
+	},
+	update: {
+		points: isProduction ? 20 : 200,
+		duration: 360,
+		blockDuration: 360,
+		keyPrefix: "rl:files:update",
+	},
+	delete: {
+		points: 30, // Same for both environments
+		duration: 360,
+		blockDuration: 360,
+		keyPrefix: "rl:files:delete",
+	},
+	upload: {
+		points: isProduction ? 50 : 500,
+		duration: 300, // 5 minutes
+		blockDuration: 240, // 4 minutes
+		keyPrefix: "rl:files:upload",
+	},
+} as const;
+
+// Waitlist rate limiter configuration
+const waitlistRateLimiterConfig = {
+	points: 3,
+	duration: 120, // 2 minutes
+	blockDuration: 60, // 1 minute
+	keyPrefix: "rl:waitlist",
+} as const;
+
+// Create Upstash rate limiter factory
+function createUpstashRateLimiter(config: RateLimiterConfig): RateLimiterFactory<UpstashRateLimit> {
+	return (identifier: string) =>
 		new UpstashRateLimit({
-			redis: redisClient as UpstashRedisType,
-			prefix: `rl${user.id}:files`,
-			limiter: UpstashRateLimit.slidingWindow(100, "300 s"),
+			redis: redisClient,
+			prefix: `${config.keyPrefix}${identifier}`,
+			limiter: UpstashRateLimit.slidingWindow(config.points, `${Math.ceil(config.duration / 60)} s`),
 			analytics: true,
-		});
-
-	fileGetRateLimiter = (user: SessionUser) =>
-		new UpstashRateLimit({
-			redis: redisClient as UpstashRedisType,
-			prefix: `rl${user.id}:files:get`,
-			limiter: UpstashRateLimit.slidingWindow(100, "300 s"),
-			analytics: true,
-		});
-
-	fileUpdateRateLimiter = (user: SessionUser) =>
-		new UpstashRateLimit({
-			redis: redisClient as UpstashRedisType,
-			prefix: `rl${user.id}:files:update`,
-			limiter: UpstashRateLimit.slidingWindow(20, "300 s"),
-			analytics: true,
-		});
-
-	fileDeleteRateLimiter = (user: SessionUser) =>
-		new UpstashRateLimit({
-			redis: redisClient as UpstashRedisType,
-			prefix: `rl${user.id}:files:delete`,
-			limiter: UpstashRateLimit.slidingWindow(30, "300 s"),
-			analytics: true,
-		});
-
-	fileUploadRateLimiter = (user: SessionUser) =>
-		new UpstashRateLimit({
-			redis: redisClient as UpstashRedisType,
-			prefix: `rl${user.id}:files:upload`,
-			limiter: UpstashRateLimit.slidingWindow(50, "300 s"),
-			analytics: true,
-		});
-
-	waitlistRateLimiter = (ip: string) =>
-		new UpstashRateLimit({
-			redis: redisClient as UpstashRedisType,
-			prefix: `rl${ip}:waitlist`,
-			limiter: UpstashRateLimit.slidingWindow(3, "120 s"),
-			analytics: true,
-		});
-} else {
-	fileRateLimiter = (user: SessionUser) =>
-		new ValkeyRateLimit({
-			storeClient: redisClient,
-			keyPrefix: `rl${user.id}:files`,
-			points: isProduction ? 100 : 1000,
-			duration: 60 * 6,
-			blockDuration: 60 * 3,
-			inMemoryBlockOnConsumed: isProduction ? 150 : 1500,
-			inMemoryBlockDuration: 60,
-		});
-
-	fileGetRateLimiter = (user: SessionUser) =>
-		new ValkeyRateLimit({
-			storeClient: redisClient,
-			keyPrefix: `rl${user.id}:files:get`,
-			points: isProduction ? 100 : 1000,
-			duration: 60 * 6,
-			blockDuration: 60 * 6,
-			inMemoryBlockOnConsumed: isProduction ? 150 : 1500,
-			inMemoryBlockDuration: 60,
-		});
-
-	fileUpdateRateLimiter = (user: SessionUser) =>
-		new ValkeyRateLimit({
-			storeClient: redisClient,
-			keyPrefix: `rl${user.id}:files:update`,
-			points: isProduction ? 20 : 200,
-			duration: 60 * 6,
-			blockDuration: 60 * 6,
-			inMemoryBlockOnConsumed: isProduction ? 150 : 1500,
-			inMemoryBlockDuration: 60,
-		});
-
-	fileDeleteRateLimiter = (user: SessionUser) =>
-		new ValkeyRateLimit({
-			storeClient: redisClient,
-			keyPrefix: `rl${user.id}:files:delete`,
-			points: isProduction ? 30 : 300,
-			duration: 60 * 6,
-			blockDuration: 60 * 6,
-			inMemoryBlockOnConsumed: isProduction ? 150 : 1500,
-			inMemoryBlockDuration: 60,
-		});
-
-	fileUploadRateLimiter = (user: SessionUser) =>
-		new ValkeyRateLimit({
-			storeClient: redisClient,
-			keyPrefix: `rl${user.id}:files:upload`,
-			points: isProduction ? 50 : 500,
-			duration: 60 * 5,
-			blockDuration: 60 * 4,
-			inMemoryBlockOnConsumed: isProduction ? 150 : 1500,
-			inMemoryBlockDuration: 60,
-		});
-
-	waitlistRateLimiter = (ip: string) =>
-		new ValkeyRateLimit({
-			storeClient: redisClient,
-			keyPrefix: `rl${ip}:waitlist`,
-			points: 3,
-			duration: 120,
-			blockDuration: 60,
 		});
 }
 
+// Create Valkey rate limiter factory
+function createValkeyRateLimiter(config: RateLimiterConfig): RateLimiterFactory<ValkeyRateLimit> {
+	return (identifier: string) =>
+		new ValkeyRateLimit({
+			storeClient: redisClient,
+			keyPrefix: `${config.keyPrefix}${identifier}`,
+			points: config.points,
+			duration: config.duration,
+			blockDuration: config.blockDuration,
+			inMemoryBlockOnConsumed: isProduction ? 150 : 1500,
+			inMemoryBlockDuration: 60,
+		});
+}
+
+function createRateLimiter(config: RateLimiterConfig): RateLimiterFactory<RateLimiter> {
+	return (identifier: string) => {
+		if (isEdge) {
+			return createUpstashRateLimiter(config)(identifier);
+		} else {
+			return createValkeyRateLimiter(config)(identifier);
+		}
+	};
+}
+
 // Export the rate limiters
-export {
-	fileRateLimiter,
-	fileGetRateLimiter,
-	fileUpdateRateLimiter,
-	fileDeleteRateLimiter,
-	fileUploadRateLimiter,
-	waitlistRateLimiter,
-};
+function userRateLimiter(user: SessionUser): RateLimiter;
+function userRateLimiter(user: SessionUser): RateLimiter {
+	return createRateLimiter(fileRateLimiters.default)(user.id);
+}
+export type UserRateLimiter = typeof userRateLimiter;
+
+export const fileRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.default)(user.id);
+export const fileGetRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.get)(user.id);
+export const fileUpdateRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.update)(user.id);
+export const fileDeleteRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.delete)(user.id);
+export const fileUploadRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.upload)(user.id);
+
+export const waitlistRateLimiter = (ip: string) => createRateLimiter(waitlistRateLimiterConfig)(ip);
+export type WaitlistRateLimiter = typeof waitlistRateLimiter;

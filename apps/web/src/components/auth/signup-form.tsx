@@ -1,11 +1,11 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { useSignUp, useCheckEmailExists, useGoogleAuth, useMicrosoftAuth } from "@/hooks/useAuth";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCheckEmailExists, useGoogleAuth, useMicrosoftAuth, useSignUp } from "@/hooks/useAuth";
 import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
 import { SegmentedProgress } from "@/components/ui/segmented-progress";
+import { signUpSchema, type SignUpFormData } from "@nimbus/shared";
 import { ArrowLeft, Eye, EyeClosed, Loader2 } from "lucide-react";
-import { signUpSchema, type SignUpFormData } from "@/schemas";
 import { FieldError } from "@/components/ui/field-error";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, type ComponentProps } from "react";

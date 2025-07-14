@@ -16,7 +16,12 @@ const providerConfig = {
 	},
 } as const;
 
-export function SocialAuthButton({ provider, action, ...props }: SocialAuthButtonProps) {
+export function SocialAuthButton({
+	provider,
+	action,
+	children,
+	...props
+}: React.PropsWithChildren<SocialAuthButtonProps>) {
 	const config = providerConfig[provider];
 	const IconComponent = config.icon;
 
@@ -32,7 +37,7 @@ export function SocialAuthButton({ provider, action, ...props }: SocialAuthButto
 			{...props}
 		>
 			<IconComponent />
-			{getActionText()}
+			{children || getActionText()}
 			<div className="w-[0.98em]" />
 		</Button>
 	);

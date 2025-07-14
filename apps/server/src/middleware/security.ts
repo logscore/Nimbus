@@ -1,6 +1,31 @@
-import type { SecurityOptions } from "@/routes/types";
+import type { UserRateLimiter } from "@nimbus/cache/rate-limiters";
+import { getSessionUserFromContext } from "@/hono";
+import type { RateLimiter } from "@nimbus/cache";
 import type { Context, Next } from "hono";
 import { webcrypto } from "node:crypto";
+
+/**
+ * Security middleware options
+ */
+export interface SecurityOptions {
+	rateLimiting?: {
+		enabled: boolean;
+		rateLimiter: (c: Context) => RateLimiter;
+	};
+	securityHeaders?: boolean;
+}
+
+export function buildSecurityMiddleware(rateLimiter: UserRateLimiter) {
+	return securityMiddleware({
+		rateLimiting: {
+			enabled: true,
+			rateLimiter(c) {
+				return rateLimiter(getSessionUserFromContext(c));
+			},
+		},
+		securityHeaders: true,
+	});
+}
 
 export const securityMiddleware = (options: SecurityOptions = {}) => {
 	const {
@@ -55,7 +80,7 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 		}
 		// Rate limiting
 		if (rateLimiting.enabled && rateLimiting.rateLimiter) {
-			const user = c.get("user");
+			const user = getSessionUserFromContext(c);
 			const getClientIP = () => {
 				// Prioritize CF header for Cloudflare deployments
 				const cfIP = c.req.header("cf-connecting-ip");

@@ -1,20 +1,28 @@
 import { zValidator } from "@hono/zod-validator";
-import { sendMailSchema } from "@/validators";
-import type { Context } from "hono";
+import { sendMailSchema } from "@nimbus/shared";
+import { createPublicRouter } from "@/hono";
+import env from "@nimbus/env/server";
+import { sendError } from "../utils";
 import { Resend } from "resend";
-import env from "@nimbus/env";
-import { Hono } from "hono";
 
-const resend = new Resend(env.RESEND_API_KEY ?? "placeholder_key");
+const resend = new Resend(env.RESEND_API_KEY);
 
-const emailRouter = new Hono();
+const emailRouter = createPublicRouter();
 
-emailRouter.post("/send-mail", zValidator("json", sendMailSchema), async (c: Context) => {
+// TODO:(security): evaluate if we can do a more secure flow
+emailRouter.post("/send-mail", zValidator("json", sendMailSchema), async c => {
 	try {
 		const { to, subject, text } = await c.req.json();
 
+		const from = env.EMAIL_FROM;
+
+		if (!from) {
+			console.error("Missing environment variables");
+			return sendError(c);
+		}
+
 		const { data, error } = await resend.emails.send({
-			from: env.EMAIL_FROM,
+			from,
 			to,
 			subject,
 			text,
@@ -22,14 +30,7 @@ emailRouter.post("/send-mail", zValidator("json", sendMailSchema), async (c: Con
 
 		if (error) {
 			console.error("Error sending email:", error);
-			return c.json(
-				{
-					success: false,
-					message: "Failed to send email.",
-					error,
-				},
-				500
-			);
+			return sendError(c);
 		}
 
 		return c.json({
@@ -38,13 +39,7 @@ emailRouter.post("/send-mail", zValidator("json", sendMailSchema), async (c: Con
 		});
 	} catch (err) {
 		console.error("Unexpected error sending email:", err);
-		return c.json(
-			{
-				success: false,
-				message: "Unexpected error occurred.",
-			},
-			500
-		);
+		return sendError(c);
 	}
 });
 

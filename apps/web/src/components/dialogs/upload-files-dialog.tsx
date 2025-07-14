@@ -62,7 +62,6 @@ export function UploadFileDialog({ open, onOpenChange, parentId }: UploadFileDia
 						const previousFilesProgress = (completedUploads * 100) / files.length;
 						setUploadProgress(previousFilesProgress + currentFileProgress);
 					},
-					returnedValues: ["name"],
 				},
 				{
 					onSuccess: () => {

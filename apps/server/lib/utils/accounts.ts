@@ -1,6 +1,5 @@
 import { type SessionUser } from "@nimbus/auth/auth";
-import { getContext } from "hono/context-storage";
-import type { HonoContext } from "@/ctx";
+import { getProtectedContext } from "@/hono";
 
 class AccountError extends Error {
 	constructor(
@@ -18,7 +17,7 @@ export const getAccount = async (user: SessionUser | null, headers: Headers) => 
 	}
 
 	try {
-		const c = getContext<HonoContext>();
+		const c = getProtectedContext();
 		const account = await c.var.db.query.account.findFirst({
 			where: (table, { eq }) => eq(table.userId, user.id),
 		});

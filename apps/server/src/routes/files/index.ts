@@ -1,361 +1,239 @@
 import {
+	ALLOWED_MIME_TYPES,
 	createFileSchema,
 	deleteFileSchema,
+	downloadFileSchema,
 	getFileByIdSchema,
 	getFilesSchema,
+	MAX_FILE_SIZE,
 	updateFileSchema,
 	uploadFileSchema,
-	MAX_FILE_SIZE,
-	ALLOWED_MIME_TYPES,
-} from "@/validators";
+} from "@nimbus/shared";
 import {
 	fileDeleteRateLimiter,
 	fileGetRateLimiter,
 	fileUpdateRateLimiter,
 	fileUploadRateLimiter,
 } from "@nimbus/cache/rate-limiters";
-import type { ApiResponse, UploadedFile } from "@/routes/types";
-import type { File } from "@/providers/interface/types";
-import { TagService } from "@/routes/tags/tag-service";
-import { type SessionUser } from "@nimbus/auth/auth";
-import { getDriveManagerForUser } from "@/providers";
-import { securityMiddleware } from "@/middleware";
+import { handleUploadError, sendError, sendSuccess } from "@/routes/utils";
+import { createProtectedRouter, getSessionUserFromContext } from "@/hono";
+import { buildSecurityMiddleware } from "@/middleware";
+import { FileService } from "./file-service";
+import type { UploadedFile } from "../types";
 import { Readable } from "node:stream";
-import type { Context } from "hono";
-import { Hono } from "hono";
 
-const filesRouter = new Hono();
-const tagService = new TagService();
+const filesRouter = createProtectedRouter();
+const fileService = new FileService();
 
-filesRouter.get(
-	"/",
-	securityMiddleware({
-		rateLimiting: {
-			enabled: true,
-			rateLimiter(c) {
-				return fileGetRateLimiter(c.get("user"));
-			},
-		},
-		securityHeaders: true,
-	}),
-	async (c: Context) => {
-		const user: SessionUser = c.get("user");
+export type FilesRouter = typeof filesRouter;
 
-		const { data, error } = getFilesSchema.safeParse({
-			parentId: c.req.query("parentId"),
-			pageSize: c.req.query("pageSize"),
-			returnedValues: c.req.queries("returnedValues[]"),
-			pageToken: c.req.query("pageToken") ?? undefined,
-		});
+// Get files
+// TODO: Grab fileId from url path, not the params
+filesRouter.get("/", buildSecurityMiddleware(fileGetRateLimiter), async c => {
+	const user = getSessionUserFromContext(c);
 
+	const { data, error } = getFilesSchema.safeParse({
+		parentId: c.req.query("parentId"),
+		pageSize: c.req.query("pageSize"),
+		returnedValues: c.req.queries("returnedValues[]"),
+		pageToken: c.req.query("pageToken") ?? undefined,
+	});
+
+	if (error) {
+		return sendError(c, error);
+	}
+
+	const files = await fileService.listFiles(user, c.req.raw.headers, data);
+	if (!files) {
+		return sendError(c, { message: "Files not found", status: 404 });
+	}
+
+	return sendSuccess(c, { data: files });
+});
+
+// Get file by ID
+filesRouter.get("/:id", buildSecurityMiddleware(fileGetRateLimiter), async c => {
+	const user = getSessionUserFromContext(c);
+
+	const { error, data } = getFileByIdSchema.safeParse(c.req.param());
+	if (error) {
+		return sendError(c, error);
+	}
+
+	const file = await fileService.getById(user, c.req.raw.headers, data.fileId, data.returnedValues);
+	if (!file) {
+		return sendError(c, { message: "File not found", status: 404 });
+	}
+
+	return sendSuccess(c, { data: file });
+});
+
+// Update file
+// TODO: Note that the validation only works for renaming, this will need to be updated as we support more update features
+filesRouter.put("/", buildSecurityMiddleware(fileUpdateRateLimiter), async c => {
+	const user = getSessionUserFromContext(c);
+	const fileId = c.req.query("fileId");
+	const reqName = (await c.req.json()).name;
+
+	const { error, data } = updateFileSchema.safeParse({ fileId, name: reqName });
+	if (error) {
+		return sendError(c, error);
+	}
+
+	const success = await fileService.updateFile(user, c.req.raw.headers, data.fileId, { name: data.name });
+	if (!success) {
+		return sendError(c, { message: "Failed to update file", status: 500 });
+	}
+
+	return sendSuccess(c, { message: "File updated successfully" });
+});
+
+// Delete file
+// TODO: implement delete multiple files/folders
+filesRouter.delete("/", buildSecurityMiddleware(fileDeleteRateLimiter), async c => {
+	const user = getSessionUserFromContext(c);
+
+	const { error, data } = deleteFileSchema.safeParse(c.req.query());
+	if (error) {
+		return sendError(c, error);
+	}
+
+	const success = await fileService.deleteFile(user, c.req.raw.headers, data.fileId);
+	if (!success) {
+		return sendError(c, { message: "Failed to delete file", status: 500 });
+	}
+
+	return sendSuccess(c, { message: "File deleted successfully" });
+});
+
+// Create file/folder
+filesRouter.post("/", buildSecurityMiddleware(fileUploadRateLimiter), async c => {
+	const user = getSessionUserFromContext(c);
+
+	const { error, data } = createFileSchema.safeParse(c.req.query());
+	if (error) {
+		return sendError(c, error);
+	}
+
+	const success = await fileService.createFile(user, c.req.raw.headers, {
+		name: data.name,
+		mimeType: data.mimeType,
+		parentId: data.parent,
+	});
+
+	if (!success) {
+		return sendError(c, { message: "Failed to create file", status: 500 });
+	}
+
+	return sendSuccess(c, { message: "File created successfully", status: 201 });
+});
+
+// Upload file
+filesRouter.post("/upload", buildSecurityMiddleware(fileUploadRateLimiter), async c => {
+	const user = getSessionUserFromContext(c);
+
+	try {
+		const formData = await c.req.formData();
+		// TODO(typing): figure out how to do this better
+		const file = formData.get("file") as UploadedFile | null;
+		const parentId = c.req.query("parentId");
+
+		if (!file) {
+			return sendError(c, { message: "No file provided", status: 400 });
+		}
+
+		// Validate file type
+		if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+			return sendError(c, { message: `File type ${file.type} is not allowed`, status: 400 });
+		}
+
+		// Validate file size
+		if (file.size > MAX_FILE_SIZE) {
+			return sendError(c, {
+				message: `File size exceeds maximum allowed size of ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
+				status: 400,
+			});
+		}
+
+		const { data, error } = uploadFileSchema.safeParse({ file, parentId });
 		if (error) {
-			return c.json<ApiResponse>({ success: false, message: error.errors[0]?.message }, 400);
+			return sendError(c, error);
 		}
 
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const res = await drive.listFiles(data.parentId, data.pageSize, data.returnedValues, data.pageToken);
+		// Convert File to Readable stream for upload
+		const arrayBuffer = await file.arrayBuffer();
+		const fileBuffer = Buffer.from(arrayBuffer);
+		const readableStream = new Readable();
+		readableStream.push(fileBuffer);
+		readableStream.push(null); // Signal end of stream
 
-		if (!res.files) {
-			return c.json<ApiResponse>({ success: false, message: "Files not found" }, 404);
-		}
-
-		// Add tags to files
-		const filesWithTags = await Promise.all(
-			res.files.map(async file => {
-				if (!file.id) return { ...file, tags: [] };
-				const tags = await tagService.getFileTags(file.id, user.id);
-				return { ...file, tags };
-			})
+		// Upload with timeout
+		const UPLOAD_TIMEOUT = 5 * 60 * 1000;
+		const uploadPromise = fileService.createFile(
+			user,
+			c.req.raw.headers,
+			{
+				name: file.name,
+				mimeType: file.type,
+				parentId: data.parentId,
+			},
+			readableStream
 		);
 
-		return c.json(filesWithTags as File[]);
+		const uploadedFile = await Promise.race([
+			uploadPromise,
+			new Promise((_, reject) => setTimeout(() => reject(new Error("Upload timed out")), UPLOAD_TIMEOUT)),
+		]);
+
+		if (!uploadedFile) {
+			return sendError(c, { message: "Upload failed: No file was returned from storage provider", status: 500 });
+		}
+
+		return sendSuccess(c, { message: "File uploaded successfully", status: 201 });
+	} catch (error) {
+		const options = handleUploadError(error);
+		return sendError(c, options);
 	}
-);
+});
 
-// Get a specific file from
-// TODO: Grab fileId from url path, not the params
-filesRouter.get(
-	"/:id",
-	securityMiddleware({
-		rateLimiting: {
-			enabled: true,
-			rateLimiter(c) {
-				return fileGetRateLimiter(c.get("user"));
-			},
-		},
-		securityHeaders: true,
-	}),
-	async (c: Context) => {
-		const user: SessionUser = c.get("user");
+// Download file
+filesRouter.get("/download/:fileId", buildSecurityMiddleware(fileGetRateLimiter), async c => {
+	const user = getSessionUserFromContext(c);
 
-		// Validation
-		const { error, data } = getFileByIdSchema.safeParse(c.req.param());
-		if (error) {
-			return c.json<ApiResponse>({ success: false, message: error.errors[0]?.message }, 400);
-		}
+	// Validation
+	const { error, data } = downloadFileSchema.safeParse({
+		fileId: c.req.param("fileId"),
+		exportMimeType: c.req.query("exportMimeType"),
+		acknowledgeAbuse: c.req.query("acknowledgeAbuse") === "true" || c.req.query("acknowledgeAbuse") === "1",
+	});
 
-		const fileId = data.fileId;
-		if (!fileId) {
-			return c.json<ApiResponse>({ success: false, message: "File ID not provided" }, 400);
-		}
-
-		const returnedValues = data.returnedValues;
-
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const file = await drive.getFileById(fileId, returnedValues);
-		if (!file) {
-			return c.json<ApiResponse>({ success: false, message: "File not found" }, 404);
-		}
-
-		// Add tags to file to be displayed
-		const tags = await tagService.getFileTags(fileId, user.id);
-		const fileWithTags = { ...file, tags };
-
-		return c.json<File>(fileWithTags);
+	if (error) {
+		return sendError(c, error);
 	}
-);
 
-// TODO: Note that the validation only works for renaming, this will need to be updated as we support more update features
-filesRouter.put(
-	"/",
-	securityMiddleware({
-		rateLimiting: {
-			enabled: true,
-			rateLimiter(c) {
-				return fileUpdateRateLimiter(c.get("user"));
-			},
-		},
-		securityHeaders: true,
-	}),
-	async (c: Context) => {
-		const user: SessionUser = c.get("user");
+	const fileId = data.fileId;
 
-		const fileId = c.req.query("fileId");
-		const reqName = (await c.req.json()).name;
+	try {
+		const downloadResult = await fileService.downloadFile(user, c.req.raw.headers, fileId, {
+			exportMimeType: data.exportMimeType,
+			acknowledgeAbuse: data.acknowledgeAbuse,
+		});
 
-		// Validation
-		const { error, data } = updateFileSchema.safeParse({ fileId, name: reqName });
-		if (error) {
-			return c.json<ApiResponse>({ success: false, message: error.errors[0]?.message }, 400);
+		if (!downloadResult) {
+			return sendError(c, { message: "File not found or could not be downloaded", status: 404 });
 		}
 
-		const id = data.fileId;
-		const name = data.name;
+		// Set appropriate headers for file download
+		c.header("Content-Type", downloadResult.mimeType);
+		c.header("Content-Disposition", `attachment; filename="${downloadResult.filename}"`);
+		c.header("Content-Length", downloadResult.size.toString());
 
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const success = await drive.updateFile(id, name);
-
-		if (!success) {
-			return c.json<ApiResponse>({ success: false, message: "Failed to update file" }, 500);
-		}
-
-		return c.json<ApiResponse>({ success: true, message: "File updated successfully" });
+		// Return the file data
+		return c.body(downloadResult.data);
+	} catch (error) {
+		const options = handleUploadError(error);
+		return sendError(c, options);
 	}
-);
-
-// Delete a single file/folder
-// TODO: implement delete multiple files/folders
-filesRouter.delete(
-	"/",
-	securityMiddleware({
-		rateLimiting: {
-			enabled: true,
-			rateLimiter(c) {
-				return fileDeleteRateLimiter(c.get("user"));
-			},
-		},
-		securityHeaders: true,
-	}),
-	async (c: Context) => {
-		const user: SessionUser = c.get("user");
-
-		const { error, data } = deleteFileSchema.safeParse(c.req.query());
-		if (error) {
-			return c.json<ApiResponse>({ success: false, message: error.errors[0]?.message }, 400);
-		}
-
-		try {
-			// Delete all fileTag associations for the file
-			// Has to be done manually since we don't store all files locally
-			await tagService.deleteFileTagsByFileId(data.fileId, user.id);
-		} catch {
-			return c.json<ApiResponse>({ success: false, message: "Failed to delete file tag relationships." });
-		}
-
-		const fileId = data.fileId;
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const success = await drive.deleteFile(fileId);
-
-		if (!success) {
-			return c.json<ApiResponse>({ success: false, message: "Failed to delete file" }, 500);
-		}
-
-		return c.json<ApiResponse>({ success: true, message: "File deleted successfully" });
-	}
-);
-
-// Create file/folders
-filesRouter.post(
-	"/",
-	securityMiddleware({
-		rateLimiting: {
-			enabled: true,
-			rateLimiter(c) {
-				return fileUploadRateLimiter(c.get("user"));
-			},
-		},
-		securityHeaders: true,
-	}),
-	async (c: Context) => {
-		const user: SessionUser = c.get("user");
-
-		//Validation
-		const { error, data } = createFileSchema.safeParse(c.req.query());
-		if (error) {
-			return c.json<ApiResponse>({ success: false, message: error.message }, 400);
-		}
-
-		const name = data.name;
-		const mimeType = data.mimeType;
-		const parent = data.parent ? data.parent : undefined;
-
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const success = await drive.createFile(name, mimeType, parent);
-
-		if (!success) {
-			return c.json<ApiResponse>({ success: false, message: "Failed to create file" }, 500);
-		}
-
-		return c.json<ApiResponse>({ success: true, message: "File created successfully" });
-	}
-);
-
-// Upload file route with security middleware
-filesRouter.post(
-	"/upload",
-	securityMiddleware({
-		rateLimiting: {
-			enabled: true,
-			rateLimiter(c) {
-				return fileUploadRateLimiter(c.get("user"));
-			},
-		},
-		securityHeaders: true,
-	}),
-	async (c: Context) => {
-		const user: SessionUser = c.get("user");
-
-		try {
-			const formData = await c.req.formData();
-			const file = formData.get("file") as UploadedFile | null;
-			const parentId = c.req.query("parentId");
-			const returnedValues = c.req.queries("returnedValues[]");
-
-			if (!file) {
-				return c.json<ApiResponse>({ success: false, message: "No file provided" }, 400);
-			}
-
-			// Validate file type
-			if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-				return c.json<ApiResponse>({ success: false, message: `File type ${file.type} is not allowed` }, 400);
-			}
-
-			// Validate file size
-			if (file.size > MAX_FILE_SIZE) {
-				return c.json<ApiResponse>(
-					{
-						success: false,
-						message: `File size exceeds maximum allowed size of ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
-					},
-					400
-				);
-			}
-
-			const { data, error } = uploadFileSchema.safeParse({
-				file,
-				parentId: parentId,
-				returnedValues: returnedValues,
-			});
-
-			if (error) {
-				return c.json<ApiResponse>(
-					{
-						success: false,
-						message: error.errors[0]?.message,
-					},
-					400
-				);
-			}
-
-			let drive;
-			try {
-				drive = await getDriveManagerForUser(user, c.req.raw.headers);
-				if (!drive) {
-					throw new Error("Failed to initialize storage provider");
-				}
-			} catch (error) {
-				console.error("Error initializing storage provider:", error);
-				return c.json<ApiResponse>({ success: false, message: "Failed to initialize storage provider" }, 500);
-			}
-
-			// Process file upload with proper cleanup
-			try {
-				// Convert File to Readable stream for upload
-				const arrayBuffer = await file.arrayBuffer();
-				const fileBuffer = Buffer.from(arrayBuffer);
-				const readableStream = new Readable();
-				readableStream.push(fileBuffer);
-				readableStream.push(null); // Signal end of stream
-
-				// Upload the file with timeout
-				const uploadPromise = drive.uploadFile(
-					file.name,
-					file.type,
-					readableStream,
-					data.returnedValues,
-					data.parentId
-				);
-
-				// Set a timeout for the upload (5 minutes)
-				const UPLOAD_TIMEOUT = 5 * 60 * 1000;
-				const uploadedFile = await Promise.race([
-					uploadPromise,
-					new Promise((_, reject) => setTimeout(() => reject(new Error("Upload timed out")), UPLOAD_TIMEOUT)),
-				]);
-
-				if (!uploadedFile) {
-					throw new Error("Upload failed: No file was returned from storage provider");
-				}
-
-				// Return the uploaded file info
-				return c.json<ApiResponse>({
-					success: true,
-					message: "File uploaded successfully",
-				});
-			} catch (error) {
-				console.error("Request processing error:", error);
-
-				// Don't leak internal error details to the client
-				const errorMessage =
-					error instanceof Error
-						? error.message.includes("maxFileSize")
-							? "File too large"
-							: "Invalid request"
-						: "An error occurred";
-
-				return c.json<ApiResponse>(
-					{
-						success: false,
-						message: errorMessage,
-					},
-					errorMessage === "File too large" ? 413 : 400
-				);
-			}
-		} catch (error) {
-			console.error("Unexpected error in upload handler:", error);
-			return c.json<ApiResponse>({ success: false, message: "An unexpected error occurred" }, 500);
-		}
-	}
-);
+});
 
 export default filesRouter;

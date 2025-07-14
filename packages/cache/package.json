@@ -4,8 +4,9 @@
 	"type": "module",
 	"private": true,
 	"exports": {
+		".": "./src/index.ts",
 		"./rate-limiters": "./src/rate-limiters.ts",
-		".": "./src/index.ts"
+		"./valkey": "./src/valkey.ts"
 	},
 	"scripts": {
 		"build": "bun build src/rate-limiters.ts --outdir dist --target bun",
@@ -20,10 +21,11 @@
 		"iovalkey": "^0.3.3",
 		"rate-limiter-flexible": "^7.1.1",
 		"@nimbus/auth": "workspace:*",
-		"@nimbus/env": "workspace:*"
+		"@nimbus/env": "workspace:*",
+		"zod": "^4.0.5"
 	},
 	"devDependencies": {
 		"@nimbus/tsconfig": "workspace:*",
-		"@types/bun": "latest"
+		"@types/bun": "^1.2.18"
 	}
 }

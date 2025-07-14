@@ -1,12 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/schemas";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { forgotPasswordSchema, type ForgotPasswordFormData } from "@nimbus/shared";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { FieldError } from "@/components/ui/field-error";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForgotPassword } from "@/hooks/useAuth";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import type { ComponentProps } from "react";
 import Link from "next/link";
 
 export function ForgotPasswordForm({ ...props }: ComponentProps<"div">) {
-	const { isLoading, sendResetEmail } = useForgotPassword();
+	const { isLoading, forgotPassword } = useForgotPassword();
 
 	const {
 		register,
@@ -28,7 +28,7 @@ export function ForgotPasswordForm({ ...props }: ComponentProps<"div">) {
 	});
 
 	const onSubmit: SubmitHandler<ForgotPasswordFormData> = async data => {
-		await sendResetEmail(data);
+		await forgotPassword(data);
 	};
 
 	return (

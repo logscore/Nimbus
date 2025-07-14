@@ -1,13 +1,13 @@
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogFooter,
-	DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import type { Tag } from "@/lib/types";
+import type { Tag } from "@nimbus/shared";
 
 interface DeleteTagDialogProps {
 	isOpen: boolean;

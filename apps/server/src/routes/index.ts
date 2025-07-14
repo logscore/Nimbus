@@ -1,34 +1,41 @@
-import type { SessionUser } from "@nimbus/auth/auth";
+import { createProtectedRouter, createPublicRouter } from "@/hono";
+import { createAuth } from "@nimbus/auth/auth";
 import waitlistRoutes from "@/routes/waitlist";
 import drivesRoutes from "@/routes/drives";
-import type { Context, Next } from "hono";
 import filesRoutes from "@/routes/files";
 import emailRoutes from "@/routes/email";
 import tagsRoutes from "@/routes/tags";
 import authRoutes from "@/routes/auth";
-import { Hono } from "hono";
+import { sendError } from "./utils";
 
-const router = new Hono();
+// Create protected router with auth middleware
+const protectedRouter = createProtectedRouter()
+	.use("*", async (c, next) => {
+		const auth = createAuth();
+		const session = await auth.api.getSession({ headers: c.req.raw.headers });
+		const user = session?.user;
+		if (!user) {
+			return sendError(c, { message: "Unauthorized", status: 401 });
+		}
+		c.set("user", user);
+		c.set("auth", auth);
+		return next();
+	})
+	.route("/files", filesRoutes)
+	.route("/drives", drivesRoutes)
+	.route("/tags", tagsRoutes);
 
-async function authCheck(c: Context, next: Next) {
-	const user: SessionUser = c.get("user");
-	if (!user) {
-		return c.json({ success: false, message: "Unauthorized" }, 401);
-	}
-	await next();
-}
+// Create public router for unauthenticated routes
+const publicRouter = createPublicRouter()
+	.route("/auth", authRoutes)
+	.route("/waitlist", waitlistRoutes)
+	.route("/email", emailRoutes);
 
-// Authenticated routes. Add auth check middleware
-router.use("/files/*", authCheck);
-router.use("/drives/*", authCheck);
-router.use("/tags/*", authCheck);
+// Combine all routes under /api
+const routes = createPublicRouter().route("/", protectedRouter).route("/", publicRouter);
 
-router.route("/files", filesRoutes);
-router.route("/drives", drivesRoutes);
-router.route("/tags", tagsRoutes);
+// Export the main routes as default
+export default routes;
 
-router.route("/auth", authRoutes);
-router.route("/waitlist", waitlistRoutes);
-router.route("/email", emailRoutes);
-
-export default router;
+// Export individual routers for testing or other purposes
+export { protectedRouter, publicRouter };

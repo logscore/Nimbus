@@ -1,21 +1,20 @@
 import { GoogleDriveProvider } from "@/providers/google/google-drive";
-// import { OneDriveProvider } from "@/providers/microsoft/one-drive";
-import type { ProviderName } from "@/providers/interface/types";
+import { OneDriveProvider } from "@/providers/microsoft/one-drive";
 import { type SessionUser } from "@nimbus/auth/auth";
+import type { DriveProvider } from "@nimbus/shared";
 import { getAccount } from "@/lib/utils/accounts";
-// import OneDrive from "@/lib/one-drive/src";
 
-const createDriveManager = (providerName: ProviderName, accessToken: string) => {
+const createDriveProvider = (providerName: DriveProvider, accessToken: string) => {
 	if (providerName === "google") {
 		return new GoogleDriveProvider(accessToken);
 	}
 	if (providerName === "microsoft") {
-		// return new OneDriveProvider(accessToken);
+		return new OneDriveProvider(accessToken);
 	}
 	throw new Error("Unsupported provider");
 };
 
-export const getDriveManagerForUser = async (user: SessionUser | null, headers: Headers) => {
+export const getDriveProvider = async (user: SessionUser | null, headers: Headers) => {
 	if (!user) {
 		throw new Error("User not authenticated");
 	}
@@ -25,10 +24,10 @@ export const getDriveManagerForUser = async (user: SessionUser | null, headers: 
 		throw new Error("Missing account tokens");
 	}
 
-	const providerName = account.providerId as ProviderName;
+	const providerName = account.providerId as DriveProvider;
 	if (!["google", "microsoft"].includes(providerName)) {
 		throw new Error(`Invalid provider: ${account.providerId}`);
 	}
 
-	return createDriveManager(providerName, account.accessToken);
+	return createDriveProvider(providerName, account.accessToken);
 };

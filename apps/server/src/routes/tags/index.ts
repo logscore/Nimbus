@@ -1,144 +1,124 @@
 import {
+	addTagsToFileSchema,
 	createTagSchema,
-	updateTagSchema,
 	deleteTagSchema,
 	getTagByIdSchema,
-	addTagsToFileSchema,
 	removeTagsFromFileSchema,
-} from "@/validators";
-import type { TagOperationResponse, FileTagOperationResponse } from "@/routes/types";
+	updateTagSchema,
+} from "@nimbus/shared";
+import type { FileTagOperationResponse, TagOperationResponse } from "@nimbus/shared";
+import { createProtectedRouter, getSessionUserFromContext } from "@/hono";
+import { sendError, sendSuccess } from "@/routes/utils";
 import { TagService } from "@/routes/tags/tag-service";
-import type { Context } from "hono";
-import { Hono } from "hono";
 
-const tagsRouter = new Hono();
+const tagsRouter = createProtectedRouter();
 const tagService = new TagService();
 
 // Get all tags for the authenticated user
-tagsRouter.get("/", async (c: Context) => {
-	const user = c.get("user");
+tagsRouter.get("/", async c => {
+	const user = getSessionUserFromContext(c);
 
 	try {
 		const tags = await tagService.getUserTags(user.id);
-		return c.json<TagOperationResponse>({ success: true, message: "Tags retrieved successfully", data: tags });
+		return sendSuccess(c, { data: tags });
 	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to get tags" },
-			500
-		);
+		if (error instanceof Error) {
+			return sendError(c, error);
+		}
 	}
 });
 
 // Get a specific tag by tag id (and the authenticated user id)
-tagsRouter.get("/:id", async (c: Context) => {
-	const user = c.get("user");
+tagsRouter.get("/:id", async c => {
+	const user = getSessionUserFromContext(c);
 
 	// Validation
 	const { error, data } = getTagByIdSchema.safeParse(c.req.param());
 	if (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error.errors[0]?.message || "Validation error" },
-			400
-		);
+		return sendError(c, error);
 	}
 
 	try {
 		const tag = await tagService.getTagById(data.id, user.id);
 		if (!tag) {
-			return c.json<TagOperationResponse>({ success: false, message: "Tag not found" }, 404);
+			return sendError(c, { message: "Tag not found", status: 404 });
 		}
-		return c.json<TagOperationResponse>({ success: true, message: "Tag retrieved successfully", data: tag });
+		return sendSuccess(c, { data: tag });
 	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to get tag" },
-			500
-		);
+		if (error instanceof Error) {
+			return sendError(c, error);
+		}
 	}
 });
 
 // Create a new tag
-tagsRouter.post("/", async (c: Context) => {
-	const user = c.get("user");
+tagsRouter.post("/", async c => {
+	const user = getSessionUserFromContext(c);
 
 	try {
 		// Validation
 		const { error, data } = createTagSchema.safeParse(await c.req.json());
 		if (error) {
-			return c.json<TagOperationResponse>(
-				{ success: false, message: error.errors[0]?.message || "Validation error" },
-				400
-			);
+			return sendError(c, error);
 		}
 
 		// Create tag
 		const newTag = await tagService.createTag(user.id, data.name, data.color, data.parentId);
-		return c.json<TagOperationResponse>({ success: true, message: "Tag created successfully", data: newTag }, 201);
+		return sendSuccess(c, { data: newTag });
 	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to create tag" },
-			500
-		);
+		if (error instanceof Error) {
+			return sendError(c, error);
+		}
 	}
 });
 
 // Update an existing tag
-tagsRouter.put("/:id", async (c: Context) => {
-	const user = c.get("user");
+tagsRouter.put("/:id", async c => {
+	const user = getSessionUserFromContext(c);
 
 	// Validation
 	const { error: paramError, data: paramData } = getTagByIdSchema.safeParse(c.req.param());
 	if (paramError) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: paramError.errors[0]?.message || "Validation error" },
-			400
-		);
+		return sendError(c, paramError);
 	}
 
 	try {
 		const { error: bodyError, data: bodyData } = updateTagSchema.safeParse(await c.req.json());
 		if (bodyError) {
-			return c.json<TagOperationResponse>(
-				{ success: false, message: bodyError.errors[0]?.message || "Validation error" },
-				400
-			);
+			return sendError(c, bodyError);
 		}
 		const updatedTag = await tagService.updateTag(paramData.id, user.id, bodyData);
-		return c.json<TagOperationResponse>({ success: true, message: "Tag updated successfully", data: updatedTag });
+		return sendSuccess(c, { data: updatedTag });
 	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to update tag" },
-			500
-		);
+		if (error instanceof Error) {
+			return sendError(c, error);
+		}
 	}
 });
 
 // Delete a tag
-tagsRouter.delete("/:id", async (c: Context) => {
-	const user = c.get("user");
+tagsRouter.delete("/:id", async c => {
+	const user = getSessionUserFromContext(c);
 
 	// Validation
 	const { error, data } = deleteTagSchema.safeParse(c.req.param());
 	if (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error.errors[0]?.message || "Validation error" },
-			400
-		);
+		return sendError(c, error);
 	}
 
 	try {
 		await tagService.deleteTag(data.id, user.id);
-		return c.json<TagOperationResponse>({ success: true, message: "Tag deleted successfully" });
+		return sendSuccess(c, { message: "Tag deleted successfully", status: 200 });
 	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to delete tag" },
-			500
-		);
+		if (error instanceof Error) {
+			return sendError(c, error);
+		}
 	}
 });
 
 // Add tags to a file
-tagsRouter.post("/files/:fileId", async (c: Context) => {
-	const user = c.get("user");
+tagsRouter.post("/files/:fileId", async c => {
+	const user = getSessionUserFromContext(c);
 
 	try {
 		// Validation
@@ -147,30 +127,22 @@ tagsRouter.post("/files/:fileId", async (c: Context) => {
 			...(await c.req.json()),
 		});
 		if (paramError) {
-			return c.json<FileTagOperationResponse>(
-				{ success: false, message: paramError.errors[0]?.message || "Validation error" },
-				400
-			);
+			return sendError(c, paramError);
 		}
 
 		// Add tags to file
 		const fileTags = await tagService.addTagsToFile(paramData.fileId, paramData.tagIds, user.id);
-		return c.json<FileTagOperationResponse>({
-			success: true,
-			message: "Tags added to file successfully",
-			data: fileTags,
-		});
+		return sendSuccess(c, { data: fileTags });
 	} catch (error) {
-		return c.json<FileTagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to add tags to file" },
-			500
-		);
+		if (error instanceof Error) {
+			return sendError(c, error);
+		}
 	}
 });
 
 // Remove tags from a file
-tagsRouter.delete("/files/:fileId", async (c: Context) => {
-	const user = c.get("user");
+tagsRouter.delete("/files/:fileId", async c => {
+	const user = getSessionUserFromContext(c);
 
 	try {
 		// Validation
@@ -179,35 +151,30 @@ tagsRouter.delete("/files/:fileId", async (c: Context) => {
 			...(await c.req.json()),
 		});
 		if (paramError) {
-			return c.json<FileTagOperationResponse>(
-				{ success: false, message: paramError.errors[0]?.message || "Validation error" },
-				400
-			);
+			return sendError(c, paramError);
 		}
 
 		await tagService.removeTagsFromFile(paramData.fileId, paramData.tagIds, user.id);
-		return c.json<FileTagOperationResponse>({ success: true, message: "Tags removed from file successfully" });
+		return sendSuccess(c, { message: "Tags removed from file successfully", status: 200 });
 	} catch (error) {
-		return c.json<FileTagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to remove tags from file" },
-			500
-		);
+		if (error instanceof Error) {
+			return sendError(c, error);
+		}
 	}
 });
 
 // Get all tags for a specific file
-tagsRouter.get("/files/:fileId", async (c: Context) => {
-	const user = c.get("user");
+tagsRouter.get("/files/:fileId", async c => {
+	const user = getSessionUserFromContext(c);
 
 	try {
 		const fileId = c.req.param("fileId");
 		const tags = await tagService.getFileTags(fileId, user.id);
-		return c.json<TagOperationResponse>({ success: true, message: "File tags retrieved successfully", data: tags });
+		return sendSuccess(c, { data: tags });
 	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to get file tags" },
-			500
-		);
+		if (error instanceof Error) {
+			return sendError(c, error);
+		}
 	}
 });
 

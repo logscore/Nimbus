@@ -1,17 +1,20 @@
 "use client";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { emailSchema } from "@nimbus/shared";
 import NumberFlow from "@number-flow/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import env from "@nimbus/env/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { z } from "zod";
+import z from "zod";
 
 const formSchema = z.object({
-	email: z.string().email("Invalid email. Please check the spelling and try again"),
+	email: emailSchema,
 });
 
 // this is a copy of Analogs waitlist component with some changes
@@ -20,7 +23,7 @@ type FormSchema = z.infer<typeof formSchema>;
 
 // API functions for Hono backend
 async function getWaitlistCount(): Promise<{ count: number }> {
-	return fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/count`).then(res => {
+	return fetch(`${env.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/count`).then(res => {
 		if (!res.ok) {
 			throw new Error("Failed to get waitlist count");
 		}
@@ -29,7 +32,7 @@ async function getWaitlistCount(): Promise<{ count: number }> {
 }
 
 async function joinWaitlist(email: string): Promise<void> {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/join`, {
+	const response = await fetch(`${env.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/join`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",

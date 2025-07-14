@@ -1,4 +1,4 @@
-import env from "@nimbus/env";
+import env from "@nimbus/env/client";
 import axios from "axios";
 
 export async function sendMail({ to, subject, text }: { to: string; subject: string; text: string }) {

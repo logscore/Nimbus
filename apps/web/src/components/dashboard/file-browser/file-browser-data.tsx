@@ -1,39 +1,44 @@
 import {
-	FileText,
-	Folder,
-	MoreVertical,
-	ExternalLink,
-	Copy,
-	// Download,
-	Image as ImageIcon,
-	Video,
-	Music,
-	Archive,
-	Code,
-	FileSpreadsheet,
-	Presentation,
-	File as FileIcon,
-} from "lucide-react";
-import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuPortal,
 	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+	Archive,
+	Code,
+	Copy,
+	Download,
+	ExternalLink,
+	File as FileIcon,
+	FileSpreadsheet,
+	FileText,
+	Folder,
+	ImageIcon,
+	MoreVertical,
+	Music,
+	Presentation,
+	Video,
+} from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useDeleteFile, useDownloadFile, useUpdateFile } from "@/hooks/useFileOperations";
+import { useDownloadContext } from "@/components/providers/download-provider";
 import { RenameFileDialog } from "@/components/dialogs/rename-file-dialog";
 import { DeleteFileDialog } from "@/components/dialogs/delete-file-dialog";
-import { useDeleteFile, useUpdateFile } from "@/hooks/useFileOperations";
+import { FileTags } from "@/components/dashboard/file-browser/file-tags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { formatFileSize } from "@/lib/file-utils";
 import { Button } from "@/components/ui/button";
+import { formatFileSize } from "@nimbus/shared";
 import { PdfIcon } from "@/components/icons";
+import type { File } from "@nimbus/shared";
 import { useTags } from "@/hooks/useTags";
-import type { _File } from "@/lib/types";
-import { fileSize } from "@/lib/utils";
-import { FileTags } from "./file-tags";
-import { useState } from "react";
 import type { JSX } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export function FileBrowserData({
@@ -43,7 +48,7 @@ export function FileBrowserData({
 	onOptimisticRename,
 	onRollback,
 }: {
-	data: _File[];
+	data: File[];
 	refetch: () => void;
 	onOptimisticDelete?: (fileId: string) => void;
 	onOptimisticRename?: (fileId: string, newName: string) => void;
@@ -67,7 +72,7 @@ function FilesList({
 	onOptimisticRename,
 	onRollback,
 }: {
-	data: _File[];
+	data: File[];
 	refetch: () => void;
 	onOptimisticDelete?: (fileId: string) => void;
 	onOptimisticRename?: (fileId: string, newName: string) => void;
@@ -78,89 +83,80 @@ function FilesList({
 	const searchParams = useSearchParams();
 
 	return (
-		<div className="overflow-hidden rounded-md border">
-			<table className="w-full table-fixed">
-				<colgroup>
-					<col className="w-2/5" />
-					<col className="w-1/5" />
-					<col className="w-1/6" />
-					<col className="w-1/8" />
-					<col className="w-1/8" />
-				</colgroup>
-				<thead className="text-muted-foreground bg-muted/50 text-left text-xs font-medium">
-					<tr>
-						<th className="p-3 font-semibold">Name</th>
-						<th className="p-3 font-semibold">Modified</th>
-						<th className="p-3 font-semibold">Size</th>
-						<th className="p-3 font-semibold">Actions</th>
-						<th className="p-3 font-semibold">Tags</th>
-					</tr>
-				</thead>
-				<tbody>
-					{data.map(file => {
-						// Use new formatFileSize if size is a number, otherwise fallback to existing logic
-						const size = file.size
-							? typeof file.size === "number"
-								? formatFileSize(file.size)
-								: fileSize(file.size)
-							: "—";
+		<Table wrapperClassName="overflow-hidden" tableLayout="fixed">
+			<colgroup>
+				<col className="w-2/5" />
+				<col className="w-1/5" />
+				<col className="w-1/6" />
+				<col className="w-1/8" />
+				<col className="w-1/8" />
+			</colgroup>
+			<TableHeader>
+				<TableRow>
+					<TableHead>Name</TableHead>
+					<TableHead>Modified</TableHead>
+					<TableHead>Size</TableHead>
+					<TableHead>Actions</TableHead>
+					<TableHead>Tags</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{data.map(file => {
+					const size = file.size ? formatFileSize(file.size) : "—";
 
-						// Format modified date better
-						const modifiedDate = file.modificationDate
-							? new Date(file.modificationDate).toLocaleDateString("en-US", {
-									year: "numeric",
-									month: "short",
-									day: "numeric",
-									hour: "2-digit",
-									minute: "2-digit",
-								})
-							: file.creationDate;
+					// Format modified date better
+					const modifiedDate = file.modifiedTime
+						? new Date(file.modifiedTime).toLocaleDateString("en-US", {
+								year: "numeric",
+								month: "short",
+								day: "numeric",
+								hour: "2-digit",
+								minute: "2-digit",
+							})
+						: file.createdTime;
 
-						// Determine file type for dialogs
-						// TODO: Adjust this to use the provider agnostic "folder". This is a big one. Do this ASAP
-						// TODO: Will need to create two-way functions in G Drive and OneDrive providers to translate generic folder/file type to provider specific type
-						const fileType =
-							file.mimeType === "application/vnd.google-apps.folder" || file.mimeType === "folder" ? "folder" : "file";
+					// Determine file type for dialogs
+					// TODO:(provider agnostic): looks like Google Drive and OneDrive both put .folder on the end of mimeType so this should work for now
+					const fileType = file.mimeType.includes("folder") ? "folder" : "file";
 
-						return (
-							<tr
-								key={file.id}
-								className="hover:bg-accent/10 relative cursor-pointer border-t transition-colors"
-								tabIndex={0}
-								onClick={() => {
-									if (fileType === "folder") {
-										const params = new URLSearchParams(searchParams);
-										params.set("folderId", file.id);
-										router.push(`?${params.toString()}`);
-									}
-								}}
-							>
-								<td className="p-4">
-									<div className="relative z-10 flex min-w-0 items-center gap-3">
-										<div className="flex-shrink-0">{getModernFileIcon(file.mimeType, file.name)}</div>
-										<span className="truncate text-sm font-medium">{file.name}</span>
-									</div>
-								</td>
-								<td className="text-muted-foreground p-3 text-sm">{modifiedDate}</td>
-								<td className="text-muted-foreground p-3 text-sm">{size}</td>
-								<td className="relative p-3">
-									<FileActions
-										file={file}
-										fileType={fileType}
-										onOptimisticDelete={onOptimisticDelete}
-										onOptimisticRename={onOptimisticRename}
-										onRollback={onRollback}
-									/>
-								</td>
-								<td className="relative p-3">
-									<FileTags file={file} availableTags={tags} refetch={refetch} />
-								</td>
-							</tr>
-						);
-					})}
-				</tbody>
-			</table>
-		</div>
+					return (
+						<TableRow
+							key={file.id}
+							clickable={fileType === "folder"}
+							tabIndex={0}
+							onClick={() => {
+								if (fileType === "folder") {
+									const params = new URLSearchParams(searchParams);
+									params.set("folderId", file.id);
+									router.push(`?${params.toString()}`);
+								}
+							}}
+						>
+							<TableCell className="p-4">
+								<div className="relative z-10 flex min-w-0 items-center gap-3">
+									<div className="flex-shrink-0">{getModernFileIcon(file.mimeType, file.name)}</div>
+									<span className="truncate text-sm font-medium">{file.name}</span>
+								</div>
+							</TableCell>
+							<TableCell textMuted>{modifiedDate}</TableCell>
+							<TableCell textMuted>{size}</TableCell>
+							<TableCell className="relative">
+								<FileActions
+									file={file}
+									fileType={fileType}
+									onOptimisticDelete={onOptimisticDelete}
+									onOptimisticRename={onOptimisticRename}
+									onRollback={onRollback}
+								/>
+							</TableCell>
+							<TableCell className="relative">
+								<FileTags file={file} availableTags={tags} refetch={refetch} />
+							</TableCell>
+						</TableRow>
+					);
+				})}
+			</TableBody>
+		</Table>
 	);
 }
 
@@ -171,7 +167,7 @@ function FileActions({
 	onOptimisticRename,
 	onRollback,
 }: {
-	file: _File;
+	file: File;
 	fileType: "file" | "folder";
 	onOptimisticDelete?: (fileId: string) => void;
 	onOptimisticRename?: (fileId: string, newName: string) => void;
@@ -179,8 +175,11 @@ function FileActions({
 }) {
 	const { mutate: deleteFile } = useDeleteFile();
 	const { mutate: renameFile } = useUpdateFile();
+	const { mutate: downloadFile } = useDownloadFile();
+	const { startDownload, updateProgress, completeDownload, errorDownload } = useDownloadContext();
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+	const [mimeDownloadType, setMimeDownloadType] = useState<string | null>(null);
 
 	const handleDelete = async () => {
 		// Optimistic update: remove file from UI immediately
@@ -210,7 +209,6 @@ function FileActions({
 		);
 	};
 
-	// TODO: Implement these later
 	const handleCopyLink = async () => {
 		if (file.webViewLink) {
 			await navigator.clipboard.writeText(file.webViewLink);
@@ -228,13 +226,121 @@ function FileActions({
 		}
 	};
 
-	// const handleDownload = () => {
-	// 	if (file.webContentLink) {
-	// 		window.open(file.webContentLink, "_blank");
-	// 	} else {
-	// 		toast.error("Download not available");
-	// 	}
-	// };
+	const getGoogleWorkspaceExportMimeType = (mimeType: string): string | undefined => {
+		const exportMimeTypes: Record<string, string> = {
+			"application/vnd.google-apps.document": "application/pdf",
+			"application/vnd.google-apps.spreadsheet": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			"application/vnd.google-apps.presentation":
+				"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+		};
+
+		return exportMimeTypes[mimeType];
+	};
+
+	const handleDownloadError = (error: unknown, fileId: string) => {
+		const errorMessage = error instanceof Error ? error.message : "Download failed";
+		if (errorDownload) {
+			errorDownload(fileId, errorMessage);
+		} else {
+			toast.error(errorMessage);
+		}
+	};
+
+	const handleDownloadSuccess = (fileId: string) => {
+		if (completeDownload) completeDownload(fileId);
+	};
+
+	// TODO:(fix): this is just binary data. also downloaded as .txt
+	const handleGoogleWorkspaceDownload = async () => {
+		if (!file.mimeType?.startsWith("application/vnd.google-apps.") || !downloadFile) {
+			return false;
+		}
+
+		const exportMimeType = mimeDownloadType || getGoogleWorkspaceExportMimeType(file.mimeType);
+		if (!exportMimeType) return false;
+
+		try {
+			downloadFile(
+				{
+					fileId: file.id,
+					exportMimeType,
+					fileName: file.name,
+					onProgress: progress => updateProgress?.(file.id, progress),
+				},
+				{
+					onSuccess: () => handleDownloadSuccess(file.id),
+					onError: error => handleDownloadError(error, file.id),
+				}
+			);
+			return true;
+		} catch (error) {
+			handleDownloadError(error, file.id);
+			return false;
+		}
+	};
+
+	// TODO:(fix): this is just binary data same as the normal download. also downloaded as .txt
+	const handleDownloadAsPDF = async () => {
+		setMimeDownloadType("application/pdf");
+		await handleGoogleWorkspaceDownload();
+	};
+
+	// TODO:(fix): this is somehow a PDF??? also downloaded as .txt
+	const handleDownloadAsDocx = async () => {
+		setMimeDownloadType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+		await handleGoogleWorkspaceDownload();
+	};
+
+	const handleDirectDownload = async () => {
+		// TODO:(session): get provider from session
+		// const isGoogleProvider = provider === "google";
+
+		// TODO:(provider context): figure this out when we implement multiSession / multiProvider support
+		// console.log({ isGoogleProvider, provider });
+
+		// if (isGoogleProvider) {
+		// 	const success = await handleGoogleWorkspaceDownload();
+		// 	if (success) return true;
+		// }
+
+		if (!file.webContentLink) return false;
+
+		window.open(file.webContentLink, "_blank");
+		handleDownloadSuccess(file.id);
+		return true;
+	};
+
+	const handleDownload = async () => {
+		if (fileType === "folder") {
+			return toast.error("Cannot download folders");
+		}
+
+		// Start download progress tracking if available
+		startDownload?.(file.id, file.name);
+
+		try {
+			const isGoogleWorkspaceFile = file.mimeType?.startsWith("application/vnd.google-apps.");
+
+			// Try Google Workspace export first if applicable
+			if (isGoogleWorkspaceFile) {
+				const success = await handleGoogleWorkspaceDownload();
+				if (success) return true;
+			}
+
+			// Fallback to direct download
+			if (await handleDirectDownload()) return true;
+
+			// If we get here, no download method was successful
+			const errorMsg = "Download not available for this file";
+			if (errorDownload) {
+				errorDownload(file.id, errorMsg);
+			} else {
+				toast.error(errorMsg);
+			}
+		} catch (error) {
+			handleDownloadError(error, file.id);
+		}
+	};
 
 	return (
 		<>
@@ -253,17 +359,49 @@ function FileActions({
 								Open
 							</DropdownMenuItem>
 						)}
-						{/* {file.webContentLink && fileType === "file" && (
-							<DropdownMenuItem onClick={handleDownload} className="cursor-pointer">
-								<Download className="mr-2 h-4 w-4" />
-								Download
-							</DropdownMenuItem>
-						)} */}
 						{file.webViewLink && (
 							<DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
 								<Copy className="mr-2 h-4 w-4" />
 								Copy link
 							</DropdownMenuItem>
+						)}
+						{fileType === "file" && (
+							<>
+								{file.mimeType?.startsWith("application/vnd.google-apps.") ? (
+									<DropdownMenuSub>
+										<DropdownMenuSubTrigger className="cursor-pointer">
+											<Download className="mr-2 h-4 w-4" />
+											Download As...
+										</DropdownMenuSubTrigger>
+										<DropdownMenuPortal>
+											<DropdownMenuSubContent>
+												<DropdownMenuItem onClick={handleDownload} className="cursor-pointer">
+													<FileIcon className="mr-2 h-4 w-4" />
+													Original Format
+												</DropdownMenuItem>
+												<DropdownMenuItem onClick={handleDownloadAsPDF} className="cursor-pointer">
+													<FileText className="mr-2 h-4 w-4" />
+													PDF Document
+												</DropdownMenuItem>
+												<DropdownMenuItem onClick={handleDownloadAsDocx} className="cursor-pointer">
+													<FileText className="mr-2 h-4 w-4" />
+													Microsoft Word
+												</DropdownMenuItem>
+											</DropdownMenuSubContent>
+										</DropdownMenuPortal>
+									</DropdownMenuSub>
+								) : file.webContentLink ? (
+									<DropdownMenuItem onClick={handleDirectDownload} className="cursor-pointer">
+										<Download className="mr-2 h-4 w-4" />
+										Direct Download
+									</DropdownMenuItem>
+								) : (
+									<DropdownMenuItem onClick={handleDownload} className="cursor-pointer">
+										<Download className="mr-4 w-4" />
+										Download
+									</DropdownMenuItem>
+								)}
+							</>
 						)}
 						<DropdownMenuSeparator />
 						<DropdownMenuItem onClick={() => setIsRenameDialogOpen(true)} className="cursor-pointer">

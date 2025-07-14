@@ -1,36 +1,32 @@
+import { checkEmailSchema } from "@nimbus/shared";
 import { zValidator } from "@hono/zod-validator";
-import { emailSchema } from "@/validators";
-import { user } from "@nimbus/db/schema";
-import type { Context } from "hono";
-import { eq } from "drizzle-orm";
-import { Hono } from "hono";
+import { createProtectedRouter } from "@/hono";
+import { sendError } from "../utils";
 
-const authRouter = new Hono();
+const authRouter = createProtectedRouter();
 
-authRouter.post("/check-email", zValidator("json", emailSchema), async (c: Context) => {
+authRouter.post("/check-email", zValidator("json", checkEmailSchema), async c => {
 	try {
-		const { email } = await c.req.json();
+		const { email } = (await c.req.json()) as { email: string };
 
-		const existingUser = await c.var.db
-			.select({ id: user.id })
-			.from(user)
-			.where(eq(user.email, email.toLowerCase().trim()))
-			.limit(1);
+		const user = await c.var.db.query.user.findFirst({
+			where: (table, { eq }) => eq(table.email, email.toLowerCase().trim()),
+		});
 
-		return c.json({ exists: existingUser.length > 0 });
+		return c.json({ exists: !!user });
 	} catch (error) {
 		console.error("Error checking email:", error);
-		return c.json({ error: "Internal server error" }, 500);
+		return sendError(c);
 	}
 });
 
 // Better Auth handler for all other auth routes
-authRouter.on(["POST", "GET"], "/*", async (c: Context) => {
+authRouter.on(["POST", "GET"], "/*", async c => {
 	try {
 		return c.var.auth.handler(c.req.raw);
 	} catch (error) {
 		console.error("Auth handler error:", error);
-		return c.json({ error: "Authentication failed" }, 500);
+		return sendError(c);
 	}
 });
 

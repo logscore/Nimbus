@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import type { DriveInfo } from "@/lib/types";
+import type { DriveInfo } from "@nimbus/shared";
+import env from "@nimbus/env/client";
 import axios from "axios";
 
 export const useDriveInfo = () => {
 	return useQuery<DriveInfo>({
 		queryKey: ["driveInfo"],
 		queryFn: async () => {
-			const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/drives/about`, {
+			const response = await axios.get(`${env.NEXT_PUBLIC_BACKEND_URL}/api/drives/about`, {
 				withCredentials: true,
 				signal: new AbortController().signal,
 			});
