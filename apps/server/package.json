@@ -29,7 +29,7 @@
 		"@nimbus/shared": "workspace:*",
 		"drizzle-orm": "^0.44.2",
 		"google-auth-library": "^10.1.0",
-		"hono": "^4.8.4",
+		"hono": "^4.8.5",
 		"nanoid": "^5.1.5",
 		"pg": "^8.16.3",
 		"resend": "^4.6.0",
