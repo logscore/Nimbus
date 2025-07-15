@@ -145,6 +145,7 @@ const schema = {
   rateLimitAttempts,
 };
 
+export type UserTableSelect = typeof user.$inferSelect;
 export type SessionTableInsert = typeof session.$inferInsert;
 export type AccountTableSelect = typeof account.$inferSelect;
 

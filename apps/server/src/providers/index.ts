@@ -42,9 +42,14 @@ class AccountError extends Error {
 
 export async function getAccount(user: SessionUser, headers: Headers): Promise<AccountTableSelect | null> {
 	try {
+		const userId = user.id;
+		const providerId = "google";
+		const accountId = "jsalkdfjalksdfj";
+
 		const c = getProtectedContext();
 		const account = await c.var.db.query.account.findFirst({
-			where: (table, { eq }) => eq(table.userId, user.id),
+			where: (table, { eq }) =>
+				eq(table.userId, userId) && eq(table.providerId, providerId) && eq(table.accountId, accountId),
 		});
 
 		if (!account) {
@@ -53,9 +58,9 @@ export async function getAccount(user: SessionUser, headers: Headers): Promise<A
 
 		const { accessToken } = await c.var.auth.api.getAccessToken({
 			body: {
-				providerId: account.providerId,
-				accountId: account.id,
-				userId: account.userId,
+				providerId,
+				accountId,
+				userId,
 			},
 			headers,
 		});

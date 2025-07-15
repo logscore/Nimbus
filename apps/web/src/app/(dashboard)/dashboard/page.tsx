@@ -1,25 +1,45 @@
 "use client";
 
-import { FileBrowser } from "@/components/dashboard/file-browser";
-import { UploadButton } from "@/components/upload-button";
-import { Header } from "@/components/dashboard/header";
-import { Suspense } from "react";
+import { useUserInfoProvider } from "@/components/providers/user-info-provider";
+import { useTheme } from "next-themes";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
-export default function DrivePage() {
+export default function DashboardPage() {
+	// TODO(bug): figure out hydration error useTheme()
+	const { theme } = useTheme();
+	const context = useUserInfoProvider();
+
+	useEffect(() => {
+		if (context.error) {
+			toast.error(context.error.message);
+		}
+	}, [context]);
+
 	return (
-		<>
-			<Suspense fallback={null}>
-				<Header />
-				<div className="flex flex-1 flex-col p-2">
-					<div className="mb-6 flex items-center justify-between">
-						<h1 className="text-2xl font-semibold">My Files</h1>
-						<UploadButton />
-					</div>
-					<div className="flex-1">
-						<FileBrowser />
-					</div>
-				</div>
-			</Suspense>
-		</>
+		<div className="flex min-h-screen items-center justify-center">
+			<div className="text-center">
+				{!context.error ? (
+					<>
+						<div
+							className={`mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 ${theme === "dark" ? "border-white" : "border-black"}`}
+						></div>
+						<h2 className={`text-xl font-semibold ${theme === "dark" ? "text-white" : "text-black"}`}>
+							Loading your dashboard...
+						</h2>
+						<p className={`mt-2 ${theme === "dark" ? "text-white" : "text-black"}`}>
+							Please wait while we fetch your provider and account information.
+						</p>
+					</>
+				) : (
+					<>
+						<h2 className={`text-xl font-semibold ${theme === "dark" ? "text-white" : "text-black"}`}>
+							Error loading your dashboard
+						</h2>
+						<p className={`mt-2 ${theme === "dark" ? "text-white" : "text-black"}`}>Please try again later.</p>
+					</>
+				)}
+			</div>
+		</div>
 	);
 }

@@ -207,7 +207,6 @@ export const createAuth = () => {
 
 export type Auth = ReturnType<typeof createAuth>;
 export type AuthSession = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
-export type Session = AuthSession["session"];
 export type SessionUser = AuthSession["user"];
 
 async function afterAccountCreation(account: Account) {

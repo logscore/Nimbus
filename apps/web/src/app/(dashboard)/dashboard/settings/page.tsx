@@ -6,8 +6,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddAccountDialog } from "@/components/settings/add-account-dialog";
+import { SettingsHeader } from "@/components/dashboard/settings/header";
 import { authClient } from "@nimbus/auth/auth-client";
-import { AppHeader } from "@/components/app/header";
 import type { DriveProvider } from "@nimbus/shared";
 import Profile from "@/components/user-profile";
 import { Button } from "@/components/ui/button";
@@ -105,7 +105,11 @@ export default function SettingsPage() {
 
 	return (
 		<div className="flex h-screen flex-col">
-			<AppHeader title="Settings" description="Manage your account settings and preferences" showBackButton={true} />
+			<SettingsHeader
+				title="Settings"
+				description="Manage your account settings and preferences"
+				showBackButton={true}
+			/>
 			<div className="container mx-auto flex-1 space-y-6 overflow-auto p-4">
 				<Tabs defaultValue="profile" className="space-y-4">
 					<TabsList>

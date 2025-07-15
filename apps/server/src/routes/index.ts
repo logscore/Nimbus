@@ -3,11 +3,12 @@ import waitlistRoutes from "./waitlist";
 import drivesRoutes from "./drives";
 import { sendError } from "./utils";
 import filesRoutes from "./files";
+import userRoutes from "./user";
 import tagsRoutes from "./tags";
 import authRoutes from "./auth";
 
-const protectedRoutePaths = ["/files", "/drives", "/tags"] as const;
-const protectedRouteRouters = [filesRoutes, drivesRoutes, tagsRoutes] as const;
+const protectedRoutePaths = ["/files", "/drives", "/tags", "/user"] as const;
+const protectedRouteRouters = [filesRoutes, drivesRoutes, tagsRoutes, userRoutes] as const;
 const publicRoutePaths = ["/auth", "/waitlist"] as const;
 const publicRouteRouters = [authRoutes, waitlistRoutes] as const;
 
@@ -30,7 +31,8 @@ const protectedRouter = createProtectedRouter()
 	})
 	.route(protectedRoutePaths[0], protectedRouteRouters[0])
 	.route(protectedRoutePaths[1], protectedRouteRouters[1])
-	.route(protectedRoutePaths[2], protectedRouteRouters[2]);
+	.route(protectedRoutePaths[2], protectedRouteRouters[2])
+	.route(protectedRoutePaths[3], protectedRouteRouters[3]);
 
 const routes = createPublicRouter()
 	.route(publicRoutePaths[0], publicRouteRouters[0])
