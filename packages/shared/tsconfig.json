@@ -1,3 +1,8 @@
 {
-	"extends": "@nimbus/tsconfig/base"
+	"extends": "@nimbus/tsconfig/base",
+	"compilerOptions": {
+		"composite": true,
+		"noEmit": false,
+		"allowImportingTsExtensions": false
+	}
 }

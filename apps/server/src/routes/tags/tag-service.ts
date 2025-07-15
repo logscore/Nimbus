@@ -1,7 +1,7 @@
 import { and, count, eq, inArray, isNull } from "drizzle-orm";
 import type { FileTag, Tag } from "@nimbus/shared";
 import { fileTag, tag } from "@nimbus/db/schema";
-import { getProtectedContext } from "@/hono";
+import { getProtectedContext } from "../../hono";
 import { nanoid } from "nanoid";
 
 export class TagService {

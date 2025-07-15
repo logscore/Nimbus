@@ -1,11 +1,9 @@
 {
 	"extends": "@nimbus/tsconfig/base",
 	"compilerOptions": {
-		"baseUrl": ".",
-		"paths": {
-			"@/*": ["./src/*"],
-			"@/lib/*": ["./lib/*"]
-		}
+		"composite": true,
+		"noEmit": false,
+		"allowImportingTsExtensions": false
 	},
 	"exclude": ["node_modules", "dist"]
 }

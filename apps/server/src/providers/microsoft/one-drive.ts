@@ -1,5 +1,5 @@
 import { DEFAULT_MIME_TYPE, DEFAULT_SPACE, type DriveInfo, type File, type FileMetadata } from "@nimbus/shared";
-import type { DownloadResult, ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
+import type { DownloadResult, ListFilesOptions, ListFilesResult } from "../interface/types";
 import type { DriveItem } from "@microsoft/microsoft-graph-types";
 import { Client } from "@microsoft/microsoft-graph-client";
 import type { Provider } from "../interface/provider";

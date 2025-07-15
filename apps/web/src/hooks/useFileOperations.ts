@@ -1,32 +1,40 @@
-import type { CreateFolderParams, DeleteFileParams, UpdateFileParams, UploadFileParams } from "@nimbus/shared";
+import type {
+	CreateFileSchema,
+	DeleteFileSchema,
+	GetFileByIdSchema,
+	GetFilesSchema,
+	UpdateFileSchema,
+	UploadFileSchema,
+} from "@nimbus/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { protectedClient } from "@/utils/client";
 import { toast } from "sonner";
 
 const BASE_FILE_CLIENT = protectedClient.api.files;
 
-export function useGetFiles(parentId: string, pageSize: number, returnedValues: string[], nextPageToken?: string) {
+export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: GetFilesSchema) {
 	return useQuery({
-		queryKey: ["files", parentId, nextPageToken, pageSize],
+		queryKey: ["files", parentId, pageSize, pageToken],
 		queryFn: async () => {
 			const response = await BASE_FILE_CLIENT.$get({
-				query: { parentId, pageSize, returnedValues, pageToken: nextPageToken },
+				query: { parentId, pageSize: pageSize.toString(), pageToken, returnedValues },
 			});
-			return response.json();
+			return await response.json();
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		retry: 2,
 	});
 }
 
-export function useGetFile(fileId: string, returnedValues: string[]) {
+export function useGetFile({ fileId, returnedValues }: GetFileByIdSchema) {
 	return useQuery({
 		queryKey: ["file", fileId, returnedValues],
 		queryFn: async () => {
-			const response = await BASE_FILE_CLIENT[":fileId"].$get({
-				param: { fileId, returnedValues },
+			const response = await protectedClient.api.files[":id"].$get({
+				param: { fileId },
+				query: { returnedValues },
 			});
-			return response.json();
+			return await response.json();
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		retry: 2,
@@ -36,11 +44,11 @@ export function useGetFile(fileId: string, returnedValues: string[]) {
 export function useDeleteFile() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async ({ fileId }: DeleteFileParams) => {
+		mutationFn: async ({ fileId }: DeleteFileSchema) => {
 			const response = await BASE_FILE_CLIENT.$delete({
 				query: { fileId },
 			});
-			return response.json();
+			return await response.json();
 		},
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["files"] });
@@ -56,11 +64,11 @@ export function useDeleteFile() {
 export function useUpdateFile() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async ({ fileId, ...dataToUpdate }: UpdateFileParams) => {
-			const response = await BASE_FILE_CLIENT.$put(dataToUpdate, {
-				query: { fileId },
+		mutationFn: async ({ fileId, name }: UpdateFileSchema) => {
+			const response = await BASE_FILE_CLIENT.$put({
+				query: { fileId, name },
 			});
-			return response.json();
+			return await response.json();
 		},
 		onSuccess: async () => {
 			toast.success("File updated successfully");
@@ -77,15 +85,15 @@ export function useUpdateFile() {
 export function useCreateFolder() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async ({ name, parentId }: CreateFolderParams) => {
-			const response = await BASE_FILE_CLIENT.$post(null, {
+		mutationFn: async ({ name, mimeType, parent }: CreateFileSchema) => {
+			const response = await BASE_FILE_CLIENT.$post({
 				query: {
 					name,
-					mimeType: "folder",
-					parent: parentId,
+					mimeType,
+					parent,
 				},
 			});
-			return response.json();
+			return await response.json();
 		},
 		onSuccess: async () => {
 			toast.success("Folder created successfully");
@@ -103,27 +111,24 @@ export function useUploadFile() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async ({ file, parentId, onProgress }: UploadFileParams) => {
-			// ? Maybe look into Tanstack Form for this implementation
-			const formData = new FormData();
-			formData.append("file", file);
-
-			const response = await BASE_FILE_CLIENT.upload.$post(formData, {
-				headers: {
-					"Content-Type": "multipart/form-data",
+		// mutationFn: async ({ file, parentId, onProgress }: UploadFileParams) => {
+		mutationFn: async ({ file, parentId }: UploadFileSchema) => {
+			const response = await BASE_FILE_CLIENT.upload.$post({
+				form: {
+					file,
 				},
 				query: {
 					parentId,
 				},
-				onUploadProgress: progressEvent => {
-					if (onProgress && progressEvent.total) {
-						const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-						onProgress(percentCompleted);
-					}
-				},
+				// onUploadProgress: progressEvent => {
+				// 	if (onProgress && progressEvent.total) {
+				// 		const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+				// 		onProgress(percentCompleted);
+				// 	}
+				// },
 			});
 
-			return response.json();
+			return await response.json();
 		},
 		onSuccess: async () => {
 			// Invalidate the files query to refetch the updated list
@@ -152,13 +157,11 @@ export function useDownloadFile() {
 			fileName?: string;
 			onProgress?: (progress: number) => void;
 		}) => {
-			const params = new URLSearchParams();
-			if (exportMimeType) {
-				params.append("exportMimeType", exportMimeType);
-			}
-
 			const response = await BASE_FILE_CLIENT.download.$get({
-				param: { fileId },
+				query: {
+					fileId,
+					exportMimeType,
+				},
 			});
 
 			if (!response.ok) {

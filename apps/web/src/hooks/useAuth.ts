@@ -1,6 +1,6 @@
 import {
 	emailObjectSchema,
-	type AuthState,
+	type CheckEmailExists,
 	type DriveProvider,
 	type ForgotPasswordFormData,
 	type ResetPasswordFormData,
@@ -14,6 +14,11 @@ import { publicClient } from "@/utils/client";
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
+export interface AuthState {
+	isLoading: boolean;
+	error: string | null;
+}
 
 const signInWithProvider = async (provider: DriveProvider) => {
 	return authClient.signIn.social({
@@ -260,7 +265,7 @@ export const useSignOut = () => {
 	};
 };
 
-export const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
+export const checkEmailExists = async (email: string): Promise<CheckEmailExists> => {
 	try {
 		const body = {
 			email,
@@ -269,8 +274,8 @@ export const checkEmailExists = async (email: string): Promise<{ exists: boolean
 		if (!result.success) {
 			throw new Error(result.error.message);
 		}
-		const response = await publicClient.api.auth.checkEmail.$post({ json: body });
-		return response.json();
+		const response = await publicClient.api.auth["check-email"].$post({ json: body });
+		return (await response.json()) as CheckEmailExists;
 	} catch (error) {
 		if (error instanceof Error) {
 			throw new Error(error.message || "Failed to check email existence");
@@ -280,7 +285,7 @@ export const checkEmailExists = async (email: string): Promise<{ exists: boolean
 };
 
 export const useCheckEmailExists = () => {
-	return useMutation<{ exists: boolean }, Error, string>({
+	return useMutation<CheckEmailExists, Error, string>({
 		mutationFn: checkEmailExists,
 	});
 };

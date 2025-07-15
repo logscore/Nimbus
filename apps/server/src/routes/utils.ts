@@ -13,17 +13,14 @@ interface SuccessResponseOptions<T> {
 	status?: ContentfulStatusCode;
 }
 
-export function sendError(c: Context, options?: ErrorResponseOptions): Response {
+export function sendError(c: Context, options?: ErrorResponseOptions) {
 	const success = false;
 	const { message = "Internal server error", status = 500 } = options ?? {};
 	console.error(options);
 	return c.json<ApiResponse>({ success, message }, status);
 }
 
-export function sendSuccess<T extends Record<string, any> | any[]>(
-	c: Context,
-	options?: SuccessResponseOptions<T>
-): Response {
+export function sendSuccess<T extends Record<string, any> | any[]>(c: Context, options?: SuccessResponseOptions<T>) {
 	const success = true;
 	const { data, message = "Success", status = 200 } = options ?? {};
 

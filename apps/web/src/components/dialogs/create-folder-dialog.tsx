@@ -26,7 +26,7 @@ export function CreateFolderDialog({ open, onOpenChange, parentId }: CreateFolde
 
 		try {
 			createFolder(
-				{ name: folderName, parentId: parentId },
+				{ name: folderName, mimeType: "folder", parent: parentId },
 				{
 					onSuccess: async () => {
 						onOpenChange(false);

@@ -4,7 +4,7 @@ import { createPublicRouter } from "./hono";
 import { createDb } from "@nimbus/db";
 import env from "@nimbus/env/server";
 import { cors } from "hono/cors";
-import routes from "@/routes";
+import routes from "./routes";
 
 const app = createPublicRouter()
 	.use(

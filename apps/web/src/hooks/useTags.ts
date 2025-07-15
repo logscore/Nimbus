@@ -1,4 +1,4 @@
-import { createTagSchema, updateTagSchema, type CreateTagInput, type UpdateTagInput } from "@nimbus/shared";
+import { createTagSchema, updateTagSchema, type CreateTagSchema, type UpdateTagSchema } from "@nimbus/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { protectedClient } from "@/utils/client";
 import type { Tag } from "@nimbus/shared";
@@ -20,7 +20,7 @@ export function useTags() {
 	});
 
 	const createTagMutation = useMutation({
-		mutationFn: (data: CreateTagInput) => {
+		mutationFn: (data: CreateTagSchema) => {
 			// Validate data before sending to API
 			const validatedData = createTagSchema.parse(data);
 			return createTag(validatedData);
@@ -56,7 +56,7 @@ export function useTags() {
 	});
 
 	const updateTagMutation = useMutation({
-		mutationFn: (data: UpdateTagInput) => {
+		mutationFn: (data: UpdateTagSchema) => {
 			// Validate data before sending to API
 			const validatedData = updateTagSchema.parse(data);
 			return updateTag(validatedData);
@@ -201,23 +201,21 @@ export function useTags() {
 
 async function getTags(): Promise<Tag[]> {
 	const response = await BASE_TAG_CLIENT.$get();
-	return response.json();
+	return (await response.json()) as Tag[];
 }
 
-async function createTag(data: CreateTagInput): Promise<Tag> {
+async function createTag(data: CreateTagSchema): Promise<Tag> {
 	const response = await BASE_TAG_CLIENT.$post({ json: data });
-	return response.json();
+	return (await response.json()) as Tag;
 }
 
-async function updateTag(data: UpdateTagInput): Promise<Tag> {
+async function updateTag(data: UpdateTagSchema): Promise<Tag> {
 	const { id, ...updateData } = data;
-	const response = await BASE_TAG_CLIENT[":id"].$put(
-		{ json: updateData },
-		{
-			param: { id },
-		}
-	);
-	return response.json();
+	const response = await BASE_TAG_CLIENT[":id"].$put({
+		param: { id },
+		json: updateData,
+	});
+	return (await response.json()) as Tag;
 }
 
 async function deleteTag(id: string): Promise<void> {

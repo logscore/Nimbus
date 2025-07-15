@@ -17,7 +17,7 @@ async function initCloudflareEnv() {
 		if ((globalThis as any).Cloudflare && (globalThis as any).WebSocketPair !== undefined) {
 			// Use dynamic import to avoid webpack processing this import
 			const { env } = await import("cloudflare:workers");
-			runtimeEnv = env as NodeJS.ProcessEnv;
+			runtimeEnv = env as unknown as NodeJS.ProcessEnv;
 			isEdge = true;
 		}
 	} catch (error) {

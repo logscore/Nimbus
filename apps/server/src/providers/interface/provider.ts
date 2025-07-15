@@ -1,6 +1,5 @@
-import type { DownloadOptions, DownloadResult } from "@/providers/interface/types";
-import type { DriveInfo, File, FileMetadata } from "@nimbus/shared";
-import type { ListFilesOptions, ListFilesResult } from "./types";
+import type { DownloadFileSchema, DriveInfo, File, FileMetadata } from "@nimbus/shared";
+import type { DownloadResult, ListFilesOptions, ListFilesResult } from "./types";
 
 /**
  * Interface for cloud storage providers like Google Drive and OneDrive.
@@ -65,7 +64,7 @@ export interface Provider {
 	 * @param options Download options including export MIME type for Google Workspace files
 	 * @returns File content and metadata
 	 */
-	download(fileId: string, options?: DownloadOptions): Promise<DownloadResult | null>;
+	download(fileId: string, options?: DownloadFileSchema): Promise<DownloadResult | null>;
 
 	/**
 	 * Copy a file or folder

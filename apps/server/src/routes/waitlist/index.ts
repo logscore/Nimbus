@@ -1,9 +1,9 @@
-import { buildWaitlistSecurityMiddleware } from "@/middleware";
-import { sendError, sendSuccess } from "@/routes/utils";
-import { emailObjectSchema } from "@nimbus/shared";
+import { emailObjectSchema, type WaitlistCount } from "@nimbus/shared";
+import { buildWaitlistSecurityMiddleware } from "../../middleware";
+import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
+import { createPublicRouter } from "../../hono";
 import { waitlist } from "@nimbus/db/schema";
-import { createPublicRouter } from "@/hono";
 import { count, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -12,7 +12,7 @@ const waitlistRouter = createPublicRouter()
 		try {
 			const result = await c.var.db.select({ count: count() }).from(waitlist);
 			const waitlistCount = result[0]?.count || 0;
-			const data = { count: waitlistCount };
+			const data: WaitlistCount = { count: waitlistCount };
 			return sendSuccess(c, { data });
 		} catch (error) {
 			console.error("Error getting waitlist count:", error);

@@ -52,15 +52,15 @@ export function UploadFileDialog({ open, onOpenChange, parentId }: UploadFileDia
 			uploadFile(
 				{
 					file,
-					parentId: parentId,
+					parentId,
 					// TODO: The bar gets hung up on multi-file uploads. Make a progress bar that actually works correctly.
-					onProgress: progress => {
-						// Calculate overall progress across all files
-						const progressPerFile = Math.floor(100 / files.length);
-						const currentFileProgress = (progress / 100) * progressPerFile;
-						const previousFilesProgress = (completedUploads * 100) / files.length;
-						setUploadProgress(previousFilesProgress + currentFileProgress);
-					},
+					// onProgress: progress => {
+					// 	// Calculate overall progress across all files
+					// 	const progressPerFile = Math.floor(100 / files.length);
+					// 	const currentFileProgress = (progress / 100) * progressPerFile;
+					// 	const previousFilesProgress = (completedUploads * 100) / files.length;
+					// 	setUploadProgress(previousFilesProgress + currentFileProgress);
+					// },
 				},
 				{
 					onSuccess: () => {

@@ -1,16 +1,15 @@
-import type { DownloadOptions } from "@/providers/interface/types";
-import { TagService } from "@/routes/tags/tag-service";
+import type {
+	DeleteFileSchema,
+	DownloadFileSchema,
+	File,
+	GetFileByIdSchema,
+	GetFilesSchema,
+	UpdateFileSchema,
+} from "@nimbus/shared";
 import type { SessionUser } from "@nimbus/auth/auth";
-import { getDriveProvider } from "@/providers";
+import { getDriveProvider } from "../../providers";
+import { TagService } from "../tags/tag-service";
 import type { Readable } from "node:stream";
-import type { File } from "@nimbus/shared";
-
-export interface ListFilesOptions {
-	parentId?: string;
-	pageSize?: number;
-	pageToken?: string;
-	returnedValues?: string[];
-}
 
 export interface CreateFileOptions {
 	name: string;
@@ -25,7 +24,7 @@ export class FileService {
 		this.tagService = new TagService();
 	}
 
-	async listFiles(user: SessionUser, headers: Headers, options: ListFilesOptions) {
+	async listFiles(user: SessionUser, headers: Headers, options: GetFilesSchema) {
 		const drive = await getDriveProvider(user, headers);
 		const res = await drive.listChildren(options.parentId, {
 			pageSize: options.pageSize,
@@ -49,26 +48,26 @@ export class FileService {
 		return filesWithTags as File[];
 	}
 
-	async getById(user: SessionUser, headers: Headers, fileId: string, returnedValues?: string[]) {
+	async getById(user: SessionUser, headers: Headers, options: GetFileByIdSchema) {
 		const drive = await getDriveProvider(user, headers);
-		const file = await drive.getById(fileId, returnedValues);
+		const file = await drive.getById(options.fileId, options.returnedValues);
 
 		if (!file) {
 			return null;
 		}
 
-		const tags = await this.tagService.getFileTags(fileId, user.id);
+		const tags = await this.tagService.getFileTags(options.fileId, user.id);
 		return { ...file, tags } as File;
 	}
 
-	async updateFile(user: SessionUser, headers: Headers, fileId: string, updates: { name: string }) {
+	async updateFile(user: SessionUser, headers: Headers, options: UpdateFileSchema) {
 		const drive = await getDriveProvider(user, headers);
-		return drive.update(fileId, updates);
+		return drive.update(options.fileId, { name: options.name });
 	}
 
-	async deleteFile(user: SessionUser, headers: Headers, fileId: string) {
+	async deleteFile(user: SessionUser, headers: Headers, options: DeleteFileSchema) {
 		const drive = await getDriveProvider(user, headers);
-		return drive.delete(fileId);
+		return drive.delete(options.fileId);
 	}
 
 	async createFile(user: SessionUser, headers: Headers, options: CreateFileOptions, fileStream?: Readable) {
@@ -76,8 +75,8 @@ export class FileService {
 		return drive.create(options, fileStream);
 	}
 
-	async downloadFile(user: SessionUser, headers: Headers, fileId: string, options?: DownloadOptions) {
+	async downloadFile(user: SessionUser, headers: Headers, options: DownloadFileSchema) {
 		const drive = await getDriveProvider(user, headers);
-		return drive.download(fileId, options);
+		return drive.download(options.fileId, options);
 	}
 }

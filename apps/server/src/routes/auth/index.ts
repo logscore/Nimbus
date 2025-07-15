@@ -1,7 +1,7 @@
-import { emailObjectSchema } from "@nimbus/shared";
+import { emailObjectSchema, type CheckEmailExists } from "@nimbus/shared";
+import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
-import { createPublicRouter } from "@/hono";
-import { sendError } from "../utils";
+import { createPublicRouter } from "../../hono";
 
 const authRouter = createPublicRouter()
 	.post("/check-email", zValidator("json", emailObjectSchema), async c => {
@@ -12,7 +12,11 @@ const authRouter = createPublicRouter()
 				where: (table, { eq }) => eq(table.email, email.toLowerCase().trim()),
 			});
 
-			return c.json({ exists: !!user });
+			const data: CheckEmailExists = {
+				exists: !!user,
+			};
+
+			return sendSuccess(c, { data });
 		} catch (error) {
 			console.error("Error checking email:", error);
 			return sendError(c);

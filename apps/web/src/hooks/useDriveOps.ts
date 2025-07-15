@@ -7,7 +7,7 @@ export const useDriveInfo = () => {
 		queryKey: ["driveInfo"],
 		queryFn: async () => {
 			const response = await protectedClient.api.drives.about.$get();
-			return response.json();
+			return (await response.json()) as DriveInfo;
 		},
 	});
 };

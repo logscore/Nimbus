@@ -3,12 +3,13 @@ import {
 	DEFAULT_ORDER_BY,
 	DEFAULT_PAGE_SIZE,
 	DEFAULT_SPACE,
+	type DownloadFileSchema,
 	type DriveInfo,
 	type File,
 	type FileMetadata,
 } from "@nimbus/shared";
-import type { DownloadOptions, DownloadResult, ListFilesOptions, ListFilesResult } from "@/providers/interface/types";
-import type { Provider } from "@/providers/interface/provider";
+import type { DownloadResult, ListFilesOptions, ListFilesResult } from "../interface/types";
+import type { Provider } from "../interface/provider";
 import { OAuth2Client } from "google-auth-library";
 import { drive_v3 } from "@googleapis/drive";
 import { Readable } from "node:stream";
@@ -170,7 +171,7 @@ export class GoogleDriveProvider implements Provider {
 	 * @param options Download options including export MIME type for Google Workspace files
 	 * @returns File content and metadata
 	 */
-	async download(fileId: string, options?: DownloadOptions): Promise<DownloadResult | null> {
+	async download(fileId: string, options?: DownloadFileSchema): Promise<DownloadResult | null> {
 		try {
 			// First, get file metadata to determine the MIME type and name
 			const fileMetadata = await this.drive.files.get({

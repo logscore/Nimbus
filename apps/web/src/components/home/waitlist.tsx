@@ -1,8 +1,8 @@
 "use client";
 
+import { emailObjectSchema, type ApiResponse, type WaitlistCount } from "@nimbus/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { emailObjectSchema } from "@nimbus/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { publicClient } from "@/utils/client";
@@ -20,12 +20,12 @@ const formSchema = emailObjectSchema;
 type FormSchema = z.infer<typeof formSchema>;
 
 // API functions for Hono backend
-async function getWaitlistCount(): Promise<{ count: number }> {
+async function getWaitlistCount(): Promise<WaitlistCount> {
 	const response = await publicClient.api.waitlist.count.$get();
 	if (!response.ok) {
 		throw new Error("Failed to get waitlist count");
 	}
-	return response.json();
+	return (await response.json()) as WaitlistCount;
 }
 
 async function joinWaitlist(email: string): Promise<void> {
@@ -34,7 +34,7 @@ async function joinWaitlist(email: string): Promise<void> {
 	};
 	const response = await publicClient.api.waitlist.join.$post({ json: body });
 	if (!response.ok) {
-		const errorData: { success: boolean; message?: string } = await response.json();
+		const errorData = (await response.json()) as ApiResponse;
 		throw new Error(errorData?.message || "Failed to join waitlist");
 	}
 }

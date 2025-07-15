@@ -1,10 +1,10 @@
-import { createProtectedRouter, createPublicRouter } from "@/hono";
-import waitlistRoutes from "@/routes/waitlist";
-import drivesRoutes from "@/routes/drives";
-import filesRoutes from "@/routes/files";
-import tagsRoutes from "@/routes/tags";
-import authRoutes from "@/routes/auth";
+import { createProtectedRouter, createPublicRouter } from "../hono";
+import waitlistRoutes from "./waitlist";
+import drivesRoutes from "./drives";
 import { sendError } from "./utils";
+import filesRoutes from "./files";
+import tagsRoutes from "./tags";
+import authRoutes from "./auth";
 
 const protectedRoutePaths = ["/files", "/drives", "/tags"] as const;
 const protectedRouteRouters = [filesRoutes, drivesRoutes, tagsRoutes] as const;

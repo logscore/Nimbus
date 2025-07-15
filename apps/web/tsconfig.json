@@ -13,6 +13,18 @@
 			"@/public/*": ["./public/*"]
 		}
 	},
+	// https://catalins.tech/hono-rpc-in-monorepos/#the-solutiontypescript-project-references
+	"references": [
+		{
+			"path": "../server/tsconfig.json"
+		},
+		{
+			"path": "../../packages/client/tsconfig.json"
+		},
+		{
+			"path": "../../packages/shared/tsconfig.json"
+		}
+	],
 	"include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules"]
 }

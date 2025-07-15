@@ -1,6 +1,6 @@
-import { getDriveProvider } from "@/providers";
-import { createProtectedRouter } from "@/hono";
-import { sendError } from "../utils";
+import { getDriveProvider } from "../../providers";
+import { createProtectedRouter } from "../../hono";
+import { sendError, sendSuccess } from "../utils";
 
 const drivesRouter = createProtectedRouter()
 	// Get drive storage info
@@ -9,13 +9,13 @@ const drivesRouter = createProtectedRouter()
 			const user = c.var.user;
 
 			const drive = await getDriveProvider(user, c.req.raw.headers);
-			const driveInfo = await drive.getDriveInfo();
+			const data = await drive.getDriveInfo();
 
-			if (!driveInfo) {
+			if (!data) {
 				return sendError(c, { message: "Drive data not found", status: 404 });
 			}
 
-			return c.json(driveInfo);
+			return sendSuccess(c, { data });
 		} catch (error) {
 			console.error("Error fetching drive info:", error);
 			return sendError(c);
