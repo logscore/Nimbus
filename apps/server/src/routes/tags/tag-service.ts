@@ -301,4 +301,53 @@ export class TagService {
 	async deleteFileTagsByFileId(fileId: string, userId: string): Promise<void> {
 		await db.delete(fileTag).where(and(eq(fileTag.fileId, fileId), eq(fileTag.userId, userId)));
 	}
+
+	// Get file IDs that have ANY of the specified tags (OR operation)
+	async getFileIdsByAnyTags(tagIds: string[], userId: string): Promise<string[]> {
+		if (tagIds.length === 0) return [];
+
+		const fileTagAssociations = await db
+			.select({
+				fileId: fileTag.fileId,
+			})
+			.from(fileTag)
+			.where(and(inArray(fileTag.tagId, tagIds), eq(fileTag.userId, userId)));
+
+		// Remove duplicates and return unique file IDs
+		const uniqueFileIds = [...new Set(fileTagAssociations.map(assoc => assoc.fileId))];
+		return uniqueFileIds;
+	}
+
+	// Get file IDs that have ALL of the specified tags (AND operation)
+	async getFileIdsByAllTags(tagIds: string[], userId: string): Promise<string[]> {
+		if (tagIds.length === 0) return [];
+
+		// For each tag, get the file IDs
+		const fileIdsByTag = await Promise.all(
+			tagIds.map(async tagId => {
+				const fileTagAssociations = await db
+					.select({
+						fileId: fileTag.fileId,
+					})
+					.from(fileTag)
+					.where(and(eq(fileTag.tagId, tagId), eq(fileTag.userId, userId)));
+
+				return fileTagAssociations.map(assoc => assoc.fileId);
+			})
+		);
+
+		// Find intersection - files that appear in ALL tag lists
+		if (fileIdsByTag.length === 0) return [];
+
+		let intersection = fileIdsByTag[0];
+		if (!intersection) return [];
+
+		for (let i = 1; i < fileIdsByTag.length; i++) {
+			const currentTagFiles = fileIdsByTag[i];
+			if (!currentTagFiles) return [];
+			intersection = intersection.filter(fileId => currentTagFiles.includes(fileId));
+		}
+
+		return intersection;
+	}
 }

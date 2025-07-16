@@ -1,6 +1,8 @@
 import { getDriveManagerForUser } from "@/providers";
 import { getAccount } from "@/lib/utils/accounts";
 import type { ApiResponse } from "@/routes/types";
+import { securityMiddleware } from "@/middleware";
+import type { Session } from "@nimbus/auth/auth";
 import type { Context } from "hono";
 import { Hono } from "hono";
 

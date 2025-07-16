@@ -69,6 +69,18 @@ export interface UploadFileParams {
 	returnedValues: string[];
 }
 
+export interface SearchFilesParams {
+	query: string;
+	pageSize?: number;
+	returnedValues?: string[];
+	nextPageToken?: string;
+}
+
+export interface SearchResult {
+	files: _File[];
+	nextPageToken?: string;
+}
+
 // Auth types
 
 export interface AuthState {
