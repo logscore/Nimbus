@@ -1,5 +1,5 @@
+import { serverEnv } from "@/lib/env/server-env";
 import { auth } from "@nimbus/auth/auth";
-import { env } from "@/config/env";
 import { cors } from "hono/cors";
 import { db } from "@nimbus/db";
 import routes from "@/routes";
@@ -15,10 +15,11 @@ const app = new Hono<{ Variables: ReqVariables }>();
 
 app.use(
 	cors({
-		origin: env.FRONTEND_URL,
+		origin: serverEnv.FRONTEND_URL,
 		credentials: true,
 		allowHeaders: ["Content-Type", "Authorization"],
 		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+		maxAge: 43200, // 12 hours
 	})
 );
 

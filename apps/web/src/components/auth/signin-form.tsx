@@ -17,7 +17,7 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export function SignInForm({ className, ...props }: ComponentProps<"div">) {
-	const { isLoading, signInWithCredentials, signInWithGoogleProvider } = useSignIn();
+	const { isLoading, signInWithCredentials, signInWithGoogleProvider, signInWithMicrosoftProvider } = useSignIn();
 
 	const {
 		register,
@@ -50,6 +50,12 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 		>
 			<div className="flex flex-col gap-4">
 				<SocialAuthButton provider="google" action="signin" onClick={signInWithGoogleProvider} disabled={isLoading} />
+				<SocialAuthButton
+					provider="microsoft"
+					action="signin"
+					onClick={signInWithMicrosoftProvider}
+					disabled={isLoading}
+				/>
 
 				<div className="text-muted-foreground text-center text-sm">OR</div>
 

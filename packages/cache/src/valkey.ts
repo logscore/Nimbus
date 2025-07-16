@@ -1,9 +1,9 @@
 import { getHostnameFamily } from "./utils/hostname-family";
+import { cacheEnv } from "./cache-env";
 import { Redis } from "iovalkey";
-import { env } from "./env";
 
 async function redisClientInstance() {
-	const family = await getHostnameFamily(env.VALKEY_HOST);
+	const family = await getHostnameFamily(cacheEnv.VALKEY_HOST);
 	if (!family) {
 		console.error("Failed to resolve hostname");
 		process.exit(1);
@@ -11,10 +11,10 @@ async function redisClientInstance() {
 
 	const redisClient = new Redis({
 		family,
-		port: Number(env.VALKEY_PORT),
-		host: env.VALKEY_HOST,
-		username: env.VALKEY_USERNAME,
-		password: env.VALKEY_PASSWORD,
+		port: Number(cacheEnv.VALKEY_PORT),
+		host: cacheEnv.VALKEY_HOST,
+		username: cacheEnv.VALKEY_USERNAME,
+		password: cacheEnv.VALKEY_PASSWORD,
 	});
 
 	redisClient.on("error", err => {

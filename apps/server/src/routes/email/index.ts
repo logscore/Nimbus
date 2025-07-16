@@ -1,11 +1,11 @@
+import { serverEnv } from "@/lib/env/server-env";
 import { zValidator } from "@hono/zod-validator";
 import { sendMailSchema } from "@/validators";
 import type { Context } from "hono";
-import { env } from "@/config/env";
 import { Resend } from "resend";
 import { Hono } from "hono";
 
-const resend = new Resend(env.RESEND_API_KEY);
+const resend = new Resend(serverEnv.RESEND_API_KEY);
 
 const emailRouter = new Hono();
 
@@ -14,7 +14,7 @@ emailRouter.post("/send-mail", zValidator("json", sendMailSchema), async (c: Con
 		const { to, subject, text } = await c.req.json();
 
 		const { data, error } = await resend.emails.send({
-			from: env.EMAIL_FROM,
+			from: serverEnv.EMAIL_FROM,
 			to,
 			subject,
 			text,

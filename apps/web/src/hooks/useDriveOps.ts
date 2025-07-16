@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { DriveStorageDetails, PinnedFile } from "@/lib/types";
 import { clientEnv } from "@/lib/env/client-env";
+import type { PinnedFile } from "@/lib/types";
+import type { DriveInfo } from "@/lib/types";
 import axios from "axios";
 
-export const useStorageDetails = () => {
-	return useQuery<DriveStorageDetails>({
-		queryKey: ["storageDetails"],
+export const useDriveInfo = () => {
+	return useQuery<DriveInfo>({
+		queryKey: ["driveInfo"],
 		queryFn: async () => {
 			const response = await axios.get(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/drives/about`, {
 				withCredentials: true,

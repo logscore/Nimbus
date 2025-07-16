@@ -1,4 +1,4 @@
-import { GoogleDriveProvider } from "@/providers/google/google-drive";
+import { getDriveManagerForUser } from "@/providers";
 import { getAccount } from "@/lib/utils/accounts";
 import type { ApiResponse } from "@/routes/types";
 import { pinnedFile } from "@nimbus/db/schema";
@@ -11,28 +11,24 @@ const drivesRouter = new Hono();
 
 // Get drive storage info
 drivesRouter.get("/about", async (c: Context) => {
-	const user = c.get("user");
-	if (!user) {
-		return c.json<ApiResponse>({ success: false, message: "User not authenticated" }, 401);
-	}
+	try {
+		const user = c.get("user");
 
-	const account = await getAccount(user, c.req.raw.headers);
-	if (!account) {
-		return c.json<ApiResponse>({ success: false, message: "Unauthorized access" }, 401);
-	}
+		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
+		const driveInfo = await drive.getDriveInfo();
 
-	const accessToken = account.accessToken;
-	if (!accessToken) {
-		return c.json<ApiResponse>({ success: false, message: "Unauthorized access" }, 401);
-	}
+		if (!driveInfo) {
+			return c.json<ApiResponse>({ success: false, message: "Drive data not found" }, 404);
+		}
 
-	// * The GoogleDriveProvider will be replaced by a general provider in the future
-	const drive = await new GoogleDriveProvider(accessToken).getDriveUsageLimit();
-	if (!drive) {
-		return c.json<ApiResponse>({ success: false, message: "Drive data not found" }, 404);
+		return c.json(driveInfo);
+	} catch (error) {
+		console.error("Error fetching drive info:", error);
+		return c.json<ApiResponse>(
+			{ success: false, message: error instanceof Error ? error.message : "Failed to fetch drive information" },
+			500
+		);
 	}
-
-	return c.json(drive);
 });
 
 // List all pinned files

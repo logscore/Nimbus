@@ -6,7 +6,7 @@ const project = "**/*.{ts,js}";
 
 const ignoreUtils = ["src/utils/*"];
 const ignoreHealthCheck = ["health-check.js"];
-const ignoreGoogleLibrary = ["**/lib/google-drive/**"];
+const ignoreLibraries = ["**/lib/google-drive/**", "**/lib/one-drive/**"];
 const ignoreComponents = ["**/components/**"];
 
 const ignoreBinaries = ["fly", "flyctl"];
@@ -23,7 +23,7 @@ const config: KnipConfig = {
 		"apps/server": {
 			entry: indexEntry,
 			project,
-			ignore: [...ignoreHealthCheck, ...ignoreGoogleLibrary],
+			ignore: [...ignoreHealthCheck, ...ignoreLibraries],
 			ignoreBinaries,
 		},
 

@@ -19,16 +19,18 @@
 		"fly:deploy": "bun run build && bash ../../scripts/fly:deploy.sh server"
 	},
 	"dependencies": {
+		"@googleapis/drive": "^13.0.1",
 		"@hono/zod-validator": "^0.7.0",
 		"@nimbus/auth": "workspace:*",
-		"@nimbus/db": "workspace:*",
 		"@nimbus/cache": "workspace:*",
+		"@nimbus/db": "workspace:*",
 		"@t3-oss/env-core": "^0.13.8",
 		"drizzle-orm": "^0.43.1",
-		"rate-limiter-flexible": "^7.1.1",
+		"google-auth-library": "^10.1.0",
 		"hono": "^4.8.0",
 		"nanoid": "^5.1.5",
 		"pg": "^8.16.1",
+		"rate-limiter-flexible": "^7.1.1",
 		"resend": "^4.6.0",
 		"zod": "^3.25.67"
 	},

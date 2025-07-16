@@ -12,10 +12,11 @@ import { type UploadFileDialogProps } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export function UploadFolderDialog({ open, onOpenChange, onUpload }: UploadFileDialogProps) {
+export function UploadFolderDialog({ open, onOpenChange, parentId }: UploadFileDialogProps) {
 	const [selectedFolder, setSelectedFolder] = useState<FileList | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState(0);
+	console.log("Uploading folder: ", parentId);
 
 	// Reset states when dialog closes
 	useEffect(() => {
@@ -36,7 +37,6 @@ export function UploadFolderDialog({ open, onOpenChange, onUpload }: UploadFileD
 				clearInterval(interval);
 				setTimeout(() => {
 					if (selectedFolder) {
-						onUpload(selectedFolder);
 						// Get the folder name from the first file's path
 						const folderName = selectedFolder[0]?.webkitRelativePath?.split("/")[0] || "Folder";
 						toast.success(
@@ -50,6 +50,8 @@ export function UploadFolderDialog({ open, onOpenChange, onUpload }: UploadFileD
 			}
 		}, 100);
 	};
+
+	// TODO: Implement upload folder handler using the mutation hooks in "useFileOperations"
 
 	const handleUploadFolder = (event: FormEvent) => {
 		event.preventDefault();
