@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import type { PasswordInputProps } from "@/lib/types";
 import { Button } from "@/components/ui/button";
