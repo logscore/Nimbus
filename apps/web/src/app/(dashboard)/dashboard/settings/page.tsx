@@ -25,13 +25,7 @@ type ConnectedAccount = {
 };
 
 export default function SettingsPage() {
-	const context = useUserInfoProvider();
-
-	if (!context) {
-		throw new Error("SettingsPage must be used within a UserInfoProvider");
-	}
-
-	const { user, isLoading: isUserLoading } = context;
+	const { user, isLoading: isUserLoading } = useUserInfoProvider();
 	const [name, setName] = useState(user?.name || "");
 	const [email, setEmail] = useState(user?.email || "");
 	const [isSaving, setIsSaving] = useState(false);

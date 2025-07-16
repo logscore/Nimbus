@@ -14,8 +14,11 @@ import authRoutes from "./auth";
 const driveProviderRoutePaths = ["/files", "/drives", "/tags"] as const;
 const driveProviderRouteRouters = [filesRoutes, drivesRoutes, tagsRoutes] as const;
 const driveProviderRouter = createDriveProviderRouter()
+	// .use("/:providerId/:accountId", zValidator("param", driveProviderParamSchema), async (c, next) => {
 	.use("*", async (c, next) => {
 		const userId = c.var.user.id;
+		// const providerIdHeader = c.req.valid("param").providerId;
+		// const accountIdHeader = c.req.valid("param").accountId;
 		const providerIdHeader = c.req.header("X-Provider-Id");
 		const accountIdHeader = c.req.header("X-Account-Id");
 		const parsedProviderId = driveProviderSchema.parse(providerIdHeader);

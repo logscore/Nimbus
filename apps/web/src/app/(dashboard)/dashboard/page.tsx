@@ -8,18 +8,18 @@ import { toast } from "sonner";
 export default function DashboardPage() {
 	// TODO(bug): figure out hydration error useTheme()
 	const { theme } = useTheme();
-	const context = useUserInfoProvider();
+	const { error } = useUserInfoProvider();
 
 	useEffect(() => {
-		if (context.error) {
-			toast.error(context.error.message);
+		if (error) {
+			toast.error(error.message);
 		}
-	}, [context]);
+	}, [error]);
 
 	return (
 		<div className="flex min-h-screen items-center justify-center">
 			<div className="text-center">
-				{!context.error ? (
+				{!error ? (
 					<>
 						<div
 							className={`mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 ${theme === "dark" ? "border-white" : "border-black"}`}

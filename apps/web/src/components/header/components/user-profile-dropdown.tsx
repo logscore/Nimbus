@@ -17,13 +17,7 @@ import Link from "next/link";
 
 export function UserProfileDropdown() {
 	const { signOut, isLoading } = useSignOut();
-	const context = useUserInfoProvider();
-
-	if (!context) {
-		throw new Error("UserProfileDropdown must be used within a UserInfoProvider");
-	}
-
-	const { user, isLoading: isUserLoading } = context;
+	const { user, isLoading: isUserLoading } = useUserInfoProvider();
 	const userImage = user?.image || null;
 	const userName = user?.name || null;
 	const userEmail = user?.email || null;

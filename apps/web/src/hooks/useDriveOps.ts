@@ -1,9 +1,9 @@
-import { useUserInfoProvider } from "@/components/providers/user-info-provider";
+import { useAccountProvider } from "@/components/providers/account-provider";
 import { useQuery } from "@tanstack/react-query";
 import type { DriveInfo } from "@nimbus/shared";
 
 export const useDriveInfo = () => {
-	const { clientPromise } = useUserInfoProvider();
+	const { clientPromise } = useAccountProvider();
 	return useQuery<DriveInfo>({
 		queryKey: ["driveInfo"],
 		queryFn: async () => {

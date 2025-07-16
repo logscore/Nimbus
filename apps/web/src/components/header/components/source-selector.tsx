@@ -6,18 +6,15 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
+import { useAccountProvider } from "@/components/providers/account-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronsUpDown, Plus } from "lucide-react";
 import GoogleDriveIcon from "@/public/googledrive";
+import type { Account } from "@/hooks/useAccounts";
 import { Button } from "@/components/ui/button";
 import { NimbusLogo } from "@/components/icons";
 import OneDriveIcon from "@/public/onedrive";
 import { useEffect, useState } from "react";
-
-interface Account {
-	provider: string;
-	accountId: string;
-}
 
 export function providerToIcon(providerId: string) {
 	switch (providerId) {
@@ -31,25 +28,20 @@ export function providerToIcon(providerId: string) {
 }
 
 export function SourceSelector() {
-	const context = useUserInfoProvider();
-
-	if (!context) {
-		throw new Error("SourceSelector must be used within a UserInfoProvider");
-	}
-
-	const { accounts, isLoading } = context;
+	const { accounts, isLoading } = useUserInfoProvider();
+	const { providerId, accountId, setDriveProviderById } = useAccountProvider();
 	const [selectedSource, setSelectedSource] = useState("Connect a source");
 	const [selectedIcon, setSelectedIcon] = useState(<NimbusLogo className="h-5 w-5 text-black" />);
 
 	useEffect(() => {
-		if (context.providerId && context.accountId) {
-			setSelectedSource(context.providerId);
-			setSelectedIcon(providerToIcon(context.providerId));
+		if (providerId && accountId) {
+			setSelectedSource(providerId);
+			setSelectedIcon(providerToIcon(providerId));
 		}
-	}, [context.providerId, context.accountId]);
+	}, [providerId, accountId]);
 
-	const handleSourceSelect = (source: Account) => {
-		context.setDriveProvider(source.provider, source.accountId);
+	const handleSourceSelect = (account: Account) => {
+		setDriveProviderById(account.provider, account.accountId);
 	};
 
 	return (

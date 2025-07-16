@@ -1,6 +1,6 @@
 import { createTagSchema, updateTagSchema, type CreateTagSchema, type UpdateTagSchema } from "@nimbus/shared";
-import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAccountProvider } from "@/components/providers/account-provider";
 import type { DriveProviderClient } from "@/utils/client";
 import type { Tag } from "@nimbus/shared";
 import { toast } from "sonner";
@@ -9,7 +9,7 @@ const TAGS_QUERY_KEY = "tags";
 
 export function useTags() {
 	const queryClient = useQueryClient();
-	const { clientPromise } = useUserInfoProvider();
+	const { clientPromise } = useAccountProvider();
 
 	const {
 		data: tags,

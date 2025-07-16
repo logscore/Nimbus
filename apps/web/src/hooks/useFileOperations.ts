@@ -6,13 +6,13 @@ import type {
 	UpdateFileSchema,
 	UploadFileSchema,
 } from "@nimbus/shared";
-import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAccountProvider } from "@/components/providers/account-provider";
 import type { DriveProviderClient } from "@/utils/client";
 import { toast } from "sonner";
 
 export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: GetFilesSchema) {
-	const { clientPromise } = useUserInfoProvider();
+	const { clientPromise } = useAccountProvider();
 	return useQuery({
 		queryKey: ["files", parentId, pageSize, pageToken],
 		queryFn: async () => {
@@ -28,7 +28,7 @@ export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: G
 }
 
 export function useGetFile({ fileId, returnedValues }: GetFileByIdSchema) {
-	const { clientPromise } = useUserInfoProvider();
+	const { clientPromise } = useAccountProvider();
 	return useQuery({
 		queryKey: ["file", fileId, returnedValues],
 		queryFn: async () => {
@@ -46,7 +46,7 @@ export function useGetFile({ fileId, returnedValues }: GetFileByIdSchema) {
 
 export function useDeleteFile() {
 	const queryClient = useQueryClient();
-	const { clientPromise } = useUserInfoProvider();
+	const { clientPromise } = useAccountProvider();
 	return useMutation({
 		mutationFn: async ({ fileId }: DeleteFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
@@ -68,7 +68,7 @@ export function useDeleteFile() {
 
 export function useUpdateFile() {
 	const queryClient = useQueryClient();
-	const { clientPromise } = useUserInfoProvider();
+	const { clientPromise } = useAccountProvider();
 	return useMutation({
 		mutationFn: async ({ fileId, name }: UpdateFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
@@ -91,7 +91,7 @@ export function useUpdateFile() {
 
 export function useCreateFolder() {
 	const queryClient = useQueryClient();
-	const { clientPromise } = useUserInfoProvider();
+	const { clientPromise } = useAccountProvider();
 	return useMutation({
 		mutationFn: async ({ name, mimeType, parent }: CreateFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
@@ -118,7 +118,7 @@ export function useCreateFolder() {
 
 export function useUploadFile() {
 	const queryClient = useQueryClient();
-	const { clientPromise } = useUserInfoProvider();
+	const { clientPromise } = useAccountProvider();
 	return useMutation({
 		// mutationFn: async ({ file, parentId, onProgress }: UploadFileParams) => {
 		mutationFn: async ({ file, parentId }: UploadFileSchema) => {
@@ -155,7 +155,7 @@ export function useUploadFile() {
 export function useUploadFolder() {}
 
 export function useDownloadFile() {
-	const { clientPromise } = useUserInfoProvider();
+	const { clientPromise } = useAccountProvider();
 	return useMutation({
 		mutationFn: async ({
 			fileId,

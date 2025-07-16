@@ -19,12 +19,15 @@
 			"path": "../server/tsconfig.json"
 		},
 		{
-			"path": "../../packages/client/tsconfig.json"
-		},
-		{
 			"path": "../../packages/shared/tsconfig.json"
 		}
 	],
-	"include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
+	"include": [
+		"next-env.d.ts",
+		".next/types/**/*.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		"src/components/providers/useDefaultAccount"
+	],
 	"exclude": ["node_modules"]
 }
