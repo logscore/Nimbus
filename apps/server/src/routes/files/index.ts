@@ -19,19 +19,18 @@ import {
 } from "@nimbus/cache/rate-limiters";
 import { handleUploadError, sendError, sendSuccess } from "../utils";
 import { buildUserSecurityMiddleware } from "../../middleware";
-import { createProtectedRouter } from "../../hono";
+import { createDriveProviderRouter } from "../../hono";
 import { zValidator } from "@hono/zod-validator";
 import { FileService } from "./file-service";
 import { Readable } from "node:stream";
 
 const fileService = new FileService();
-const filesRouter = createProtectedRouter()
+const filesRouter = createDriveProviderRouter()
 	// Get files
 	// TODO: Grab fileId from url path, not the params
 	.get("/", buildUserSecurityMiddleware(fileGetRateLimiter), zValidator("query", getFilesSchema), async c => {
-		const user = c.var.user;
 		const queryData = c.req.valid("query");
-		const files = await fileService.listFiles(user, c.req.raw.headers, queryData);
+		const files = await fileService.listFiles(queryData);
 		if (!files) {
 			return sendError(c, { message: "Files not found", status: 404 });
 		}
@@ -45,10 +44,9 @@ const filesRouter = createProtectedRouter()
 		zValidator("param", getFileByIdParamSchema),
 		zValidator("query", getFileByIdQuerySchema),
 		async c => {
-			const user = c.var.user;
 			const fileId = c.req.valid("param").fileId;
 			const returnedValues = c.req.valid("query").returnedValues;
-			const file = await fileService.getById(user, c.req.raw.headers, { fileId, returnedValues });
+			const file = await fileService.getById({ fileId, returnedValues });
 			if (!file) {
 				return sendError(c, { message: "File not found", status: 404 });
 			}
@@ -59,9 +57,8 @@ const filesRouter = createProtectedRouter()
 	// Update file
 	// TODO: Note that the validation only works for renaming, this will need to be updated as we support more update features
 	.put("/", buildUserSecurityMiddleware(fileUpdateRateLimiter), zValidator("query", updateFileSchema), async c => {
-		const user = c.var.user;
 		const queryData = c.req.valid("query");
-		const success = await fileService.updateFile(user, c.req.raw.headers, queryData);
+		const success = await fileService.updateFile(queryData);
 		if (!success) {
 			return sendError(c, { message: "Failed to update file", status: 500 });
 		}
@@ -71,9 +68,8 @@ const filesRouter = createProtectedRouter()
 	// Delete file
 	// TODO: implement delete multiple files/folders
 	.delete("/", buildUserSecurityMiddleware(fileDeleteRateLimiter), zValidator("query", deleteFileSchema), async c => {
-		const user = c.var.user;
 		const queryData = c.req.valid("query");
-		const success = await fileService.deleteFile(user, c.req.raw.headers, queryData);
+		const success = await fileService.deleteFile(queryData);
 		if (!success) {
 			return sendError(c, { message: "Failed to delete file", status: 500 });
 		}
@@ -82,9 +78,8 @@ const filesRouter = createProtectedRouter()
 
 	// Create file/folder
 	.post("/", buildUserSecurityMiddleware(fileUploadRateLimiter), zValidator("query", createFileSchema), async c => {
-		const user = c.var.user;
 		const queryData = c.req.valid("query");
-		const success = await fileService.createFile(user, c.req.raw.headers, queryData);
+		const success = await fileService.createFile(queryData);
 		if (!success) {
 			return sendError(c, { message: "Failed to create file", status: 500 });
 		}
@@ -98,8 +93,6 @@ const filesRouter = createProtectedRouter()
 		zValidator("form", uploadFileFormSchema),
 		zValidator("query", uploadFileQuerySchema),
 		async c => {
-			const user = c.var.user;
-
 			try {
 				const file = c.req.valid("form").file;
 				const parentId = c.req.valid("query").parentId;
@@ -127,8 +120,6 @@ const filesRouter = createProtectedRouter()
 				// Upload with timeout
 				const UPLOAD_TIMEOUT = 5 * 60 * 1000;
 				const uploadPromise = fileService.createFile(
-					user,
-					c.req.raw.headers,
 					{
 						name: file.name,
 						mimeType: file.type,
@@ -160,13 +151,12 @@ const filesRouter = createProtectedRouter()
 		buildUserSecurityMiddleware(fileGetRateLimiter),
 		zValidator("query", downloadFileSchema),
 		async c => {
-			const user = c.var.user;
 			const fileId = c.req.valid("query").fileId;
 			const exportMimeType = c.req.valid("query").exportMimeType;
 			const acknowledgeAbuse = c.req.valid("query").acknowledgeAbuse;
 
 			try {
-				const downloadResult = await fileService.downloadFile(user, c.req.raw.headers, {
+				const downloadResult = await fileService.downloadFile({
 					fileId,
 					exportMimeType,
 					acknowledgeAbuse,

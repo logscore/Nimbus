@@ -1,14 +1,11 @@
-import { getDriveProvider } from "../../providers";
-import { createProtectedRouter } from "../../hono";
+import { createDriveProviderRouter } from "../../hono";
 import { sendError, sendSuccess } from "../utils";
 
-const drivesRouter = createProtectedRouter()
+const drivesRouter = createDriveProviderRouter()
 	// Get drive storage info
 	.get("/about", async c => {
 		try {
-			const user = c.var.user;
-
-			const drive = await getDriveProvider(user, c.req.raw.headers);
+			const drive = c.var.provider;
 			const data = await drive.getDriveInfo();
 
 			if (!data) {

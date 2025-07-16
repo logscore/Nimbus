@@ -1,12 +1,12 @@
 import { and, count, eq, inArray, isNull } from "drizzle-orm";
+import { getDriveProviderContext } from "../../hono";
 import type { FileTag, Tag } from "@nimbus/shared";
 import { fileTag, tag } from "@nimbus/db/schema";
-import { getProtectedContext } from "../../hono";
 import { nanoid } from "nanoid";
 
 export class TagService {
 	private get c() {
-		const context = getProtectedContext();
+		const context = getDriveProviderContext();
 		if (!context) {
 			throw new Error("Context is not available in TagService. It must be used within a request cycle.");
 		}

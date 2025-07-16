@@ -13,6 +13,10 @@ interface SuccessResponseOptions<T> {
 	status?: ContentfulStatusCode;
 }
 
+export function sendUnauthorized(c: Context, message?: string) {
+	return sendError(c, { message: message || "Unauthorized", status: 401 });
+}
+
 export function sendError(c: Context, options?: ErrorResponseOptions) {
 	const success = false;
 	const { message = "Internal server error", status = 500 } = options ?? {};

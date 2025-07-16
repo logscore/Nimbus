@@ -12,14 +12,14 @@ import {
 } from "@nimbus/shared";
 import { fileGetRateLimiter } from "@nimbus/cache/rate-limiters";
 import { buildUserSecurityMiddleware } from "../../middleware";
-import { createProtectedRouter } from "../../hono";
+import { createDriveProviderRouter } from "../../hono";
 import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
 import { TagService } from "./tag-service";
 
 const tagService = new TagService();
 
-const tagsRouter = createProtectedRouter()
+const tagsRouter = createDriveProviderRouter()
 	// Get all tags for the authenticated user
 	.get("/", async c => {
 		const user = c.var.user;

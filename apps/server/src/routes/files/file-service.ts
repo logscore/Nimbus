@@ -6,8 +6,7 @@ import type {
 	GetFilesSchema,
 	UpdateFileSchema,
 } from "@nimbus/shared";
-import type { SessionUser } from "@nimbus/auth/auth";
-import { getDriveProvider } from "../../providers";
+import { getDriveProviderContext } from "../../hono";
 import { TagService } from "../tags/tag-service";
 import type { Readable } from "node:stream";
 
@@ -19,13 +18,21 @@ export interface CreateFileOptions {
 
 export class FileService {
 	private tagService: TagService;
+	private get c() {
+		const context = getDriveProviderContext();
+		if (!context) {
+			throw new Error("Context is not available in TagService. It must be used within a request cycle.");
+		}
+		return context;
+	}
 
 	constructor() {
 		this.tagService = new TagService();
 	}
 
-	async listFiles(user: SessionUser, headers: Headers, options: GetFilesSchema) {
-		const drive = await getDriveProvider(user, headers);
+	async listFiles(options: GetFilesSchema) {
+		const user = this.c.var.user;
+		const drive = this.c.var.provider;
 		const res = await drive.listChildren(options.parentId, {
 			pageSize: options.pageSize,
 			pageToken: options.pageToken,
@@ -48,8 +55,9 @@ export class FileService {
 		return filesWithTags as File[];
 	}
 
-	async getById(user: SessionUser, headers: Headers, options: GetFileByIdSchema) {
-		const drive = await getDriveProvider(user, headers);
+	async getById(options: GetFileByIdSchema) {
+		const user = this.c.var.user;
+		const drive = this.c.var.provider;
 		const file = await drive.getById(options.fileId, options.returnedValues);
 
 		if (!file) {
@@ -60,23 +68,23 @@ export class FileService {
 		return { ...file, tags } as File;
 	}
 
-	async updateFile(user: SessionUser, headers: Headers, options: UpdateFileSchema) {
-		const drive = await getDriveProvider(user, headers);
+	async updateFile(options: UpdateFileSchema) {
+		const drive = this.c.var.provider;
 		return drive.update(options.fileId, { name: options.name });
 	}
 
-	async deleteFile(user: SessionUser, headers: Headers, options: DeleteFileSchema) {
-		const drive = await getDriveProvider(user, headers);
+	async deleteFile(options: DeleteFileSchema) {
+		const drive = this.c.var.provider;
 		return drive.delete(options.fileId);
 	}
 
-	async createFile(user: SessionUser, headers: Headers, options: CreateFileOptions, fileStream?: Readable) {
-		const drive = await getDriveProvider(user, headers);
+	async createFile(options: CreateFileOptions, fileStream?: Readable) {
+		const drive = this.c.var.provider;
 		return drive.create(options, fileStream);
 	}
 
-	async downloadFile(user: SessionUser, headers: Headers, options: DownloadFileSchema) {
-		const drive = await getDriveProvider(user, headers);
+	async downloadFile(options: DownloadFileSchema) {
+		const drive = this.c.var.provider;
 		return drive.download(options.fileId, options);
 	}
 }
