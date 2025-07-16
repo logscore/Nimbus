@@ -103,3 +103,15 @@ export interface DriveInfo {
 	limit: string;
 	usageInTrash: string;
 }
+
+export interface PinnedFile {
+	id: string;
+	userId: string;
+	fileId: string;
+	name: string;
+	type: string;
+	mimeType?: string;
+	provider: string;
+	createdAt: string;
+	updatedAt: string;
+}

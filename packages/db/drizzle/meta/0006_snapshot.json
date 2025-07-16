@@ -1,6 +1,6 @@
 {
-  "id": "d670476e-e995-4e0d-ada9-47cc25510eff",
-  "prevId": "7f29aa25-f88d-4acb-a697-2fed6b5c0f3f",
+  "id": "41373254-bc82-47ec-9aef-9c402fcc0760",
+  "prevId": "22df79ba-0c5a-4c45-9e11-ccfa89977417",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -179,8 +179,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.pinned_folder": {
-      "name": "pinned_folder",
+    "public.pinned_file": {
+      "name": "pinned_file",
       "schema": "",
       "columns": {
         "id": {
@@ -195,8 +195,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "folder_id": {
-          "name": "folder_id",
+        "file_id": {
+          "name": "file_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -206,6 +206,19 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'folder'"
+        },
+        "mime_type": {
+          "name": "mime_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "provider": {
           "name": "provider",
@@ -228,9 +241,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "pinned_folder_user_id_user_id_fk": {
-          "name": "pinned_folder_user_id_user_id_fk",
-          "tableFrom": "pinned_folder",
+        "pinned_file_user_id_user_id_fk": {
+          "name": "pinned_file_user_id_user_id_fk",
+          "tableFrom": "pinned_file",
           "tableTo": "user",
           "columnsFrom": [
             "user_id"

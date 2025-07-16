@@ -1,6 +1,6 @@
 {
-  "id": "d670476e-e995-4e0d-ada9-47cc25510eff",
-  "prevId": "7f29aa25-f88d-4acb-a697-2fed6b5c0f3f",
+  "id": "22df79ba-0c5a-4c45-9e11-ccfa89977417",
+  "prevId": "d670476e-e995-4e0d-ada9-47cc25510eff",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -206,6 +206,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'folder'"
         },
         "provider": {
           "name": "provider",
