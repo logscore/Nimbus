@@ -7,15 +7,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { authClient } from "@nimbus/auth/auth-client";
 import { ChevronsUpDown, Plus } from "lucide-react";
 import GoogleDriveIcon from "@/public/googledrive";
 import { Button } from "@/components/ui/button";
 import { NimbusLogo } from "@/components/icons";
 import OneDriveIcon from "@/public/onedrive";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const accounts = await authClient.listAccounts();
 interface Account {
 	provider: string;
 	accountId: string;
@@ -39,34 +37,46 @@ export function SourceSelector() {
 		throw new Error("SourceSelector must be used within a UserInfoProvider");
 	}
 
+	const { accounts, isLoading } = context;
 	const [selectedSource, setSelectedSource] = useState("Connect a source");
 	const [selectedIcon, setSelectedIcon] = useState(<NimbusLogo className="h-5 w-5 text-black" />);
 
+	useEffect(() => {
+		if (context.providerId && context.accountId) {
+			setSelectedSource(context.providerId);
+			setSelectedIcon(providerToIcon(context.providerId));
+		}
+	}, [context.providerId, context.accountId]);
+
 	const handleSourceSelect = (source: Account) => {
-		const providerId = source.provider;
-		const accountId = source.accountId;
-		context.navigateToProvider(providerId, accountId);
-		setSelectedSource(providerId);
-		setSelectedIcon(providerToIcon(providerId));
+		context.setDriveProvider(source.provider, source.accountId);
 	};
 
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="flex items-center gap-2 rounded-xl p-1 has-[>svg]:px-2">
-					<div className="flex h-6 w-6 items-center justify-center rounded-md bg-white">{selectedIcon}</div>
-					<span className="text-md leading-normal font-medium text-neutral-100 capitalize">{selectedSource}</span>
-					<ChevronsUpDown
-						style={{ height: "14px", width: "14px" }}
-						className="flex h-3 w-3 items-center justify-center gap-2.5 font-bold text-neutral-400"
-					/>
+				<Button variant="ghost" className="flex items-center gap-2 rounded-xl p-1 has-[>svg]:px-2" disabled={isLoading}>
+					{isLoading ? (
+						<div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-400 border-t-transparent" />
+					) : (
+						<div className="flex h-6 w-6 items-center justify-center rounded-md bg-white">{selectedIcon}</div>
+					)}
+					<span className="text-md leading-normal font-medium text-neutral-100 capitalize">
+						{isLoading ? "Loading..." : selectedSource}
+					</span>
+					{!isLoading && (
+						<ChevronsUpDown
+							style={{ height: "14px", width: "14px" }}
+							className="flex h-3 w-3 items-center justify-center gap-2.5 font-bold text-neutral-400"
+						/>
+					)}
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start" className="w-34">
 				<ScrollArea className="h-32">
 					<div className="p-1">
-						{accounts.data && accounts.data.length > 0 ? (
-							accounts.data.map((account, index) => (
+						{accounts && accounts.length > 0 ? (
+							accounts.map((account, index) => (
 								<DropdownMenuItem
 									key={index}
 									onClick={() => handleSourceSelect(account)}
