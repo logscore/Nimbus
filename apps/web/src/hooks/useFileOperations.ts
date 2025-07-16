@@ -6,16 +6,17 @@ import type {
 	UpdateFileSchema,
 	UploadFileSchema,
 } from "@nimbus/shared";
+import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { protectedClient } from "@/utils/client";
+import type { DriveProviderClient } from "@/utils/client";
 import { toast } from "sonner";
 
-const BASE_FILE_CLIENT = protectedClient.api.files;
-
 export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: GetFilesSchema) {
+	const { clientPromise } = useUserInfoProvider();
 	return useQuery({
 		queryKey: ["files", parentId, pageSize, pageToken],
 		queryFn: async () => {
+			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await BASE_FILE_CLIENT.$get({
 				query: { parentId, pageSize: pageSize.toString(), pageToken, returnedValues },
 			});
@@ -27,10 +28,12 @@ export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: G
 }
 
 export function useGetFile({ fileId, returnedValues }: GetFileByIdSchema) {
+	const { clientPromise } = useUserInfoProvider();
 	return useQuery({
 		queryKey: ["file", fileId, returnedValues],
 		queryFn: async () => {
-			const response = await protectedClient.api.files[":id"].$get({
+			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
+			const response = await BASE_FILE_CLIENT[":id"].$get({
 				param: { fileId },
 				query: { returnedValues },
 			});
@@ -43,8 +46,10 @@ export function useGetFile({ fileId, returnedValues }: GetFileByIdSchema) {
 
 export function useDeleteFile() {
 	const queryClient = useQueryClient();
+	const { clientPromise } = useUserInfoProvider();
 	return useMutation({
 		mutationFn: async ({ fileId }: DeleteFileSchema) => {
+			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await BASE_FILE_CLIENT.$delete({
 				query: { fileId },
 			});
@@ -63,8 +68,10 @@ export function useDeleteFile() {
 
 export function useUpdateFile() {
 	const queryClient = useQueryClient();
+	const { clientPromise } = useUserInfoProvider();
 	return useMutation({
 		mutationFn: async ({ fileId, name }: UpdateFileSchema) => {
+			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await BASE_FILE_CLIENT.$put({
 				query: { fileId, name },
 			});
@@ -84,8 +91,10 @@ export function useUpdateFile() {
 
 export function useCreateFolder() {
 	const queryClient = useQueryClient();
+	const { clientPromise } = useUserInfoProvider();
 	return useMutation({
 		mutationFn: async ({ name, mimeType, parent }: CreateFileSchema) => {
+			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await BASE_FILE_CLIENT.$post({
 				query: {
 					name,
@@ -109,10 +118,11 @@ export function useCreateFolder() {
 
 export function useUploadFile() {
 	const queryClient = useQueryClient();
-
+	const { clientPromise } = useUserInfoProvider();
 	return useMutation({
 		// mutationFn: async ({ file, parentId, onProgress }: UploadFileParams) => {
 		mutationFn: async ({ file, parentId }: UploadFileSchema) => {
+			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await BASE_FILE_CLIENT.upload.$post({
 				form: {
 					file,
@@ -145,6 +155,7 @@ export function useUploadFile() {
 export function useUploadFolder() {}
 
 export function useDownloadFile() {
+	const { clientPromise } = useUserInfoProvider();
 	return useMutation({
 		mutationFn: async ({
 			fileId,
@@ -157,6 +168,7 @@ export function useDownloadFile() {
 			fileName?: string;
 			onProgress?: (progress: number) => void;
 		}) => {
+			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await BASE_FILE_CLIENT.download.$get({
 				query: {
 					fileId,
@@ -236,4 +248,10 @@ export function useDownloadFile() {
 			toast.error(error instanceof Error ? error.message : "Failed to download file");
 		},
 	});
+}
+
+async function getBaseFileClient(clientPromise: Promise<DriveProviderClient>) {
+	const client = await clientPromise;
+	const BASE_FILE_CLIENT = client.api.files;
+	return BASE_FILE_CLIENT;
 }

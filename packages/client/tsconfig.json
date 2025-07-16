@@ -1,8 +1,0 @@
-{
-	"extends": "@nimbus/tsconfig/base",
-	"compilerOptions": {
-		"composite": true,
-		"noEmit": false,
-		"emitDeclarationOnly": true
-	}
-}

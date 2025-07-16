@@ -16,7 +16,6 @@
 	},
 	"dependencies": {
 		"@nimbus/cache": "workspace:*",
-		"@nimbus/client": "workspace:*",
 		"@nimbus/db": "workspace:*",
 		"@nimbus/env": "workspace:*",
 		"@upstash/redis": "^1.35.1",

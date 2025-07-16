@@ -1,7 +1,8 @@
 "use client";
 
+import type { DriveProvider, DriveProviderHeaders, DriveProviderSlug } from "@nimbus/shared";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { DriveProvider, DriveProviderSlug } from "@nimbus/shared";
+import { createProtectedClient, type DriveProviderClient } from "@/utils/client";
 import { providerToSlug, slugToProvider } from "@nimbus/shared";
 import { usePathname, useRouter } from "next/navigation";
 import type { SessionUser } from "@nimbus/auth/auth";
@@ -19,6 +20,7 @@ interface DriveProviderState {
 	providerId: DriveProvider | null;
 	accountId: string | null;
 	accounts: Account[] | null;
+	clientPromise: Promise<DriveProviderClient>;
 	error: Error | null;
 	isLoading: boolean;
 	setDriveProvider: (newProviderSlug: string, newAccountId: string) => void;
@@ -32,15 +34,40 @@ export function UserInfoProvider({ children }: { children: ReactNode }) {
 	const router = useRouter();
 	const pathname = usePathname();
 
-	const [state, setState] = useState<Omit<DriveProviderState, "setDriveProvider" | "navigateToProvider">>({
+	const [{ clientPromise, resolveClient }] = useState(() => {
+		let resolver: (client: DriveProviderClient) => void;
+		const promise = new Promise<DriveProviderClient>(resolve => {
+			resolver = resolve;
+		});
+		return {
+			clientPromise: promise,
+			resolveClient: resolver!,
+		};
+	});
+
+	const [state, setState] = useState<Omit<DriveProviderState, "setDriveProvider" | "navigateToProvider">>(() => ({
 		user: null,
 		providerSlug: null,
 		providerId: null,
 		accountId: null,
 		accounts: null,
+		clientPromise,
 		error: null,
 		isLoading: true,
-	});
+	}));
+
+	useEffect(() => {
+		if (!userError && state.providerId && state.accountId) {
+			const headers: DriveProviderHeaders = {
+				"X-Provider-Id": state.providerId,
+				"X-Account-Id": state.accountId,
+			};
+			console.log({ headers });
+			const client = createProtectedClient({ headers });
+			resolveClient(client);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [userError, state.providerId, state.accountId]);
 
 	useEffect(() => {
 		if (userIsPending || accountsIsPending) {
@@ -71,13 +98,13 @@ export function UserInfoProvider({ children }: { children: ReactNode }) {
 				return;
 			}
 			setState(prev => ({
+				...prev,
 				user,
 				providerSlug,
 				providerId,
 				accountId: user.defaultAccountId,
 				accounts: prev.accounts,
 				error: null,
-				isLoading: prev.isLoading,
 			}));
 		}
 	}, [user, userError, userIsPending]);
@@ -95,7 +122,6 @@ export function UserInfoProvider({ children }: { children: ReactNode }) {
 				...prev,
 				accounts,
 				error: null,
-				isLoading: prev.isLoading,
 			}));
 		}
 	}, [accounts, accountsError, accountsIsPending]);

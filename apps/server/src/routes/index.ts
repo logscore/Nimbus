@@ -16,23 +16,39 @@ const driveProviderRouteRouters = [filesRoutes, drivesRoutes, tagsRoutes] as con
 const driveProviderRouter = createDriveProviderRouter()
 	.use("*", async (c, next) => {
 		const userId = c.var.user.id;
-		const providerId = "google";
-		const accountId = "jsalkdfjalksdfj";
+		const providerIdHeader = c.req.header("X-Provider-Id");
+		const accountIdHeader = c.req.header("X-Account-Id");
+		const parsedProviderId = driveProviderSchema.parse(providerIdHeader);
+		if (!parsedProviderId || !accountIdHeader) {
+			return sendUnauthorized(c, "Invalid provider or account information");
+		}
+
 		const account = await c.var.db.query.account.findFirst({
 			where: (table, { eq }) =>
-				eq(table.userId, userId) && eq(table.providerId, providerId) && eq(table.accountId, accountId),
+				eq(table.userId, userId) && eq(table.providerId, parsedProviderId) && eq(table.accountId, accountIdHeader),
 		});
 		if (!account || !account.accessToken || !account.providerId || !account.accountId) {
 			return sendUnauthorized(c);
 		}
+
+		const { accessToken } = await c.var.auth.api.getAccessToken({
+			body: {
+				providerId: account.providerId,
+				accountId: account.id,
+				userId: account.userId,
+			},
+			headers: c.req.raw.headers,
+		});
+		if (!accessToken) {
+			return sendUnauthorized(c);
+		}
+
 		const parsedProviderName = driveProviderSchema.parse(account.providerId);
 		if (parsedProviderName !== account.providerId) {
 			return sendUnauthorized(c, "Invalid provider");
 		}
 		const provider: Provider =
-			parsedProviderName === "google"
-				? new GoogleDriveProvider(account.accessToken)
-				: new OneDriveProvider(account.accessToken);
+			parsedProviderName === "google" ? new GoogleDriveProvider(accessToken) : new OneDriveProvider(accessToken);
 		c.set("provider", provider);
 		return next();
 	})

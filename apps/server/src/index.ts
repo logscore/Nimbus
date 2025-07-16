@@ -1,3 +1,4 @@
+import { DRIVE_PROVIDER_HEADERS } from "@nimbus/shared";
 import { contextStorage } from "hono/context-storage";
 import { createAuth } from "@nimbus/auth/auth";
 import { createPublicRouter } from "./hono";
@@ -11,7 +12,7 @@ const app = createPublicRouter()
 		cors({
 			origin: env.FRONTEND_URL,
 			credentials: true,
-			allowHeaders: ["Content-Type", "Authorization"],
+			allowHeaders: ["Content-Type", "Authorization", ...DRIVE_PROVIDER_HEADERS],
 			allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 			maxAge: 43200, // 12 hours
 		})
