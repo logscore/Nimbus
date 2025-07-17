@@ -49,11 +49,16 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 			{...props}
 		>
 			<div className="flex flex-col gap-4">
-				<SocialAuthButton provider="google" action="signin" onClick={signInWithGoogleProvider} disabled={isLoading} />
+				<SocialAuthButton
+					provider="google"
+					action="signin"
+					onClick={() => signInWithGoogleProvider()}
+					disabled={isLoading}
+				/>
 				<SocialAuthButton
 					provider="microsoft"
 					action="signin"
-					onClick={signInWithMicrosoftProvider}
+					onClick={() => signInWithMicrosoftProvider()}
 					disabled={isLoading}
 				/>
 

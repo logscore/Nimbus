@@ -6,11 +6,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddAccountDialog } from "@/components/settings/add-account-dialog";
+import { capitalizeFirstLetter, type DriveProvider } from "@nimbus/shared";
 import { SettingsHeader } from "@/components/dashboard/settings/header";
 import { authClient } from "@nimbus/auth/auth-client";
-import type { DriveProvider } from "@nimbus/shared";
 import Profile from "@/components/user-profile";
 import { Button } from "@/components/ui/button";
+import { unlinkAccount } from "@/hooks/useAuth";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
@@ -18,14 +19,8 @@ import env from "@nimbus/env/client";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
-type ConnectedAccount = {
-	provider: DriveProvider;
-	email: string;
-	dateAdded: string;
-};
-
 export default function SettingsPage() {
-	const { user, isLoading: isUserLoading } = useUserInfoProvider();
+	const { user, accounts, isLoading: isUserLoading } = useUserInfoProvider();
 	const [name, setName] = useState(user?.name || "");
 	const [email, setEmail] = useState(user?.email || "");
 	const [isSaving, setIsSaving] = useState(false);
@@ -39,12 +34,6 @@ export default function SettingsPage() {
 			setPreviewUrl(user.image || null);
 		}
 	}, [user]);
-
-	// Mock data for connected accounts
-	const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([
-		{ provider: "google", email: user?.email || "", dateAdded: "2023-01-15" },
-		// Add more connected accounts as needed
-	]);
 
 	const [isAddAccountDialogOpen, setIsAddAccountDialogOpen] = useState(false);
 
@@ -91,10 +80,18 @@ export default function SettingsPage() {
 		}
 	};
 
-	const handleDisconnectAccount = (provider: DriveProvider) => {
-		// TODO: Implement actual disconnect logic
-		setConnectedAccounts(prev => prev.filter(acc => acc.provider !== provider));
-		toast.success(`Disconnected ${provider} account`);
+	const handleDisconnectAccount = async (provider: string, accountId: string) => {
+		const toastErrorMessage = `Failed to disconnect ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
+		try {
+			const response = await unlinkAccount(provider as DriveProvider, accountId);
+			if (response.error) {
+				throw new Error(response.error.message || toastErrorMessage);
+			}
+			toast.success(`Disconnected ${capitalizeFirstLetter(provider)} account`);
+		} catch (error) {
+			console.error(`Failed to disconnect account`, error);
+			toast.error(toastErrorMessage);
+		}
 	};
 
 	return (
@@ -237,17 +234,17 @@ export default function SettingsPage() {
 									<TableHeader>
 										<TableRow>
 											<TableHead>Provider</TableHead>
-											<TableHead>Email</TableHead>
 											<TableHead>Date Added</TableHead>
 											<TableHead className="text-right">Actions</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-										{connectedAccounts.map(account => (
-											<TableRow key={`${account.provider}-${account.email}`}>
+										{accounts?.map(account => (
+											<TableRow key={`${account.provider}-${account.accountId}`}>
 												<TableCell className="font-medium capitalize">{account.provider}</TableCell>
-												<TableCell>{account.email}</TableCell>
-												<TableCell>{new Date(account.dateAdded).toLocaleDateString()}</TableCell>
+												<TableCell>
+													{account.createdAt ? new Date(account.createdAt).toLocaleDateString() : "N/A"}
+												</TableCell>
 												<TableCell className="text-right">
 													<TooltipProvider>
 														<Tooltip>
@@ -255,13 +252,13 @@ export default function SettingsPage() {
 																<Button
 																	variant="outline"
 																	size="sm"
-																	onClick={() => handleDisconnectAccount(account.provider)}
+																	onClick={() => handleDisconnectAccount(account.provider, account.accountId)}
 																>
 																	Disconnect
 																</Button>
 															</TooltipTrigger>
 															<TooltipContent>
-																<p>Disconnect {account.provider} account</p>
+																<p>Disconnect {capitalizeFirstLetter(account.provider)} account</p>
 															</TooltipContent>
 														</Tooltip>
 													</TooltipProvider>
@@ -272,9 +269,6 @@ export default function SettingsPage() {
 								</Table>
 							</CardContent>
 							<CardFooter className="flex justify-between">
-								<p className="text-muted-foreground text-sm">
-									Connect additional accounts to sign in with different providers
-								</p>
 								<TooltipProvider>
 									<Tooltip>
 										<TooltipTrigger asChild>
@@ -292,11 +286,7 @@ export default function SettingsPage() {
 								<AddAccountDialog
 									open={isAddAccountDialogOpen}
 									onOpenChange={setIsAddAccountDialogOpen}
-									onAccountAdded={() => {
-										// Refresh the connected accounts list when a new account is added
-										// TODO: Replace with actual API call to fetch connected accounts
-										toast.success("Account connected successfully!");
-									}}
+									onAccountAdded={() => toast.success("Account connected successfully!")}
 								/>
 							</CardFooter>
 						</Card>

@@ -178,8 +178,6 @@ export const createAuth = () => {
 			accountLinking: {
 				enabled: true,
 				allowDifferentEmails: true,
-				allowUnlinkingAll: true,
-				updateUserInfoOnLink: true,
 			},
 		},
 

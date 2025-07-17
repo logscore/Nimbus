@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
 import { useGoogleAuth, useMicrosoftAuth } from "@/hooks/useAuth";
+import { usePathname } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
@@ -18,6 +19,9 @@ export function AddAccountDialog({ open, onOpenChange, onAccountAdded }: AddAcco
 		microsoft: false,
 	});
 
+	const pathname = usePathname();
+	const callbackURL = `${window.location.origin}${pathname}`;
+
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
 
@@ -26,9 +30,9 @@ export function AddAccountDialog({ open, onOpenChange, onAccountAdded }: AddAcco
 			setIsLoading(prev => ({ ...prev, [provider]: true }));
 
 			if (provider === "google") {
-				await signInWithGoogleProvider();
+				await signInWithGoogleProvider({ callbackURL });
 			} else if (provider === "microsoft") {
-				await signInWithMicrosoftProvider();
+				await signInWithMicrosoftProvider({ callbackURL });
 			}
 
 			onAccountAdded();

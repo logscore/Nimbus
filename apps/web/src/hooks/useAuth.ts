@@ -27,10 +27,17 @@ const signInWithProvider = async (provider: DriveProvider) => {
 	});
 };
 
-const linkSessionWithProvider = async (provider: DriveProvider) => {
+const linkSessionWithProvider = async (provider: DriveProvider, callbackURL: string = BASE_CALLBACK_URL) => {
 	return authClient.linkSocial({
 		provider,
-		callbackURL: BASE_CALLBACK_URL,
+		callbackURL,
+	});
+};
+
+export const unlinkAccount = async (provider: DriveProvider, accountId: string) => {
+	return await authClient.unlinkAccount({
+		providerId: provider,
+		accountId,
 	});
 };
 
@@ -49,30 +56,35 @@ export const useSocialAuth = (provider: DriveProvider) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const providerName = getProviderDisplayName(provider);
 
-	const handleAuth = useCallback(async () => {
-		setIsLoading(true);
+	const handleAuth = useCallback(
+		async (options?: { callbackURL?: string }) => {
+			setIsLoading(true);
 
-		try {
-			const isLoggedIn = await authClient.getSession();
-			const action = isLoggedIn.data?.session ? "link" : "signin";
+			try {
+				const isLoggedIn = await authClient.getSession();
+				// If the user is already logged in, link the provider
+				const action = isLoggedIn.data?.session ? "link" : "signin";
 
-			const authPromise = action === "link" ? linkSessionWithProvider(provider) : signInWithProvider(provider);
+				const authPromise =
+					action === "link" ? linkSessionWithProvider(provider, options?.callbackURL) : signInWithProvider(provider);
 
-			toast.promise(authPromise, {
-				loading: action === "link" ? `Linking ${providerName} account...` : `Signing in with ${providerName}...`,
-				success: action === "link" ? `Successfully linked ${providerName} account` : `Signed in with ${providerName}`,
-				error: (error: unknown) => handleAuthError(error, `${providerName} authentication failed`),
-			});
+				toast.promise(authPromise, {
+					loading: action === "link" ? `Linking ${providerName} account...` : `Signing in with ${providerName}...`,
+					success: action === "link" ? `Successfully linked ${providerName} account` : `Signed in with ${providerName}`,
+					error: (error: unknown) => handleAuthError(error, `${providerName} authentication failed`),
+				});
 
-			return true;
-		} catch (error) {
-			const errorMessage = handleAuthError(error, `${providerName} authentication failed`);
-			toast.error(errorMessage);
-			return false;
-		} finally {
-			setIsLoading(false);
-		}
-	}, [provider, providerName]);
+				return true;
+			} catch (error) {
+				const errorMessage = handleAuthError(error, `${providerName} authentication failed`);
+				toast.error(errorMessage);
+				return false;
+			} finally {
+				setIsLoading(false);
+			}
+		},
+		[provider, providerName]
+	);
 
 	return { handleAuth, isLoading };
 };
