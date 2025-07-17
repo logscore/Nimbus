@@ -36,43 +36,11 @@ import { useState } from "react";
 import type { JSX } from "react";
 import { toast } from "sonner";
 
-export function FileBrowserData({
-	data,
-	refetch,
-	onOptimisticDelete,
-	onOptimisticRename,
-	onRollback,
-}: {
-	data: _File[];
-	refetch: () => void;
-	onOptimisticDelete?: (fileId: string) => void;
-	onOptimisticRename?: (fileId: string, newName: string) => void;
-	onRollback: () => void;
-}) {
-	return (
-		<FilesList
-			data={data}
-			refetch={refetch}
-			onOptimisticDelete={onOptimisticDelete}
-			onOptimisticRename={onOptimisticRename}
-			onRollback={onRollback}
-		/>
-	);
+export function FileBrowserData({ data, refetch }: { data: _File[]; refetch: () => void }) {
+	return <FilesList data={data} refetch={refetch} />;
 }
 
-function FilesList({
-	data,
-	refetch,
-	onOptimisticDelete,
-	onOptimisticRename,
-	onRollback,
-}: {
-	data: _File[];
-	refetch: () => void;
-	onOptimisticDelete?: (fileId: string) => void;
-	onOptimisticRename?: (fileId: string, newName: string) => void;
-	onRollback: () => void;
-}) {
+function FilesList({ data, refetch }: { data: _File[]; refetch: () => void }) {
 	const { tags } = useTags();
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -144,13 +112,7 @@ function FilesList({
 								<td className="text-muted-foreground p-3 text-sm">{modifiedDate}</td>
 								<td className="text-muted-foreground p-3 text-sm">{size}</td>
 								<td className="relative p-3">
-									<FileActions
-										file={file}
-										fileType={fileType}
-										onOptimisticDelete={onOptimisticDelete}
-										onOptimisticRename={onOptimisticRename}
-										onRollback={onRollback}
-									/>
+									<FileActions file={file} fileType={fileType} />
 								</td>
 								<td className="relative p-3">
 									<FileTags file={file} availableTags={tags} refetch={refetch} />
@@ -164,53 +126,20 @@ function FilesList({
 	);
 }
 
-function FileActions({
-	file,
-	fileType,
-	onOptimisticDelete,
-	onOptimisticRename,
-	onRollback,
-}: {
-	file: _File;
-	fileType: "file" | "folder";
-	onOptimisticDelete?: (fileId: string) => void;
-	onOptimisticRename?: (fileId: string, newName: string) => void;
-	onRollback: () => void;
-}) {
+function FileActions({ file, fileType }: { file: _File; fileType: "file" | "folder" }) {
 	const { mutate: deleteFile } = useDeleteFile();
 	const { mutate: renameFile } = useUpdateFile();
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
 	const handleDelete = async () => {
-		// Optimistic update: remove file from UI immediately
-		onOptimisticDelete?.(file.id);
-
-		deleteFile(
-			{ fileId: file.id },
-			{
-				onError: () => {
-					onRollback();
-				},
-			}
-		);
+		deleteFile({ fileId: file.id });
 	};
 
 	const handleRename = async (newName: string) => {
-		// Optimistic update: change name in UI immediately
-		onOptimisticRename?.(file.id, newName);
-
-		renameFile(
-			{ fileId: file.id, name: newName },
-			{
-				onError: () => {
-					onRollback?.();
-				},
-			}
-		);
+		renameFile({ fileId: file.id, name: newName });
 	};
 
-	// TODO: Implement these later
 	const handleCopyLink = async () => {
 		if (file.webViewLink) {
 			await navigator.clipboard.writeText(file.webViewLink);

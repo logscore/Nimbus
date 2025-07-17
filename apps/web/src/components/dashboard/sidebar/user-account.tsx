@@ -1,3 +1,5 @@
+"use client";
+
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -6,10 +8,10 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChevronsUpDown, LogOut, Sparkles } from "lucide-react";
 import { authClient } from "@nimbus/auth/auth-client";
 import Profile from "@/components/user-profile";
-import { Avatar } from "@/components/ui/avatar";
 import { useSignOut } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +36,7 @@ export default function UserAccount() {
 							{isPending ? (
 								<div className="flex items-center gap-2">
 									<Avatar className="h-8 w-8 rounded-lg">
-										<div className="h-8 w-8 animate-pulse rounded-lg bg-neutral-300 dark:bg-neutral-700"></div>
+										<AvatarFallback className="h-8 w-8 rounded-lg bg-neutral-300 dark:bg-neutral-700" />
 									</Avatar>
 									<span className="text-sm leading-[normal] font-medium dark:text-neutral-200">Loading...</span>
 								</div>

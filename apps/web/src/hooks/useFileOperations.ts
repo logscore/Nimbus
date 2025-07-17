@@ -1,4 +1,4 @@
-import type { CreateFolderParams, DeleteFileParams, UpdateFileParams, UploadFileParams } from "@/lib/types";
+import type { _File, CreateFolderParams, DeleteFileParams, UpdateFileParams, UploadFileParams } from "@/lib/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { clientEnv } from "@/lib/env/client-env";
 import axios, { type AxiosError } from "axios";
@@ -53,13 +53,25 @@ export function useDeleteFile() {
 			});
 			return response.data;
 		},
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["files"] });
+		// Handles optimistic updates
+		onMutate: async deletedFile => {
+			await queryClient.cancelQueries({ queryKey: ["files"] });
+
+			const previousFiles = queryClient.getQueryData<_File[]>(["files"]);
+
+			queryClient.setQueryData(["files"], (old: _File[] = []) => old.filter(file => file.id !== deletedFile.fileId));
+
+			return { previousFiles };
 		},
-		onError: (error: AxiosError) => {
-			console.error("Error deleting file:", error);
-			const errorMessage = error.message || "Failed to delete file";
-			toast.error(errorMessage);
+		// Handles rollback on error
+		onError: (_, __, context) => {
+			if (context?.previousFiles) {
+				queryClient.setQueryData(["files"], context.previousFiles);
+			}
+			toast.error("Failed to delete file");
+		},
+		onSettled: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["files"] });
 		},
 	});
 }
@@ -74,14 +86,27 @@ export function useUpdateFile() {
 			});
 			return response.data;
 		},
-		onSuccess: async () => {
-			toast.success("File updated successfully");
-			await queryClient.invalidateQueries({ queryKey: ["files"] });
+		// Handles optimistic updates
+		onMutate: async ({ fileId, ...dataToUpdate }) => {
+			await queryClient.cancelQueries({ queryKey: ["files"] });
+
+			const previousFiles = queryClient.getQueryData<_File[]>(["files"]);
+
+			queryClient.setQueryData(["files"], (old: _File[] = []) =>
+				old.map(file => (file.id === fileId ? { ...file, ...dataToUpdate } : file))
+			);
+
+			return { previousFiles };
 		},
-		onError: (error: AxiosError) => {
-			console.error("Error updating file:", error);
-			const errorMessage = error.message || "Failed to update file";
-			toast.error(errorMessage);
+		// Handles rollback on error
+		onError: (_, __, context) => {
+			if (context?.previousFiles) {
+				queryClient.setQueryData(["files"], context.previousFiles);
+			}
+			toast.error("Failed to update file");
+		},
+		onSettled: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["files"] });
 		},
 	});
 }

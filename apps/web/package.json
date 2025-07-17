@@ -21,6 +21,8 @@
 		"fly:deploy": "bun run build && bash ../../scripts/fly:deploy.sh web"
 	},
 	"dependencies": {
+		"@tanstack/react-table": "^8.21.3",
+		"date-fns": "^4.1.0",
 		"@hookform/resolvers": "^5.1.1",
 		"@nimbus/auth": "workspace:*",
 		"@number-flow/react": "^0.5.10",

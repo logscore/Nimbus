@@ -24,8 +24,13 @@ export function UploadButton() {
 		<>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button variant="outline" size="icon" className="cursor-pointer">
+					<Button
+						variant="default"
+						size="lg"
+						className="flex h-8 w-20 cursor-pointer items-center gap-2 rounded-lg bg-neutral-100 font-medium"
+					>
 						<Plus className="h-4 w-4" />
+						New
 						<span className="sr-only">Open menu</span>
 					</Button>
 				</DropdownMenuTrigger>

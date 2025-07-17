@@ -17,9 +17,11 @@ dist
 # next.js
 /.next/
 /out/
+.open-next
 
 # production
 /build
+.wrangler
 
 # misc
 .DS_Store
@@ -35,6 +37,9 @@ yarn-error.log*
 .env
 .env.local
 .env*disabled
+.env.production
+.dev.vars
+.dev.vars.production
 
 # vercel
 .vercel

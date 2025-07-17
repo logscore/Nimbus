@@ -85,12 +85,16 @@ filesRouter.get(
 		const user: Session["user"] = c.get("user");
 
 		// Validation
-		const { error, data } = getFileByIdSchema.safeParse(c.req.param());
+		const { data, error } = getFileByIdSchema.safeParse({
+			parentId: c.req.query("parentId"),
+			returnedValues: c.req.queries("returnedValues[]"),
+		});
+
 		if (error) {
 			return c.json<ApiResponse>({ success: false, message: error.errors[0]?.message }, 400);
 		}
 
-		const fileId = data.fileId;
+		const fileId = data.parentId;
 		if (!fileId) {
 			return c.json<ApiResponse>({ success: false, message: "File ID not provided" }, 400);
 		}
@@ -99,6 +103,7 @@ filesRouter.get(
 
 		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
 		const file = await drive.getFileById(fileId, returnedValues);
+
 		if (!file) {
 			return c.json<ApiResponse>({ success: false, message: "File not found" }, 404);
 		}

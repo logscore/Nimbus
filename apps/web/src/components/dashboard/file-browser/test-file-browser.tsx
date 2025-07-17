@@ -1,0 +1,488 @@
+import {
+	ChevronUp,
+	ChevronDown,
+	ChevronsUpDown,
+	// Folder,
+	// FileText,
+	// ImageIcon,
+	// Video,
+	// Music,
+	// FileSpreadsheet,
+	// Presentation,
+	// Archive,
+	// Code,
+	// FileIcon,
+} from "lucide-react";
+import {
+	useReactTable,
+	getCoreRowModel,
+	getSortedRowModel,
+	createColumnHelper,
+	flexRender,
+	type SortingState,
+} from "@tanstack/react-table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useRouter, useSearchParams } from "next/navigation";
+import { formatFileSize } from "@/lib/file-utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+// import { PdfIcon } from "@/components/icons";
+import { FileActions } from "./file-actions";
+import type { _File } from "@/lib/types";
+import React, { useMemo } from "react";
+import { format } from "date-fns";
+
+// Utility function for date formatting
+const formatDate = (dateString: string | null): string => {
+	if (!dateString) return "—";
+
+	const date = new Date(dateString);
+	const now = new Date();
+	const diffInMs = now.getTime() - date.getTime();
+	const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+	const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+
+	// Less than 1 hour: show minutes
+	if (diffInHours < 1) {
+		if (diffInMinutes < 1) {
+			return "just now";
+		}
+		return `${diffInMinutes} min ago`;
+	}
+
+	// Less than 24 hours: show hours
+	if (diffInHours < 24) {
+		return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
+	}
+
+	// 24 hours or more: show full date
+	return format(date, "MMM d, yyyy");
+};
+
+interface FileTableProps {
+	files: _File[];
+}
+
+const columnHelper = createColumnHelper<_File>();
+
+export function FileTable({ files }: FileTableProps) {
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const [sorting, setSorting] = React.useState<SortingState>([]);
+
+	const handleRowDoubleClick = (file: _File) => {
+		const fileType =
+			file.mimeType === "application/vnd.google-apps.folder" || file.mimeType === "folder" ? "folder" : "file";
+
+		if (fileType === "folder") {
+			const params = new URLSearchParams(searchParams);
+			params.set("folderId", file.id);
+			router.push(`?${params.toString()}`);
+		}
+	};
+
+	const columns = useMemo(
+		() => [
+			columnHelper.accessor("name", {
+				header: ({ column }) => (
+					<Button
+						variant="ghost"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="h-auto p-0 font-medium text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+					>
+						Name
+						{column.getIsSorted() === "asc" ? (
+							<ChevronUp className="ml-2 h-4 w-4" />
+						) : column.getIsSorted() === "desc" ? (
+							<ChevronDown className="ml-2 h-4 w-4" />
+						) : (
+							<ChevronsUpDown className="ml-2 h-4 w-4" />
+						)}
+					</Button>
+				),
+				cell: ({ getValue }) => (
+					<div className="font-medium text-neutral-900 dark:text-neutral-100">
+						{/* <div className="flex-shrink-0">{getModernFileIcon(getValue.mimeType, file.name)}</div> */}
+						{getValue()}
+					</div>
+				),
+			}),
+
+			columnHelper.accessor("modificationDate", {
+				header: ({ column }) => (
+					<Button
+						variant="ghost"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="h-auto p-0 font-medium text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+					>
+						Date Modified
+						{column.getIsSorted() === "asc" ? (
+							<ChevronUp className="ml-2 h-4 w-4" />
+						) : column.getIsSorted() === "desc" ? (
+							<ChevronDown className="ml-2 h-4 w-4" />
+						) : (
+							<ChevronsUpDown className="ml-2 h-4 w-4" />
+						)}
+					</Button>
+				),
+				cell: ({ getValue }) => <div className="text-neutral-600 dark:text-neutral-400">{formatDate(getValue())}</div>,
+				sortingFn: (rowA, rowB) => {
+					const a = rowA.original.modificationDate;
+					const b = rowB.original.modificationDate;
+					if (!a && !b) return 0;
+					if (!a) return 1;
+					if (!b) return -1;
+					return new Date(a).getTime() - new Date(b).getTime();
+				},
+			}),
+
+			columnHelper.display({
+				id: "owner",
+				header: ({ column }) => (
+					<Button
+						variant="ghost"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="h-auto p-0 font-medium text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+					>
+						Owner
+						{column.getIsSorted() === "asc" ? (
+							<ChevronUp className="ml-2 h-4 w-4" />
+						) : column.getIsSorted() === "desc" ? (
+							<ChevronDown className="ml-2 h-4 w-4" />
+						) : (
+							<ChevronsUpDown className="ml-2 h-4 w-4" />
+						)}
+					</Button>
+				),
+				cell: () => <div className="text-neutral-600 dark:text-neutral-400">You</div>,
+			}),
+
+			columnHelper.accessor("size", {
+				header: ({ column }) => (
+					<Button
+						variant="ghost"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="h-auto p-0 font-medium text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+					>
+						Size
+						{column.getIsSorted() === "asc" ? (
+							<ChevronUp className="ml-2 h-4 w-4" />
+						) : column.getIsSorted() === "desc" ? (
+							<ChevronDown className="ml-2 h-4 w-4" />
+						) : (
+							<ChevronsUpDown className="ml-2 h-4 w-4" />
+						)}
+					</Button>
+				),
+				cell: ({ getValue }) => (
+					<div className="text-neutral-600 dark:text-neutral-400">{formatFileSize(Number(getValue()))}</div>
+				),
+			}),
+
+			columnHelper.accessor("tags", {
+				header: ({ column }) => (
+					<Button
+						variant="ghost"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="h-auto p-0 font-medium text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+					>
+						Tags
+						{column.getIsSorted() === "asc" ? (
+							<ChevronUp className="ml-2 h-4 w-4" />
+						) : column.getIsSorted() === "desc" ? (
+							<ChevronDown className="ml-2 h-4 w-4" />
+						) : (
+							<ChevronsUpDown className="ml-2 h-4 w-4" />
+						)}
+					</Button>
+				),
+				cell: ({ getValue }) => {
+					const tags = getValue();
+					if (!tags || tags.length === 0) {
+						return <div className="text-neutral-400 dark:text-neutral-600">—</div>;
+					}
+
+					return (
+						<div className="scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-neutral-100 dark:scrollbar-thumb-neutral-600 dark:scrollbar-track-neutral-800 flex max-w-xs gap-1 overflow-x-auto">
+							{tags.map(tag => (
+								<Badge
+									key={tag.id}
+									variant="secondary"
+									className="shrink-0 bg-neutral-100 text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+								>
+									{tag.name}
+								</Badge>
+							))}
+						</div>
+					);
+				},
+			}),
+
+			columnHelper.display({
+				id: "actions",
+				header: "",
+				cell: ({ row }) => (
+					// <Button>{row.original.modificationDate}</Button>
+					<FileActions file={row.original} />
+				),
+			}),
+		],
+		[]
+	);
+
+	const table = useReactTable({
+		data: files,
+		columns,
+		state: {
+			sorting,
+		},
+		onSortingChange: setSorting,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+	});
+
+	return (
+		<div className="rounded-md">
+			<Table>
+				<TableHeader className="flex flex-col items-start self-stretch border-b border-neutral-200 pl-3.5 dark:border-neutral-800">
+					{table.getHeaderGroups().map(headerGroup => (
+						<TableRow key={headerGroup.id} className="bg-neutral-50 dark:bg-neutral-900">
+							{headerGroup.headers.map(header => (
+								<TableHead
+									key={header.id}
+									className="px-4 py-3 text-left text-sm font-medium text-neutral-700 dark:text-neutral-300"
+								>
+									{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+								</TableHead>
+							))}
+						</TableRow>
+					))}
+				</TableHeader>
+				<TableBody>
+					{table.getRowModel().rows.length === 0 ? (
+						<TableRow>
+							<TableCell
+								colSpan={columns.length}
+								className="px-4 py-8 text-center text-neutral-500 dark:text-neutral-400"
+							>
+								No files found
+							</TableCell>
+						</TableRow>
+					) : (
+						table.getRowModel().rows.map(row => (
+							<TableRow
+								key={row.id}
+								className="border-b border-neutral-100 transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900"
+								onDoubleClick={() => handleRowDoubleClick(row.original)}
+							>
+								{row.getVisibleCells().map(cell => (
+									<TableCell key={cell.id} className="px-4 py-3 text-sm">
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
+								))}
+							</TableRow>
+						))
+					)}
+				</TableBody>
+			</Table>
+		</div>
+	);
+}
+
+/**
+ * Get modern Lucide React icon for file type
+ */
+// function getModernFileIcon(mimeType?: string, filename?: string) {
+// 	if (!mimeType) {
+// 		if (filename) {
+// 			const ext = filename.split(".").pop()?.toLowerCase();
+// 			return getIconByExtension(ext || "");
+// 		}
+// 		return <FileText className="h-4 w-4 text-blue-500" />;
+// 	}
+
+// 	// Folder
+// 	if (mimeType === "application/vnd.google-apps.folder") {
+// 		return <Folder className="h-4 w-4 text-blue-500" />;
+// 	}
+
+// 	// Images
+// 	if (mimeType.startsWith("image/")) {
+// 		return <ImageIcon className="h-4 w-4 text-green-500" />;
+// 	}
+
+// 	// Videos
+// 	if (mimeType.startsWith("video/")) {
+// 		return <Video className="h-4 w-4 text-red-500" />;
+// 	}
+
+// 	// Audio
+// 	if (mimeType.startsWith("audio/")) {
+// 		return <Music className="h-4 w-4 text-purple-500" />;
+// 	}
+
+// 	// Google Workspace files
+// 	if (mimeType === "application/vnd.google-apps.document") {
+// 		return <FileText className="h-4 w-4 text-blue-600" />;
+// 	}
+// 	if (mimeType === "application/vnd.google-apps.spreadsheet") {
+// 		return <FileSpreadsheet className="h-4 w-4 text-green-600" />;
+// 	}
+// 	if (mimeType === "application/vnd.google-apps.presentation") {
+// 		return <Presentation className="h-4 w-4 text-orange-500" />;
+// 	}
+
+// 	// Archive files
+// 	if (isArchiveFile(mimeType)) {
+// 		return <Archive className="h-4 w-4 text-yellow-600" />;
+// 	}
+
+// 	// Code files
+// 	if (isCodeFile(mimeType, filename)) {
+// 		return <Code className="h-4 w-4 text-green-600" />;
+// 	}
+
+// 	// Office documents
+// 	if (isOfficeFile(mimeType)) {
+// 		return <FileText className="h-4 w-4 text-blue-500" />;
+// 	}
+
+// 	// PDF
+// 	if (mimeType === "application/pdf") {
+// 		return <PdfIcon className="h-4 w-4" />;
+// 	}
+
+// 	// Text files
+// 	if (mimeType.startsWith("text/")) {
+// 		return <FileText className="h-4 w-4 text-gray-600" />;
+// 	}
+
+// 	// Default
+// 	return <FileIcon className="h-4 w-4 text-gray-500" />;
+// }
+
+/**
+ * Get icon by file extension (fallback method)
+ */
+// function getIconByExtension(extension: string) {
+// 	const iconMap: Record<string, JSX.Element> = {
+// 		// Images
+// 		jpg: <ImageIcon className="h-4 w-4 text-green-500" />,
+// 		jpeg: <ImageIcon className="h-4 w-4 text-green-500" />,
+// 		png: <ImageIcon className="h-4 w-4 text-green-500" />,
+// 		gif: <ImageIcon className="h-4 w-4 text-green-500" />,
+// 		svg: <ImageIcon className="h-4 w-4 text-green-500" />,
+// 		webp: <ImageIcon className="h-4 w-4 text-green-500" />,
+// 		// Videos
+// 		mp4: <Video className="h-4 w-4 text-red-500" />,
+// 		avi: <Video className="h-4 w-4 text-red-500" />,
+// 		mov: <Video className="h-4 w-4 text-red-500" />,
+// 		mkv: <Video className="h-4 w-4 text-red-500" />,
+// 		webm: <Video className="h-4 w-4 text-red-500" />,
+// 		// Audio
+// 		mp3: <Music className="h-4 w-4 text-purple-500" />,
+// 		wav: <Music className="h-4 w-4 text-purple-500" />,
+// 		flac: <Music className="h-4 w-4 text-purple-500" />,
+// 		aac: <Music className="h-4 w-4 text-purple-500" />,
+// 		// Documents
+// 		pdf: <PdfIcon className="h-4 w-4" />,
+// 		doc: <FileText className="h-4 w-4 text-blue-500" />,
+// 		docx: <FileText className="h-4 w-4 text-blue-500" />,
+// 		txt: <FileText className="h-4 w-4 text-gray-600" />,
+// 		// Spreadsheets
+// 		xls: <FileSpreadsheet className="h-4 w-4 text-green-600" />,
+// 		xlsx: <FileSpreadsheet className="h-4 w-4 text-green-600" />,
+// 		csv: <FileSpreadsheet className="h-4 w-4 text-green-600" />,
+// 		// Presentations
+// 		ppt: <Presentation className="h-4 w-4 text-orange-500" />,
+// 		pptx: <Presentation className="h-4 w-4 text-orange-500" />,
+// 		// Code
+// 		js: <Code className="h-4 w-4 text-yellow-500" />,
+// 		ts: <Code className="h-4 w-4 text-blue-600" />,
+// 		jsx: <Code className="h-4 w-4 text-cyan-500" />,
+// 		tsx: <Code className="h-4 w-4 text-cyan-600" />,
+// 		html: <Code className="h-4 w-4 text-orange-600" />,
+// 		css: <Code className="h-4 w-4 text-blue-400" />,
+// 		py: <Code className="h-4 w-4 text-yellow-600" />,
+// 		java: <Code className="h-4 w-4 text-red-600" />,
+// 		cpp: <Code className="h-4 w-4 text-blue-700" />,
+// 		c: <Code className="h-4 w-4 text-blue-700" />,
+// 		// Archives
+// 		zip: <Archive className="h-4 w-4 text-yellow-600" />,
+// 		rar: <Archive className="h-4 w-4 text-yellow-600" />,
+// 		"7z": <Archive className="h-4 w-4 text-yellow-600" />,
+// 		tar: <Archive className="h-4 w-4 text-yellow-600" />,
+// 		gz: <Archive className="h-4 w-4 text-yellow-600" />,
+// 	};
+
+// 	return iconMap[extension] || <FileIcon className="h-4 w-4 text-gray-500" />;
+// }
+
+// Helper functions for file type detection
+// function isCodeFile(mimeType: string, filename?: string): boolean {
+// 	const codeTypes = [
+// 		"text/javascript",
+// 		"application/javascript",
+// 		"text/html",
+// 		"text/css",
+// 		"application/json",
+// 		"text/xml",
+// 		"application/xml",
+// 	];
+
+// 	if (codeTypes.includes(mimeType)) {
+// 		return true;
+// 	}
+
+// 	if (filename) {
+// 		const ext = filename.split(".").pop()?.toLowerCase();
+// 		const codeExtensions = [
+// 			"js",
+// 			"ts",
+// 			"jsx",
+// 			"tsx",
+// 			"html",
+// 			"css",
+// 			"json",
+// 			"xml",
+// 			"py",
+// 			"java",
+// 			"cpp",
+// 			"c",
+// 			"cs",
+// 			"php",
+// 			"rb",
+// 			"go",
+// 			"rs",
+// 			"swift",
+// 			"kt",
+// 			"dart",
+// 		];
+// 		return codeExtensions.includes(ext || "");
+// 	}
+
+// 	return false;
+// }
+
+// function isOfficeFile(mimeType: string): boolean {
+// 	const officeTypes = [
+// 		"application/msword",
+// 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+// 		"application/vnd.ms-excel",
+// 		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+// 		"application/vnd.ms-powerpoint",
+// 		"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+// 	];
+// 	return officeTypes.includes(mimeType);
+// }
+
+// function isArchiveFile(mimeType: string): boolean {
+// 	const archiveTypes = [
+// 		"application/zip",
+// 		"application/x-rar-compressed",
+// 		"application/x-7z-compressed",
+// 		"application/x-tar",
+// 		"application/gzip",
+// 	];
+// 	return archiveTypes.includes(mimeType);
+// }

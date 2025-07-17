@@ -1,22 +1,31 @@
 "use client";
 
-import { FileBrowser } from "@/components/dashboard/file-browser";
-import { UploadButton } from "@/components/upload-button";
+import { FileTable } from "@/components/dashboard/file-browser/test-file-browser";
+// import { FileBrowser } from "@/components/dashboard/file-browser";
+import { useGetFiles } from "@/hooks/useFileOperations";
 import { Header } from "@/components/dashboard/header";
+import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 export default function DrivePage() {
+	const searchParams = useSearchParams();
+	const folderId = searchParams.get("folderId") ?? "root";
+
+	const { data } = useGetFiles(
+		folderId,
+		30,
+		// TODO: implement sorting, filtering, pagination, and a generalized web content/view interfaces
+		["id", "name", "mimeType", "size", "modifiedTime", "webContentLink", "webViewLink"],
+		undefined
+	);
 	return (
 		<>
 			<Suspense fallback={null}>
 				<Header />
 				<div className="flex flex-1 flex-col p-2">
-					<div className="mb-6 flex items-center justify-between">
-						<h1 className="text-2xl font-semibold">My Files</h1>
-						<UploadButton />
-					</div>
 					<div className="flex-1">
-						<FileBrowser />
+						{/* <FileBrowser /> */}
+						<FileTable files={data} />
 					</div>
 				</div>
 			</Suspense>

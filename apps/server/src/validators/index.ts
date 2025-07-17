@@ -44,7 +44,7 @@ export const getFilesSchema = z.object({
 });
 
 export const getFileByIdSchema = z.object({
-	fileId: fileIdSchema,
+	parentId: fileIdSchema,
 	returnedValues: z.string().array(),
 });
 
