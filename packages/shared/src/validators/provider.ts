@@ -13,7 +13,7 @@ export const driveProviderParamSchema = z.object({
 	accountId: z.string(),
 });
 export const driveProviderSlugParamSchema = z.object({
-	providerSlug: driveProviderSchema,
+	providerSlug: driveProviderSlugSchema,
 	accountId: z.string(),
 });
 export type DriveProvider = z.infer<typeof driveProviderSchema>;
