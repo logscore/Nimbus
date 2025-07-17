@@ -16,7 +16,7 @@
 		"docker:remove": "docker compose down --rmi local -v",
 		"docker:reset": "bun run docker:remove && bun run docker:up",
 		"fly:secrets:stage": "flyctl secrets import --stage < .env",
-		"fly:deploy": "bun run build && bash ../../scripts/fly:deploy.sh server"
+		"fly:deploy": "bun run build && bash ../../scripts/fly-deploy.sh server"
 	},
 	"dependencies": {
 		"@googleapis/drive": "^13.0.1",
