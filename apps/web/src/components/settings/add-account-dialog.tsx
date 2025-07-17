@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
 import { useGoogleAuth, useMicrosoftAuth } from "@/hooks/useAuth";
+import type { DriveProvider } from "@nimbus/shared";
 import { usePathname } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -14,7 +15,7 @@ type AddAccountDialogProps = {
 };
 
 export function AddAccountDialog({ open, onOpenChange, onAccountAdded }: AddAccountDialogProps) {
-	const [isLoading, setIsLoading] = useState<Record<string, boolean>>({
+	const [isLoading, setIsLoading] = useState<Record<DriveProvider, boolean>>({
 		google: false,
 		microsoft: false,
 	});
@@ -25,7 +26,7 @@ export function AddAccountDialog({ open, onOpenChange, onAccountAdded }: AddAcco
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
 
-	const handleSocialAuth = async (provider: "google" | "microsoft") => {
+	const handleSocialAuth = async (provider: DriveProvider) => {
 		try {
 			setIsLoading(prev => ({ ...prev, [provider]: true }));
 

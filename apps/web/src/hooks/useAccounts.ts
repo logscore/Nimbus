@@ -1,9 +1,10 @@
 import { authClient } from "@nimbus/auth/auth-client";
+import type { DriveProvider } from "@nimbus/shared";
 import { useEffect, useState } from "react";
 
 export interface Account {
 	id: string;
-	provider: string;
+	provider: DriveProvider;
 	createdAt: Date;
 	updatedAt: Date;
 	accountId: string;
@@ -23,16 +24,8 @@ export function useAccounts() {
 			if (response.error) {
 				throw new Error(response.error.statusText || "Failed to fetch accounts");
 			}
-			const accountsData = response.data;
-			setData(
-				Array.isArray(accountsData)
-					? accountsData.map(account => ({
-							...account,
-							createdAt: new Date(account.createdAt),
-							updatedAt: new Date(account.updatedAt),
-						}))
-					: []
-			);
+			const accountsData = response.data as Account[];
+			setData(accountsData);
 		} catch (err) {
 			if (!error) {
 				const defaultError = new Error("Failed to fetch accounts");

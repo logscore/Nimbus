@@ -1,5 +1,7 @@
+"use client";
+
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Area, AreaChart, XAxis } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp } from "lucide-react";

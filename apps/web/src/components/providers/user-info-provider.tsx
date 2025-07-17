@@ -10,15 +10,22 @@ interface DriveProviderState {
 	accounts: Account[] | null;
 	error: Error | null;
 	isLoading: boolean;
+	refreshUser: () => Promise<void>;
+	refreshAccounts: () => Promise<void>;
 }
 
 const DriveProviderContext = createContext<DriveProviderState | undefined>(undefined);
 
 export function UserInfoProvider({ children }: { children: ReactNode }) {
-	const { data: user, error: userError, isPending: userIsPending } = useGetUser();
-	const { data: accounts, error: accountsError, isPending: accountsIsPending } = useAccounts();
+	const { data: user, error: userError, isPending: userIsPending, refetch: refetchUser } = useGetUser();
+	const {
+		data: accounts,
+		error: accountsError,
+		isPending: accountsIsPending,
+		refetch: refetchAccounts,
+	} = useAccounts();
 
-	const [state, setState] = useState<DriveProviderState>(() => ({
+	const [state, setState] = useState<Omit<DriveProviderState, "refreshUser" | "refreshAccounts">>(() => ({
 		user: null,
 		accounts: null,
 		error: null,
@@ -66,6 +73,14 @@ export function UserInfoProvider({ children }: { children: ReactNode }) {
 		}
 	}, [accounts, accountsError, accountsIsPending]);
 
+	const refreshUser = async () => {
+		return await refetchUser();
+	};
+
+	const refreshAccounts = async () => {
+		return await refetchAccounts();
+	};
+
 	const updateError = (error: Error) => {
 		setState(prev => ({
 			...prev,
@@ -74,7 +89,11 @@ export function UserInfoProvider({ children }: { children: ReactNode }) {
 		}));
 	};
 
-	return <DriveProviderContext.Provider value={state}>{children}</DriveProviderContext.Provider>;
+	return (
+		<DriveProviderContext.Provider value={{ ...state, refreshUser, refreshAccounts }}>
+			{children}
+		</DriveProviderContext.Provider>
+	);
 }
 
 export function useUserInfoProvider() {

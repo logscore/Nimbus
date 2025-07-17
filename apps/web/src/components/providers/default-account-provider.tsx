@@ -21,7 +21,7 @@ export function DefaultAccountProvider({ children }: { children: ReactNode }) {
 	const router = useRouter();
 	const pathname = usePathname();
 
-	const [state, setState] = useState<Omit<AccountProvider, "setDriveProviderById">>(() => ({
+	const [state, setState] = useState<AccountProvider>(() => ({
 		defaultProviderSlug: null,
 		defaultProviderId: null,
 		defaultAccountId: null,
@@ -68,7 +68,7 @@ export function DefaultAccountProvider({ children }: { children: ReactNode }) {
 		}
 		navigateToProvider();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [state.defaultProviderSlug, state.defaultAccountId]);
+	}, [pathname, state.defaultProviderSlug, state.defaultAccountId]);
 
 	const navigateToProvider = () => {
 		const providerSlug = state.defaultProviderSlug;

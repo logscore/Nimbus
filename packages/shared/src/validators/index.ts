@@ -3,3 +3,4 @@ export * from "./file";
 export * from "./password";
 export * from "./provider";
 export * from "./tag";
+export * from "./user";
