@@ -58,22 +58,19 @@ export default function SidebarFolders() {
 				<SidebarGroupContent>
 					<SidebarMenu>
 						{folders.map(folder => (
-							<Collapsible key={folder.name} className="group/collapsible">
-								<SidebarMenuItem>
-									<CollapsibleTrigger asChild>
-										<SidebarMenuButton className="cursor-pointer px-3" tooltip={`${folder.name} (${folder.count})`}>
-											<folder.icon className="size-4" />
-											<span className="group-data-[collapsible=icon]:sr-only">{folder.name}</span>
-											<span className="text-sidebar-foreground/70 ml-1 text-xs group-data-[collapsible=icon]:sr-only">
-												{folder.count}
-											</span>
-											{folder.subfolders && (
+							<SidebarMenuItem key={folder.name}>
+								{folder.subfolders ? (
+									<Collapsible className="group/collapsible w-full">
+										<CollapsibleTrigger asChild>
+											<SidebarMenuButton className="cursor-pointer px-3" tooltip={`${folder.name} (${folder.count})`}>
+												<folder.icon className="size-4" />
+												<span className="group-data-[collapsible=icon]:sr-only">{folder.name}</span>
+												<span className="text-sidebar-foreground/70 ml-1 text-xs group-data-[collapsible=icon]:sr-only">
+													{folder.count}
+												</span>
 												<ChevronDown className="ml-auto size-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-180" />
-											)}
-										</SidebarMenuButton>
-									</CollapsibleTrigger>
-
-									{folder.subfolders && (
+											</SidebarMenuButton>
+										</CollapsibleTrigger>
 										<CollapsibleContent>
 											<SidebarMenuSub className="group-data-[collapsible=icon]:hidden">
 												{folder.subfolders.map(subfolder => (
@@ -86,9 +83,20 @@ export default function SidebarFolders() {
 												))}
 											</SidebarMenuSub>
 										</CollapsibleContent>
-									)}
-								</SidebarMenuItem>
-							</Collapsible>
+									</Collapsible>
+								) : (
+									<SidebarMenuButton
+										className="w-full cursor-pointer px-3"
+										tooltip={`${folder.name} (${folder.count})`}
+									>
+										<folder.icon className="size-4" />
+										<span className="group-data-[collapsible=icon]:sr-only">{folder.name}</span>
+										<span className="text-sidebar-foreground/70 ml-1 text-xs group-data-[collapsible=icon]:sr-only">
+											{folder.count}
+										</span>
+									</SidebarMenuButton>
+								)}
+							</SidebarMenuItem>
 						))}
 					</SidebarMenu>
 				</SidebarGroupContent>

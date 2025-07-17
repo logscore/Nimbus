@@ -4,13 +4,18 @@ import { useDriveInfo } from "@/hooks/useDriveOps";
 import { Moon, Settings, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fileSize } from "@/utils/fileSize";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { useEffect } from "react";
 import { toast } from "sonner";
 
 export default function StorageFooter() {
 	const { data, error, isError, isPending } = useDriveInfo();
 	const { theme, setTheme } = useTheme();
+	const [isMounted, setIsMounted] = useState(false);
+
+	useEffect(() => {
+		setIsMounted(true);
+	}, []);
 
 	useEffect(() => {
 		if (isError && error) {
@@ -46,8 +51,8 @@ export default function StorageFooter() {
 								<div className="h-4 w-32 animate-pulse rounded bg-neutral-300 dark:bg-neutral-500"></div>
 							) : (
 								<p className="text-sm font-medium text-neutral-500 dark:text-neutral-300">
-									{isPending || isError ? "--" : fileSize(data.usage)} of{" "}
-									{isPending || isError ? "--" : fileSize(data.limit)}
+									{/* Simplified logic to be cleaner */}
+									{isError || !data ? "--" : fileSize(data.usage)} of {isError || !data ? "--" : fileSize(data.limit)}
 								</p>
 							)}
 							<Button variant="link" className="text-xs font-medium text-neutral-800 dark:text-neutral-300">
@@ -56,13 +61,22 @@ export default function StorageFooter() {
 						</div>
 					</div>
 				</SidebarMenuItem>
-				<SidebarMenuButton
-					onClick={() => toggleTheme()}
-					className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
-				>
-					{theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-					<span>Theme</span>
-				</SidebarMenuButton>
+
+				{isMounted ? (
+					<SidebarMenuButton
+						onClick={toggleTheme}
+						className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
+					>
+						{theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+						<span>Theme</span>
+					</SidebarMenuButton>
+				) : (
+					<SidebarMenuButton disabled className="transition-all duration-200 ease-linear">
+						<div className="h-5 w-5 animate-pulse rounded-full bg-neutral-300 dark:bg-neutral-700" />
+						<span>Theme</span>
+					</SidebarMenuButton>
+				)}
+
 				<SidebarMenuButton className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700">
 					<Settings />
 					<span>Settings</span>
