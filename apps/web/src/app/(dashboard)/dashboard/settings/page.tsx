@@ -1,7 +1,7 @@
 "use client";
 
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { AddAccountDialog } from "@/components/settings/add-account-dialog";
@@ -46,9 +46,11 @@ export default function SettingsPage() {
 
 	if (isUserLoading) {
 		return (
-			<div className="flex h-full items-center justify-center">
-				<div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
-			</div>
+			<main className="flex-1 p-1">
+				<div className="flex h-full items-center justify-center">
+					<div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+				</div>
+			</main>
 		);
 	}
 
@@ -94,13 +96,13 @@ export default function SettingsPage() {
 	};
 
 	return (
-		<div className="flex h-screen flex-col">
+		<main className="flex h-screen flex-1 flex-col">
 			<SettingsHeader
 				title="Settings"
 				description="Manage your account settings and preferences"
 				showBackButton={true}
 			/>
-			<div className="container mx-auto flex-1 space-y-6 overflow-auto p-4">
+			<div className="container mx-auto flex-1 space-y-6 overflow-auto p-6">
 				<Card id="profile" className="py-6">
 					<CardHeader>
 						<CardTitle>Profile Information</CardTitle>
@@ -177,39 +179,6 @@ export default function SettingsPage() {
 					</CardFooter>
 				</Card>
 
-				<Card id="security" className="py-6">
-					<CardHeader>
-						<CardTitle>Security</CardTitle>
-						<CardDescription>Update your password and security settings</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="current-password">Current Password</Label>
-							<Input id="current-password" type="password" placeholder="Enter current password" />
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="new-password">New Password</Label>
-							<Input id="new-password" type="password" placeholder="Enter new password" />
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="confirm-password">Confirm New Password</Label>
-							<Input id="confirm-password" type="password" placeholder="Confirm new password" />
-						</div>
-					</CardContent>
-					<CardFooter className="flex justify-end">
-						<TooltipProvider>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button>Update Password</Button>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p>Update your account password</p>
-								</TooltipContent>
-							</Tooltip>
-						</TooltipProvider>
-					</CardFooter>
-				</Card>
-
 				<Card id="accounts" className="py-6">
 					<CardHeader>
 						<CardTitle>Connected Accounts</CardTitle>
@@ -217,7 +186,6 @@ export default function SettingsPage() {
 					</CardHeader>
 					<CardContent>
 						<Table>
-							<TableCaption>A list of your connected accounts</TableCaption>
 							<TableHeader>
 								<TableRow>
 									<TableHead>Provider</TableHead>
@@ -277,7 +245,40 @@ export default function SettingsPage() {
 						/>
 					</CardFooter>
 				</Card>
+
+				<Card id="security" className="py-6">
+					<CardHeader>
+						<CardTitle>Security</CardTitle>
+						<CardDescription>Update your password and security settings</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="current-password">Current Password</Label>
+							<Input id="current-password" type="password" placeholder="Enter current password" />
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="new-password">New Password</Label>
+							<Input id="new-password" type="password" placeholder="Enter new password" />
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="confirm-password">Confirm New Password</Label>
+							<Input id="confirm-password" type="password" placeholder="Confirm new password" />
+						</div>
+					</CardContent>
+					<CardFooter className="flex justify-end">
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button>Update Password</Button>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Update your account password</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					</CardFooter>
+				</Card>
 			</div>
-		</div>
+		</main>
 	);
 }
