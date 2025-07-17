@@ -3,10 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import type { DriveInfo } from "@nimbus/shared";
 
 export const useDriveInfo = () => {
-	const { clientPromise } = useAccountProvider();
+	const { clientPromise, providerId, accountId } = useAccountProvider();
 	return useQuery<DriveInfo>({
-		queryKey: ["driveInfo"],
+		queryKey: ["driveInfo", providerId, accountId],
 		queryFn: async () => {
+			console.log("getting drive info...");
 			const client = await clientPromise;
 			const response = await client.api.drives.about.$get();
 			return (await response.json()) as DriveInfo;

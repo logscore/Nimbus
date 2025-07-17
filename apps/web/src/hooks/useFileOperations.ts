@@ -12,9 +12,9 @@ import type { DriveProviderClient } from "@/utils/client";
 import { toast } from "sonner";
 
 export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: GetFilesSchema) {
-	const { clientPromise } = useAccountProvider();
+	const { clientPromise, providerId, accountId } = useAccountProvider();
 	return useQuery({
-		queryKey: ["files", parentId, pageSize, pageToken],
+		queryKey: ["files", providerId, accountId, parentId, pageSize, pageToken],
 		queryFn: async () => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await BASE_FILE_CLIENT.$get({
@@ -28,9 +28,9 @@ export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: G
 }
 
 export function useGetFile({ fileId, returnedValues }: GetFileByIdSchema) {
-	const { clientPromise } = useAccountProvider();
+	const { clientPromise, providerId, accountId } = useAccountProvider();
 	return useQuery({
-		queryKey: ["file", fileId, returnedValues],
+		queryKey: ["file", providerId, accountId, fileId, returnedValues],
 		queryFn: async () => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await BASE_FILE_CLIENT[":id"].$get({

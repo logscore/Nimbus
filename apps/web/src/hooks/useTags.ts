@@ -9,14 +9,14 @@ const TAGS_QUERY_KEY = "tags";
 
 export function useTags() {
 	const queryClient = useQueryClient();
-	const { clientPromise } = useAccountProvider();
+	const { clientPromise, providerId, accountId } = useAccountProvider();
 
 	const {
 		data: tags,
 		isLoading,
 		error,
 	} = useQuery<Tag[]>({
-		queryKey: [TAGS_QUERY_KEY],
+		queryKey: [TAGS_QUERY_KEY, providerId, accountId],
 		queryFn: () => getTags(clientPromise),
 	});
 
