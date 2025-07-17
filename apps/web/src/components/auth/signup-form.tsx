@@ -106,13 +106,13 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 								<SocialAuthButton
 									provider="google"
 									action="signup"
-									onClick={signInWithGoogleProvider}
+									onClick={() => signInWithGoogleProvider()}
 									disabled={isLoading}
 								/>
 								<SocialAuthButton
 									provider="microsoft"
 									action="signup"
-									onClick={signInWithMicrosoftProvider}
+									onClick={() => signInWithMicrosoftProvider()}
 									disabled={isLoading}
 								/>
 

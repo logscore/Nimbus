@@ -2,8 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cva, type VariantProps } from "class-variance-authority";
-import * as React from "react";
-
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const iconvVariants = cva("rounded-full border flex items-center justify-center", {
@@ -43,10 +42,10 @@ const getInitials = (name?: string | null) => {
 };
 
 const Profile = ({ className, url, name, size }: ProfileProps) => {
-	const [mounted, setMounted] = React.useState(false);
-	const initials = React.useMemo(() => getInitials(name), [name]);
+	const [mounted, setMounted] = useState(false);
+	const initials = useMemo(() => getInitials(name), [name]);
 
-	React.useEffect(() => {
+	useEffect(() => {
 		setMounted(true);
 	}, []);
 
