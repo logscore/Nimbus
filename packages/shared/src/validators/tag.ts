@@ -1,12 +1,8 @@
+import { limitedStringSchema } from "./string";
 import { fileIdObjectSchema } from "./file";
 import z from "zod";
 
-export const tagNameSchema = z
-	.string()
-	.min(1, "Tag name is required")
-	.max(50, "Tag name must be less than 50 characters")
-	.regex(/^[a-zA-Z0-9-_\s]+$/, "Tag name must contain only alphabetic characters, numbers, and spaces")
-	.trim();
+export const tagNameSchema = limitedStringSchema;
 
 export const hexColorSchema = z
 	.string()

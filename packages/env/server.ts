@@ -20,7 +20,7 @@ async function initCloudflareEnv() {
 			runtimeEnv = env as unknown as NodeJS.ProcessEnv;
 			isEdge = true;
 		}
-	} catch (error) {
+	} catch {
 		console.warn("Falling back to process.env as Cloudflare Workers environment was not detected");
 	}
 }

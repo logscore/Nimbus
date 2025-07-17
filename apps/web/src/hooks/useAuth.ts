@@ -34,13 +34,6 @@ const linkSessionWithProvider = async (provider: DriveProvider, callbackURL: str
 	});
 };
 
-export const unlinkAccount = async (provider: DriveProvider, accountId: string) => {
-	return await authClient.unlinkAccount({
-		providerId: provider,
-		accountId,
-	});
-};
-
 const handleAuthError = (error: unknown, defaultMessage: string): string => {
 	if (error instanceof Error) {
 		return error.message || defaultMessage;

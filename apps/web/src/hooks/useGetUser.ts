@@ -1,10 +1,9 @@
-import type { UserTableSelect } from "@nimbus/db/schema";
-import type { ApiResponse } from "@nimbus/shared";
+import type { ApiResponse, UserSchema } from "@nimbus/shared";
 import { protectedClient } from "@/utils/client";
 import { useEffect, useState } from "react";
 
 export function useGetUser() {
-	const [data, setData] = useState<UserTableSelect | null>(null);
+	const [data, setData] = useState<UserSchema | null>(null);
 	const [isPending, setIsPending] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 
@@ -20,7 +19,7 @@ export function useGetUser() {
 			}
 
 			const userData = await response.json();
-			const user: UserTableSelect = {
+			const user = {
 				...userData,
 				createdAt: new Date(userData.createdAt),
 				updatedAt: new Date(userData.updatedAt),

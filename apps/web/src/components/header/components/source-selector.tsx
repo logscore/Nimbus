@@ -7,10 +7,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useAccountProvider } from "@/components/providers/account-provider";
+import type { LimitedAccessAccount } from "@nimbus/shared";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronsUpDown, Plus } from "lucide-react";
 import GoogleDriveIcon from "@/public/googledrive";
-import type { Account } from "@/hooks/useAccounts";
 import { Button } from "@/components/ui/button";
 import { NimbusLogo } from "@/components/icons";
 import OneDriveIcon from "@/public/onedrive";
@@ -30,18 +30,23 @@ export function providerToIcon(providerId: string) {
 export function SourceSelector() {
 	const { accounts, isLoading } = useUserInfoProvider();
 	const { providerId, accountId, setDriveProviderById } = useAccountProvider();
-	const [selectedSource, setSelectedSource] = useState("Connect a source");
+	const [selectedAccountNickname, setSelectedAccountNickname] = useState<string | null>(null);
+	const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
 	const [selectedIcon, setSelectedIcon] = useState(<NimbusLogo className="h-5 w-5 text-black" />);
 
 	useEffect(() => {
 		if (providerId && accountId) {
-			setSelectedSource(providerId);
-			setSelectedIcon(providerToIcon(providerId));
+			const account = accounts?.find(account => account.providerId === providerId && account.accountId === accountId);
+			if (account) {
+				setSelectedAccountNickname(account.nickname);
+				setSelectedProviderId(account.providerId);
+				setSelectedIcon(providerToIcon(account.providerId));
+			}
 		}
-	}, [providerId, accountId]);
+	}, [providerId, accountId, accounts]);
 
-	const handleSourceSelect = (account: Account) => {
-		setDriveProviderById(account.provider, account.accountId);
+	const handleSourceSelect = (account: LimitedAccessAccount) => {
+		setDriveProviderById(account.providerId, account.accountId);
 	};
 
 	return (
@@ -53,8 +58,14 @@ export function SourceSelector() {
 					) : (
 						<div className="flex h-6 w-6 items-center justify-center rounded-md bg-white">{selectedIcon}</div>
 					)}
-					<span className="text-md leading-normal font-medium text-neutral-100 capitalize">
-						{isLoading ? "Loading..." : selectedSource}
+					<span className="text-md leading-normal font-medium text-neutral-100">
+						{isLoading ? (
+							"Loading..."
+						) : selectedAccountNickname ? (
+							<span>{selectedAccountNickname}</span>
+						) : (
+							<span className="capitalize">{selectedProviderId}</span>
+						)}
 					</span>
 					{!isLoading && (
 						<ChevronsUpDown
@@ -72,12 +83,16 @@ export function SourceSelector() {
 								<DropdownMenuItem
 									key={index}
 									onClick={() => handleSourceSelect(account)}
-									className="flex cursor-pointer items-center gap-2 font-medium capitalize"
+									className="flex cursor-pointer items-center gap-2 font-medium"
 								>
 									<div className="flex h-6 w-6 items-center justify-center rounded-md bg-white">
-										{providerToIcon(account.provider)}
+										{providerToIcon(account.providerId)}
 									</div>
-									<span>{account.provider}</span>
+									{account.nickname ? (
+										<span>{account.nickname}</span>
+									) : (
+										<span className="capitalize">{account.providerId}</span>
+									)}
 								</DropdownMenuItem>
 							))
 						) : (

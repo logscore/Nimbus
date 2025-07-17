@@ -18,7 +18,7 @@ export const driveProviderSlugParamSchema = z.object({
 });
 export type DriveProvider = z.infer<typeof driveProviderSchema>;
 export type DriveProviderSlug = z.infer<typeof driveProviderSlugSchema>;
-export type DriveProviderSlugParamSchema = z.infer<typeof driveProviderSlugParamSchema>;
+export type DriveProviderSlugParam = z.infer<typeof driveProviderSlugParamSchema>;
 
 // Create provider schema by combining social providers with "credential"
 // https://www.better-auth.com/docs/authentication/email-password#configuration

@@ -179,6 +179,16 @@ export const createAuth = () => {
 				enabled: true,
 				allowDifferentEmails: true,
 			},
+			additionalFields: {
+				nickname: {
+					type: "string",
+					fieldName: "nickname",
+					input: true,
+					returned: true,
+					required: false,
+					unique: true,
+				},
+			},
 		},
 
 		advanced: {

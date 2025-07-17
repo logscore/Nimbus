@@ -2,7 +2,7 @@ import {
 	type DriveProvider,
 	type DriveProviderHeaders,
 	type DriveProviderSlug,
-	type DriveProviderSlugParamSchema,
+	type DriveProviderSlugParam,
 	providerToSlug,
 	slugToProvider,
 } from "@nimbus/shared";
@@ -36,7 +36,7 @@ const AccountProviderContext = createContext<AccountProviderContextType | null>(
 export function AccountProvider({ children }: { children: React.ReactNode }) {
 	const router = useRouter();
 	const pathname = usePathname();
-	const { providerSlug: providerSlugParam, accountId: accountIdParam } = useParams<DriveProviderSlugParamSchema>();
+	const { providerSlug: providerSlugParam, accountId: accountIdParam } = useParams<DriveProviderSlugParam>();
 
 	const [providerSlug, setProviderSlug] = useState<string | null>(providerSlugParam);
 	const [providerId, setProviderId] = useState<string | null>(

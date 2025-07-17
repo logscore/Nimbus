@@ -1,13 +1,14 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { useAccounts, type Account } from "@/hooks/useAccounts";
+import type { LimitedAccessAccount } from "@nimbus/shared";
 import type { SessionUser } from "@nimbus/auth/auth";
+import { useAccounts } from "@/hooks/useAccounts";
 import { useGetUser } from "@/hooks/useGetUser";
 
 interface DriveProviderState {
 	user: SessionUser | null;
-	accounts: Account[] | null;
+	accounts: LimitedAccessAccount[] | null;
 	error: Error | null;
 	isLoading: boolean;
 	refreshUser: () => Promise<void>;

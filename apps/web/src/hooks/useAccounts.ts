@@ -1,18 +1,9 @@
-import { authClient } from "@nimbus/auth/auth-client";
-import type { DriveProvider } from "@nimbus/shared";
+import type { ApiResponse, LimitedAccessAccount } from "@nimbus/shared";
+import { protectedClient } from "@/utils/client";
 import { useEffect, useState } from "react";
 
-export interface Account {
-	id: string;
-	provider: DriveProvider;
-	createdAt: Date;
-	updatedAt: Date;
-	accountId: string;
-	scopes: string[];
-}
-
 export function useAccounts() {
-	const [data, setData] = useState<Account[]>([]);
+	const [data, setData] = useState<LimitedAccessAccount[]>([]);
 	const [isPending, setIsPending] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 
@@ -20,12 +11,20 @@ export function useAccounts() {
 		try {
 			setIsPending(true);
 			setError(null);
-			const response = await authClient.listAccounts();
-			if (response.error) {
-				throw new Error(response.error.statusText || "Failed to fetch accounts");
+			const response = await protectedClient.api.account.$get();
+
+			if (!response.ok) {
+				const data = (await response.json()) as unknown as ApiResponse;
+				throw new Error(data.message || "Failed to fetch accounts");
 			}
-			const accountsData = response.data as Account[];
-			setData(accountsData);
+
+			const accountsData = await response.json();
+			const accountsDataParsed: LimitedAccessAccount[] = accountsData.map(account => ({
+				...account,
+				createdAt: new Date(account.createdAt),
+				updatedAt: new Date(account.updatedAt),
+			}));
+			setData(accountsDataParsed);
 		} catch (err) {
 			if (!error) {
 				const defaultError = new Error("Failed to fetch accounts");

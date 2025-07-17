@@ -9,8 +9,8 @@ import { toast } from "sonner";
 
 import { useDefaultAccountProvider } from "@/components/providers/default-account-provider";
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
+import { useUnlinkAccount } from "@/hooks/useUnlinkAccount";
 import { protectedClient } from "@/utils/client";
-import { unlinkAccount } from "@/hooks/useAuth";
 
 import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
 import { SecuritySection } from "@/components/settings/security-section";
@@ -21,8 +21,9 @@ import { capitalizeFirstLetter } from "@nimbus/shared";
 // TODO(feat): back button in header goes to a callbackUrl
 
 export default function SettingsPage() {
-	const { user, accounts, error, isLoading, refreshUser } = useUserInfoProvider();
+	const { user, accounts, error, isLoading, refreshUser, refreshAccounts } = useUserInfoProvider();
 	const { defaultAccountId } = useDefaultAccountProvider();
+	const { unlinkAccount } = useUnlinkAccount();
 	const [name, setName] = useState(user?.name || "");
 	const [email, setEmail] = useState(user?.email || "");
 	const [isSaving, setIsSaving] = useState(false);
@@ -38,6 +39,7 @@ export default function SettingsPage() {
 		}
 	}, [user]);
 
+	// TODO(feat): change profile image
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (file) {
@@ -45,15 +47,17 @@ export default function SettingsPage() {
 		}
 	};
 
-	const handleSaveChanges = async () => {
+	const handleSaveProfile = async () => {
 		try {
 			setIsSaving(true);
+			let isUpdated = false;
 
 			if (user?.email !== email) {
 				await authClient.changeEmail({
 					newEmail: email,
 					callbackURL: `${env.NEXT_PUBLIC_FRONTEND_URL}/verify-email`,
 				});
+				isUpdated = true;
 			}
 
 			if (user?.name !== name || user?.image !== previewUrl) {
@@ -61,9 +65,13 @@ export default function SettingsPage() {
 					name,
 					image: previewUrl,
 				});
+				isUpdated = true;
 			}
 
-			toast.success("Profile updated successfully!");
+			if (isUpdated) {
+				await refreshUser();
+				toast.success("Profile updated successfully");
+			}
 		} catch (error) {
 			console.error("Failed to update profile:", error);
 			toast.error("Failed to update profile. Please try again.");
@@ -74,17 +82,13 @@ export default function SettingsPage() {
 
 	const handleDisconnectAccount = async (provider: DriveProvider, accountId: string) => {
 		const toastErrorMessage = `Failed to disconnect ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
-		try {
-			if (defaultAccountId === accountId) {
-				toast.error("Cannot disconnect the default account. Set another account as default first.");
-				return;
-			}
 
+		try {
 			const response = await unlinkAccount(provider, accountId);
-			if (response.error) {
+			if (response?.error) {
 				throw new Error(response.error.message || toastErrorMessage);
 			}
-			await refreshUser();
+			await refreshAccounts();
 			toast.success(`Disconnected ${capitalizeFirstLetter(provider)} account`);
 		} catch (error) {
 			console.error(`Failed to disconnect account`, error);
@@ -94,7 +98,7 @@ export default function SettingsPage() {
 
 	const handleSetDefaultAccount = async (provider: DriveProvider, accountId: string) => {
 		setIsSettingDefault(accountId);
-		const toastErrorMessage = `Failed to set ${capitalizeFirstLetter(provider)} as default account`;
+		const toastErrorMessage = `Failed to set ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
 
 		try {
 			const response = await protectedClient.api.user.$put({
@@ -103,13 +107,11 @@ export default function SettingsPage() {
 					defaultAccountId: accountId,
 				},
 			});
-
 			if (!response.ok) {
 				const data = (await response.json()) as unknown as ApiResponse;
-				throw new Error(data.message || "Failed to update default account");
+				throw new Error(data.message || toastErrorMessage);
 			}
-
-			await refreshUser();
+			await refreshAccounts();
 			toast.success(`${capitalizeFirstLetter(provider)} account set as default`);
 		} catch (error) {
 			console.error("Failed to set default account:", error);
@@ -119,12 +121,39 @@ export default function SettingsPage() {
 		}
 	};
 
+	const handleUpdateAccount = async (
+		provider: DriveProvider,
+		accountId: string,
+		tableAccountId: string,
+		nickname: string
+	) => {
+		const toastErrorMessage = `Failed to update ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
+
+		try {
+			const response = await protectedClient.api.account.$put({
+				json: {
+					id: tableAccountId,
+					nickname,
+				},
+			});
+			if (!response.ok) {
+				const data = (await response.json()) as unknown as ApiResponse;
+				throw new Error(data.message || toastErrorMessage);
+			}
+			await refreshAccounts();
+			toast.success(`${capitalizeFirstLetter(provider)} account updated`);
+		} catch (error) {
+			console.error("Failed to update account:", error);
+			toast.error(toastErrorMessage);
+		}
+	};
+
 	if (isLoading || error) {
 		return <LoadingStatePage error={error} />;
 	}
 
 	return (
-		<div className="flex h-screen flex-1 flex-col">
+		<div className="flex flex-1 flex-col">
 			<SettingsHeader
 				title="Settings"
 				description="Manage your account settings and preferences"
@@ -138,7 +167,7 @@ export default function SettingsPage() {
 					onNameChange={setName}
 					onEmailChange={setEmail}
 					onFileChange={handleFileChange}
-					onSave={handleSaveChanges}
+					onSave={handleSaveProfile}
 					isSaving={isSaving}
 				/>
 
@@ -148,6 +177,7 @@ export default function SettingsPage() {
 					isSettingDefault={isSettingDefault}
 					onDisconnect={handleDisconnectAccount}
 					onSetDefault={handleSetDefaultAccount}
+					onUpdateAccount={handleUpdateAccount}
 					isAddAccountDialogOpen={isAddAccountDialogOpen}
 					onAddAccountDialogOpenChange={setIsAddAccountDialogOpen}
 				/>
