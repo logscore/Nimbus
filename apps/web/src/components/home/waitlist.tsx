@@ -140,7 +140,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
 	return (
 		<div className={cn("mx-auto flex w-full max-w-3xl flex-col items-center justify-center gap-4", className)}>
 			{waitlist.success ? (
-				<div className="flex flex-col items-center justify-center gap-4 rounded-xl border-1 border-dashed border-neutral-500 bg-neutral-900 p-4 text-center">
+				<div className="flex flex-col items-center justify-center gap-4 rounded-xl border-1 border-dashed bg-white p-4 text-center dark:border-neutral-500 dark:bg-neutral-900">
 					<p className="text-xl font-semibold">Welcome to the waitlist! 🎉</p>
 					<p className="text-muted-foreground text-base">
 						We&apos;ll let you know when we&#39;re ready to show you what we&#39;ve been working on.

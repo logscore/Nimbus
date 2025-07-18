@@ -58,7 +58,7 @@ export function SourceSelector() {
 					) : (
 						<div className="flex h-6 w-6 items-center justify-center rounded-md bg-white">{selectedIcon}</div>
 					)}
-					<span className="text-md leading-normal font-medium text-neutral-100">
+					<span className="text-md leading-normal font-medium dark:text-neutral-100">
 						{isLoading ? (
 							"Loading..."
 						) : selectedAccountNickname ? (
@@ -70,7 +70,7 @@ export function SourceSelector() {
 					{!isLoading && (
 						<ChevronsUpDown
 							style={{ height: "14px", width: "14px" }}
-							className="flex h-3 w-3 items-center justify-center gap-2.5 font-bold text-neutral-400"
+							className="flex h-3 w-3 items-center justify-center gap-2.5 font-bold text-neutral-400 dark:text-neutral-200"
 						/>
 					)}
 				</Button>
