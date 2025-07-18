@@ -3,10 +3,11 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
 import { useGoogleAuth, useMicrosoftAuth } from "@/hooks/useAuth";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import type { DriveProvider } from "@nimbus/shared";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
 
 type AddAccountDialogProps = {
 	open: boolean;
@@ -15,16 +16,22 @@ type AddAccountDialogProps = {
 };
 
 export function AddAccountDialog({ open, onOpenChange, onAccountAdded }: AddAccountDialogProps) {
+	const isMounted = useIsMounted();
+	const pathname = usePathname();
+	const [callbackURL, setCallbackURL] = useState<string>("");
 	const [isLoading, setIsLoading] = useState<Record<DriveProvider, boolean>>({
 		google: false,
 		microsoft: false,
 	});
-
-	const pathname = usePathname();
-	const callbackURL = `${window.location.origin}${pathname}`;
-
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
+
+	useEffect(() => {
+		if (isMounted) {
+			const callbackURL = `${window.location.origin}${pathname}`;
+			setCallbackURL(callbackURL);
+		}
+	}, [isMounted, pathname]);
 
 	const handleSocialAuth = async (provider: DriveProvider) => {
 		try {

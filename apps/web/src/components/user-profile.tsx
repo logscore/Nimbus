@@ -2,8 +2,9 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cva, type VariantProps } from "class-variance-authority";
-import { useEffect, useMemo, useState } from "react";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import { cn } from "@/lib/utils";
+import { useMemo } from "react";
 
 const iconvVariants = cva("rounded-full border flex items-center justify-center", {
 	variants: {
@@ -42,12 +43,8 @@ const getInitials = (name?: string | null) => {
 };
 
 const Profile = ({ className, url, name, size }: ProfileProps) => {
-	const [isMounted, setIsMounted] = useState(false);
+	const isMounted = useIsMounted();
 	const initials = useMemo(() => getInitials(name), [name]);
-
-	useEffect(() => {
-		setIsMounted(true);
-	}, []);
 
 	// Don't render anything on the server to avoid hydration mismatch
 	if (!isMounted) {

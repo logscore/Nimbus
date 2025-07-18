@@ -1,13 +1,9 @@
 import { useTheme as useNextTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useIsMounted } from "./useIsMounted";
 
 export const useTheme = () => {
 	const { theme, setTheme } = useNextTheme();
-	const [isMounted, setIsMounted] = useState(false);
-
-	useEffect(() => {
-		setIsMounted(true);
-	}, []);
+	const isMounted = useIsMounted();
 
 	const toggleTheme = (): void => {
 		setTheme(theme === "dark" ? "light" : "dark");
