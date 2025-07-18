@@ -1,7 +1,6 @@
 import {
 	ChevronUp,
 	ChevronDown,
-	ChevronsUpDown,
 	// Folder,
 	// FileText,
 	// ImageIcon,
@@ -23,13 +22,14 @@ import {
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatFileSize } from "@/lib/file-utils";
+import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 // import { PdfIcon } from "@/components/icons";
 import { FileActions } from "./file-actions";
 import type { _File } from "@/lib/types";
-import React, { useMemo } from "react";
 import { format } from "date-fns";
 
 // Utility function for date formatting
@@ -61,14 +61,15 @@ const formatDate = (dateString: string | null): string => {
 
 interface FileTableProps {
 	files: _File[];
+	isLoading: boolean;
 }
 
 const columnHelper = createColumnHelper<_File>();
 
-export function FileTable({ files }: FileTableProps) {
+export function FileTable({ files, isLoading }: FileTableProps) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [sorting, setSorting] = useState<SortingState>([]);
 
 	const handleRowDoubleClick = (file: _File) => {
 		const fileType =
@@ -88,20 +89,17 @@ export function FileTable({ files }: FileTableProps) {
 					<Button
 						variant="ghost"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="h-auto p-0 font-medium text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+						className="h-8 w-full justify-start px-0 text-left text-neutral-500 hover:text-neutral-300 has-[>svg]:px-0 dark:hover:bg-transparent"
 					>
 						Name
-						{column.getIsSorted() === "asc" ? (
-							<ChevronUp className="ml-2 h-4 w-4" />
-						) : column.getIsSorted() === "desc" ? (
-							<ChevronDown className="ml-2 h-4 w-4" />
-						) : (
-							<ChevronsUpDown className="ml-2 h-4 w-4" />
-						)}
+						<div className="w-6">
+							{column.getIsSorted() === "asc" && <ChevronUp className="w-6" />}
+							{column.getIsSorted() === "desc" && <ChevronDown className="w-6" />}
+						</div>
 					</Button>
 				),
 				cell: ({ getValue }) => (
-					<div className="font-medium text-neutral-900 dark:text-neutral-100">
+					<div className="">
 						{/* <div className="flex-shrink-0">{getModernFileIcon(getValue.mimeType, file.name)}</div> */}
 						{getValue()}
 					</div>
@@ -113,19 +111,16 @@ export function FileTable({ files }: FileTableProps) {
 					<Button
 						variant="ghost"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="h-auto p-0 font-medium text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+						className="h-8 w-full justify-start px-0 text-left text-neutral-500 hover:text-neutral-300 has-[>svg]:px-0 dark:hover:bg-transparent"
 					>
 						Date Modified
-						{column.getIsSorted() === "asc" ? (
-							<ChevronUp className="ml-2 h-4 w-4" />
-						) : column.getIsSorted() === "desc" ? (
-							<ChevronDown className="ml-2 h-4 w-4" />
-						) : (
-							<ChevronsUpDown className="ml-2 h-4 w-4" />
-						)}
+						<div className="w-6">
+							{column.getIsSorted() === "asc" && <ChevronUp className="w-6" />}
+							{column.getIsSorted() === "desc" && <ChevronDown className="w-6" />}
+						</div>
 					</Button>
 				),
-				cell: ({ getValue }) => <div className="text-neutral-600 dark:text-neutral-400">{formatDate(getValue())}</div>,
+				cell: ({ getValue }) => <div className="">{formatDate(getValue())}</div>,
 				sortingFn: (rowA, rowB) => {
 					const a = rowA.original.modificationDate;
 					const b = rowB.original.modificationDate;
@@ -142,16 +137,13 @@ export function FileTable({ files }: FileTableProps) {
 					<Button
 						variant="ghost"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="h-auto p-0 font-medium text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+						className="h-8 w-full justify-start px-0 text-left text-neutral-500 hover:text-neutral-300 has-[>svg]:px-0 dark:hover:bg-transparent"
 					>
 						Owner
-						{column.getIsSorted() === "asc" ? (
-							<ChevronUp className="ml-2 h-4 w-4" />
-						) : column.getIsSorted() === "desc" ? (
-							<ChevronDown className="ml-2 h-4 w-4" />
-						) : (
-							<ChevronsUpDown className="ml-2 h-4 w-4" />
-						)}
+						<div className="w-6">
+							{column.getIsSorted() === "asc" && <ChevronUp className="w-6" />}
+							{column.getIsSorted() === "desc" && <ChevronDown className="w-6" />}
+						</div>
 					</Button>
 				),
 				cell: () => <div className="text-neutral-600 dark:text-neutral-400">You</div>,
@@ -162,21 +154,16 @@ export function FileTable({ files }: FileTableProps) {
 					<Button
 						variant="ghost"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="h-auto p-0 font-medium text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+						className="h-8 w-full justify-start px-0 text-left text-neutral-500 hover:text-neutral-300 has-[>svg]:px-0 dark:hover:bg-transparent"
 					>
 						Size
-						{column.getIsSorted() === "asc" ? (
-							<ChevronUp className="ml-2 h-4 w-4" />
-						) : column.getIsSorted() === "desc" ? (
-							<ChevronDown className="ml-2 h-4 w-4" />
-						) : (
-							<ChevronsUpDown className="ml-2 h-4 w-4" />
-						)}
+						<div className="w-6">
+							{column.getIsSorted() === "asc" && <ChevronUp className="w-6" />}
+							{column.getIsSorted() === "desc" && <ChevronDown className="w-6" />}
+						</div>
 					</Button>
 				),
-				cell: ({ getValue }) => (
-					<div className="text-neutral-600 dark:text-neutral-400">{formatFileSize(Number(getValue()))}</div>
-				),
+				cell: ({ getValue }) => <div className="">{formatFileSize(Number(getValue()))}</div>,
 			}),
 
 			columnHelper.accessor("tags", {
@@ -184,32 +171,25 @@ export function FileTable({ files }: FileTableProps) {
 					<Button
 						variant="ghost"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-						className="h-auto p-0 font-medium text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+						className="h-8 w-full justify-start px-0 text-left text-neutral-500 hover:text-neutral-300 has-[>svg]:px-0 dark:hover:bg-transparent"
 					>
 						Tags
-						{column.getIsSorted() === "asc" ? (
-							<ChevronUp className="ml-2 h-4 w-4" />
-						) : column.getIsSorted() === "desc" ? (
-							<ChevronDown className="ml-2 h-4 w-4" />
-						) : (
-							<ChevronsUpDown className="ml-2 h-4 w-4" />
-						)}
+						<div className="w-6">
+							{column.getIsSorted() === "asc" && <ChevronUp className="w-6" />}
+							{column.getIsSorted() === "desc" && <ChevronDown className="w-6" />}
+						</div>
 					</Button>
 				),
 				cell: ({ getValue }) => {
 					const tags = getValue();
 					if (!tags || tags.length === 0) {
-						return <div className="text-neutral-400 dark:text-neutral-600">—</div>;
+						return <div className="">—</div>;
 					}
 
 					return (
-						<div className="scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-neutral-100 dark:scrollbar-thumb-neutral-600 dark:scrollbar-track-neutral-800 flex max-w-xs gap-1 overflow-x-auto">
+						<div className="">
 							{tags.map(tag => (
-								<Badge
-									key={tag.id}
-									variant="secondary"
-									className="shrink-0 bg-neutral-100 text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-								>
+								<Badge key={tag.id} variant="secondary" className="">
 									{tag.name}
 								</Badge>
 							))}
@@ -241,17 +221,23 @@ export function FileTable({ files }: FileTableProps) {
 		getSortedRowModel: getSortedRowModel(),
 	});
 
+	if (isLoading) {
+		return (
+			<div className="p-8 text-center">
+				<div className="mx-auto h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600"></div>
+				<p className="mt-2 text-neutral-500">Loading files...</p>
+			</div>
+		);
+	}
+
 	return (
-		<div className="rounded-md">
+		<ScrollArea className="h-[785px] w-full px-2">
 			<Table>
-				<TableHeader className="flex flex-col items-start self-stretch border-b border-neutral-200 pl-3.5 dark:border-neutral-800">
+				<TableHeader className="hover:bg-transparent">
 					{table.getHeaderGroups().map(headerGroup => (
-						<TableRow key={headerGroup.id} className="bg-neutral-50 dark:bg-neutral-900">
+						<TableRow key={headerGroup.id} className="h-6 hover:bg-transparent">
 							{headerGroup.headers.map(header => (
-								<TableHead
-									key={header.id}
-									className="px-4 py-3 text-left text-sm font-medium text-neutral-700 dark:text-neutral-300"
-								>
+								<TableHead key={header.id} className="whitespace-nowrap">
 									{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 								</TableHead>
 							))}
@@ -260,11 +246,8 @@ export function FileTable({ files }: FileTableProps) {
 				</TableHeader>
 				<TableBody>
 					{table.getRowModel().rows.length === 0 ? (
-						<TableRow>
-							<TableCell
-								colSpan={columns.length}
-								className="px-4 py-8 text-center text-neutral-500 dark:text-neutral-400"
-							>
+						<TableRow className="h-8 hover:bg-transparent">
+							<TableCell colSpan={columns.length} className="py-0">
 								No files found
 							</TableCell>
 						</TableRow>
@@ -272,11 +255,11 @@ export function FileTable({ files }: FileTableProps) {
 						table.getRowModel().rows.map(row => (
 							<TableRow
 								key={row.id}
-								className="border-b border-neutral-100 transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900"
+								className="h-8 hover:bg-transparent"
 								onDoubleClick={() => handleRowDoubleClick(row.original)}
 							>
 								{row.getVisibleCells().map(cell => (
-									<TableCell key={cell.id} className="px-4 py-3 text-sm">
+									<TableCell key={cell.id} className="h-10 py-0 whitespace-nowrap">
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								))}
@@ -285,7 +268,7 @@ export function FileTable({ files }: FileTableProps) {
 					)}
 				</TableBody>
 			</Table>
-		</div>
+		</ScrollArea>
 	);
 }
 

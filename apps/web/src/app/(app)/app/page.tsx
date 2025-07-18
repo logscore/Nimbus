@@ -11,7 +11,7 @@ export default function DrivePage() {
 	const searchParams = useSearchParams();
 	const folderId = searchParams.get("folderId") ?? "root";
 
-	const { data } = useGetFiles(
+	const { data, isLoading } = useGetFiles(
 		folderId,
 		30,
 		// TODO: implement sorting, filtering, pagination, and a generalized web content/view interfaces
@@ -22,11 +22,9 @@ export default function DrivePage() {
 		<>
 			<Suspense fallback={null}>
 				<Header />
-				<div className="flex flex-1 flex-col p-2">
-					<div className="flex-1">
-						{/* <FileBrowser /> */}
-						<FileTable files={data} />
-					</div>
+				<div className="flex flex-1 flex-col">
+					{/* <FileBrowser /> */}
+					<FileTable files={data} isLoading={isLoading} />
 				</div>
 			</Suspense>
 		</>
