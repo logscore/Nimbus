@@ -1,214 +1,163 @@
 import {
+	addTagsToFileJsonSchema,
+	addTagsToFileParamSchema,
 	createTagSchema,
-	updateTagSchema,
 	deleteTagSchema,
+	getFileByIdParamSchema,
 	getTagByIdSchema,
-	addTagsToFileSchema,
-	removeTagsFromFileSchema,
-} from "@/validators";
-import type { TagOperationResponse, FileTagOperationResponse } from "@/routes/types";
-import { TagService } from "@/routes/tags/tag-service";
-import type { Context } from "hono";
-import { Hono } from "hono";
+	removeTagsFromFileJsonSchema,
+	removeTagsFromFileParamSchema,
+	updateTagJsonSchema,
+	updateTagParamSchema,
+} from "@nimbus/shared";
+import { fileGetRateLimiter } from "@nimbus/cache/rate-limiters";
+import { buildUserSecurityMiddleware } from "../../middleware";
+import { createDriveProviderRouter } from "../../hono";
+import { sendError, sendSuccess } from "../utils";
+import { zValidator } from "@hono/zod-validator";
+import { TagService } from "./tag-service";
 
-const tagsRouter = new Hono();
 const tagService = new TagService();
 
-// Get all tags for the authenticated user
-tagsRouter.get("/", async (c: Context) => {
-	const user = c.get("user");
-
-	try {
-		const tags = await tagService.getUserTags(user.id);
-		return c.json<TagOperationResponse>({ success: true, message: "Tags retrieved successfully", data: tags });
-	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to get tags" },
-			500
-		);
-	}
-});
-
-// Get a specific tag by tag id (and the authenticated user id)
-tagsRouter.get("/:id", async (c: Context) => {
-	const user = c.get("user");
-
-	// Validation
-	const { error, data } = getTagByIdSchema.safeParse(c.req.param());
-	if (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error.errors[0]?.message || "Validation error" },
-			400
-		);
-	}
-
-	try {
-		const tag = await tagService.getTagById(data.id, user.id);
-		if (!tag) {
-			return c.json<TagOperationResponse>({ success: false, message: "Tag not found" }, 404);
+const tagsRouter = createDriveProviderRouter()
+	// Get all tags for the authenticated user
+	.get("/", async c => {
+		const user = c.var.user;
+		try {
+			const tags = await tagService.getUserTags(user.id);
+			return sendSuccess(c, { data: tags });
+		} catch (error) {
+			if (error instanceof Error) {
+				return sendError(c, error);
+			}
 		}
-		return c.json<TagOperationResponse>({ success: true, message: "Tag retrieved successfully", data: tag });
-	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to get tag" },
-			500
-		);
-	}
-});
+	})
 
-// Create a new tag
-tagsRouter.post("/", async (c: Context) => {
-	const user = c.get("user");
-
-	try {
-		// Validation
-		const { error, data } = createTagSchema.safeParse(await c.req.json());
-		if (error) {
-			return c.json<TagOperationResponse>(
-				{ success: false, message: error.errors[0]?.message || "Validation error" },
-				400
-			);
+	// Get a specific tag by tag id (and the authenticated user id)
+	.get("/:id", buildUserSecurityMiddleware(fileGetRateLimiter), zValidator("param", getTagByIdSchema), async c => {
+		const user = c.var.user;
+		const paramData = c.req.valid("param");
+		try {
+			const tag = await tagService.getTagById(paramData.id, user.id);
+			if (!tag) {
+				return sendError(c, { message: "Tag not found", status: 404 });
+			}
+			return sendSuccess(c, { data: tag });
+		} catch (error) {
+			if (error instanceof Error) {
+				return sendError(c, error);
+			}
 		}
+	})
 
-		// Create tag
-		const newTag = await tagService.createTag(user.id, data.name, data.color, data.parentId);
-		return c.json<TagOperationResponse>({ success: true, message: "Tag created successfully", data: newTag }, 201);
-	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to create tag" },
-			500
-		);
-	}
-});
-
-// Update an existing tag
-tagsRouter.put("/:id", async (c: Context) => {
-	const user = c.get("user");
-
-	// Validation
-	const { error: paramError, data: paramData } = getTagByIdSchema.safeParse(c.req.param());
-	if (paramError) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: paramError.errors[0]?.message || "Validation error" },
-			400
-		);
-	}
-
-	try {
-		const { error: bodyError, data: bodyData } = updateTagSchema.safeParse(await c.req.json());
-		if (bodyError) {
-			return c.json<TagOperationResponse>(
-				{ success: false, message: bodyError.errors[0]?.message || "Validation error" },
-				400
-			);
+	// Create a new tag
+	.post("/", buildUserSecurityMiddleware(fileGetRateLimiter), zValidator("json", createTagSchema), async c => {
+		const user = c.var.user;
+		const data = c.req.valid("json");
+		try {
+			const newTag = await tagService.createTag(user.id, data.name, data.color, data.parentId);
+			return sendSuccess(c, { data: newTag });
+		} catch (error) {
+			if (error instanceof Error) {
+				return sendError(c, error);
+			}
 		}
-		const updatedTag = await tagService.updateTag(paramData.id, user.id, bodyData);
-		return c.json<TagOperationResponse>({ success: true, message: "Tag updated successfully", data: updatedTag });
-	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to update tag" },
-			500
-		);
-	}
-});
+	})
 
-// Delete a tag
-tagsRouter.delete("/:id", async (c: Context) => {
-	const user = c.get("user");
-
-	// Validation
-	const { error, data } = deleteTagSchema.safeParse(c.req.param());
-	if (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error.errors[0]?.message || "Validation error" },
-			400
-		);
-	}
-
-	try {
-		await tagService.deleteTag(data.id, user.id);
-		return c.json<TagOperationResponse>({ success: true, message: "Tag deleted successfully" });
-	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to delete tag" },
-			500
-		);
-	}
-});
-
-// Add tags to a file
-tagsRouter.post("/files/:fileId", async (c: Context) => {
-	const user = c.get("user");
-
-	try {
-		// Validation
-		const { error: paramError, data: paramData } = addTagsToFileSchema.safeParse({
-			fileId: c.req.param("fileId"),
-			...(await c.req.json()),
-		});
-		if (paramError) {
-			return c.json<FileTagOperationResponse>(
-				{ success: false, message: paramError.errors[0]?.message || "Validation error" },
-				400
-			);
+	// Update an existing tag
+	.put(
+		"/:id",
+		buildUserSecurityMiddleware(fileGetRateLimiter),
+		zValidator("param", updateTagParamSchema),
+		zValidator("json", updateTagJsonSchema),
+		async c => {
+			const user = c.var.user;
+			const paramData = c.req.valid("param");
+			const bodyData = c.req.valid("json");
+			try {
+				const updatedTag = await tagService.updateTag(paramData.id, user.id, bodyData);
+				return sendSuccess(c, { data: updatedTag });
+			} catch (error) {
+				if (error instanceof Error) {
+					return sendError(c, error);
+				}
+			}
 		}
+	)
 
-		// Add tags to file
-		const fileTags = await tagService.addTagsToFile(paramData.fileId, paramData.tagIds, user.id);
-		return c.json<FileTagOperationResponse>({
-			success: true,
-			message: "Tags added to file successfully",
-			data: fileTags,
-		});
-	} catch (error) {
-		return c.json<FileTagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to add tags to file" },
-			500
-		);
-	}
-});
-
-// Remove tags from a file
-tagsRouter.delete("/files/:fileId", async (c: Context) => {
-	const user = c.get("user");
-
-	try {
-		// Validation
-		const { error: paramError, data: paramData } = removeTagsFromFileSchema.safeParse({
-			fileId: c.req.param("fileId"),
-			...(await c.req.json()),
-		});
-		if (paramError) {
-			return c.json<FileTagOperationResponse>(
-				{ success: false, message: paramError.errors[0]?.message || "Validation error" },
-				400
-			);
+	// Delete a tag
+	.delete("/:id", buildUserSecurityMiddleware(fileGetRateLimiter), zValidator("param", deleteTagSchema), async c => {
+		const user = c.var.user;
+		const paramData = c.req.valid("param");
+		try {
+			await tagService.deleteTag(paramData.id, user.id);
+			return sendSuccess(c, { message: "Tag deleted successfully", status: 200 });
+		} catch (error) {
+			if (error instanceof Error) {
+				return sendError(c, error);
+			}
 		}
+	})
 
-		await tagService.removeTagsFromFile(paramData.fileId, paramData.tagIds, user.id);
-		return c.json<FileTagOperationResponse>({ success: true, message: "Tags removed from file successfully" });
-	} catch (error) {
-		return c.json<FileTagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to remove tags from file" },
-			500
-		);
-	}
-});
+	// Add tags to a file
+	.post(
+		"/files/:fileId",
+		buildUserSecurityMiddleware(fileGetRateLimiter),
+		zValidator("param", addTagsToFileParamSchema),
+		zValidator("json", addTagsToFileJsonSchema),
+		async c => {
+			const user = c.var.user;
+			const fileId = c.req.valid("param").fileId;
+			const tagIds = c.req.valid("json").tagIds;
+			try {
+				const fileTags = await tagService.addTagsToFile(fileId, tagIds, user.id);
+				return sendSuccess(c, { data: fileTags });
+			} catch (error) {
+				if (error instanceof Error) {
+					return sendError(c, error);
+				}
+			}
+		}
+	)
 
-// Get all tags for a specific file
-tagsRouter.get("/files/:fileId", async (c: Context) => {
-	const user = c.get("user");
+	// Remove tags from a file
+	.delete(
+		"/files/:fileId",
+		buildUserSecurityMiddleware(fileGetRateLimiter),
+		zValidator("param", removeTagsFromFileParamSchema),
+		zValidator("json", removeTagsFromFileJsonSchema),
+		async c => {
+			const user = c.var.user;
+			const fileId = c.req.valid("param").fileId;
+			const tagIds = c.req.valid("json").tagIds;
+			try {
+				await tagService.removeTagsFromFile(fileId, tagIds, user.id);
+				return sendSuccess(c, { message: "Tags removed from file successfully", status: 200 });
+			} catch (error) {
+				if (error instanceof Error) {
+					return sendError(c, error);
+				}
+			}
+		}
+	)
 
-	try {
-		const fileId = c.req.param("fileId");
-		const tags = await tagService.getFileTags(fileId, user.id);
-		return c.json<TagOperationResponse>({ success: true, message: "File tags retrieved successfully", data: tags });
-	} catch (error) {
-		return c.json<TagOperationResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to get file tags" },
-			500
-		);
-	}
-});
+	// Get all tags for a specific file
+	.get(
+		"/files/:fileId",
+		buildUserSecurityMiddleware(fileGetRateLimiter),
+		zValidator("param", getFileByIdParamSchema),
+		async c => {
+			const user = c.var.user;
+			const fileId = c.req.valid("param").fileId;
+			try {
+				const tags = await tagService.getFileTags(fileId, user.id);
+				return sendSuccess(c, { data: tags });
+			} catch (error) {
+				if (error instanceof Error) {
+					return sendError(c, error);
+				}
+			}
+		}
+	);
 
 export default tagsRouter;

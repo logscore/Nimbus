@@ -1,39 +1,35 @@
+import { emailObjectSchema, type CheckEmailExists } from "@nimbus/shared";
+import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
-import { emailSchema } from "@/validators";
-import { user } from "@nimbus/db/schema";
-import { auth } from "@nimbus/auth/auth";
-import type { Context } from "hono";
-import { eq } from "drizzle-orm";
-import { db } from "@nimbus/db";
-import { Hono } from "hono";
+import { createPublicRouter } from "../../hono";
 
-const authRouter = new Hono();
+const authRouter = createPublicRouter()
+	.post("/check-email", zValidator("json", emailObjectSchema), async c => {
+		try {
+			const { email } = (await c.req.json()) as { email: string };
 
-authRouter.post("/check-email", zValidator("json", emailSchema), async (c: Context) => {
-	try {
-		const { email } = await c.req.json();
+			const user = await c.var.db.query.user.findFirst({
+				where: (table, { eq }) => eq(table.email, email.toLowerCase().trim()),
+			});
 
-		const existingUser = await db
-			.select({ id: user.id })
-			.from(user)
-			.where(eq(user.email, email.toLowerCase().trim()))
-			.limit(1);
+			const data: CheckEmailExists = {
+				exists: !!user,
+			};
 
-		return c.json({ exists: existingUser.length > 0 });
-	} catch (error) {
-		console.error("Error checking email:", error);
-		return c.json({ error: "Internal server error" }, 500);
-	}
-});
-
-// Better Auth handler for all other auth routes
-authRouter.on(["POST", "GET"], "/*", async (c: Context) => {
-	try {
-		return await auth.handler(c.req.raw);
-	} catch (error) {
-		console.error("Auth handler error:", error);
-		return c.json({ error: "Authentication failed" }, 500);
-	}
-});
+			return sendSuccess(c, { data });
+		} catch (error) {
+			console.error("Error checking email:", error);
+			return sendError(c);
+		}
+	})
+	// Better Auth handler for all other auth routes
+	.on(["POST", "GET"], "/*", async c => {
+		try {
+			return c.var.auth.handler(c.req.raw);
+		} catch (error) {
+			console.error("Auth handler error:", error);
+			return sendError(c);
+		}
+	});
 
 export default authRouter;

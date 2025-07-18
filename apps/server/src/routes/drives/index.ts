@@ -1,31 +1,22 @@
-import { getDriveManagerForUser } from "@/providers";
-import { getAccount } from "@/lib/utils/accounts";
-import type { ApiResponse } from "@/routes/types";
-import type { Context } from "hono";
-import { Hono } from "hono";
+import { createDriveProviderRouter } from "../../hono";
+import { sendError, sendSuccess } from "../utils";
 
-const drivesRouter = new Hono();
+const drivesRouter = createDriveProviderRouter()
+	// Get drive storage info
+	.get("/about", async c => {
+		try {
+			const drive = c.var.provider;
+			const data = await drive.getDriveInfo();
 
-// Get drive storage info
-drivesRouter.get("/about", async (c: Context) => {
-	try {
-		const user = c.get("user");
+			if (!data) {
+				return sendError(c, { message: "Drive data not found", status: 404 });
+			}
 
-		const drive = await getDriveManagerForUser(user, c.req.raw.headers);
-		const driveInfo = await drive.getDriveInfo();
-
-		if (!driveInfo) {
-			return c.json<ApiResponse>({ success: false, message: "Drive data not found" }, 404);
+			return sendSuccess(c, { data });
+		} catch (error) {
+			console.error("Error fetching drive info:", error);
+			return sendError(c);
 		}
-
-		return c.json(driveInfo);
-	} catch (error) {
-		console.error("Error fetching drive info:", error);
-		return c.json<ApiResponse>(
-			{ success: false, message: error instanceof Error ? error.message : "Failed to fetch drive information" },
-			500
-		);
-	}
-});
+	});
 
 export default drivesRouter;

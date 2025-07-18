@@ -1,11 +1,11 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { useSignUp, useCheckEmailExists, useGoogleAuth, useMicrosoftAuth } from "@/hooks/useAuth";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCheckEmailExists, useGoogleAuth, useMicrosoftAuth, useSignUp } from "@/hooks/useAuth";
 import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
 import { SegmentedProgress } from "@/components/ui/segmented-progress";
+import { signUpSchema, type SignUpFormData } from "@nimbus/shared";
 import { ArrowLeft, Eye, EyeClosed, Loader2 } from "lucide-react";
-import { signUpSchema, type SignUpFormData } from "@/schemas";
 import { FieldError } from "@/components/ui/field-error";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, type ComponentProps } from "react";
@@ -80,7 +80,7 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 
 	return (
 		<div className={cn("flex size-full flex-col items-center justify-center gap-0 select-none", className)} {...props}>
-			<Card className="w-full max-w-md gap-6 pb-0">
+			<Card className="w-full max-w-md gap-6 py-0 pb-0">
 				<CardHeader className="overflow-x-hidden">
 					<div className="-mx-6 flex flex-row items-center justify-start border-b">
 						<Button className="cursor-pointer rounded-none px-6 py-6 font-semibold" variant="link" asChild>
@@ -106,13 +106,13 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 								<SocialAuthButton
 									provider="google"
 									action="signup"
-									onClick={signInWithGoogleProvider}
+									onClick={() => signInWithGoogleProvider()}
 									disabled={isLoading}
 								/>
 								<SocialAuthButton
 									provider="microsoft"
 									action="signup"
-									onClick={signInWithMicrosoftProvider}
+									onClick={() => signInWithMicrosoftProvider()}
 									disabled={isLoading}
 								/>
 

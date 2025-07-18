@@ -7,25 +7,25 @@ import { FileTabs } from "@/components/dashboard/file-browser/file-tabs";
 import { useGetFiles } from "@/hooks/useFileOperations";
 import { useSearchParams } from "next/navigation";
 import { Loader } from "@/components/loader";
-import { useState, useEffect } from "react";
-import type { _File } from "@/lib/types";
+import { useEffect, useState } from "react";
+import type { File } from "@nimbus/shared";
 
 export function FileBrowser() {
 	const searchParams = useSearchParams();
 	const type = searchParams.get("type");
 	const folderId = searchParams.get("folderId") ?? "root";
 
-	const { data, refetch, isLoading, error } = useGetFiles(
-		folderId,
-		30,
+	const { data, refetch, isLoading, error } = useGetFiles({
+		parentId: folderId,
+		pageSize: 30,
+		pageToken: undefined,
 		// TODO: implement sorting, filtering, pagination, and a generalized web content/view interfaces
-		["id", "name", "mimeType", "size", "modifiedTime", "webContentLink", "webViewLink"],
-		undefined
-	);
+		returnedValues: ["id", "name", "mimeType", "size", "modifiedTime", "webContentLink", "webViewLink"],
+	});
 
 	// Local state for optimistic updates
-	const [localFiles, setLocalFiles] = useState<_File[]>([]);
-	const [originalFiles, setOriginalFiles] = useState<_File[]>([]);
+	const [localFiles, setLocalFiles] = useState<File[]>([]);
+	const [originalFiles, setOriginalFiles] = useState<File[]>([]);
 
 	// Update local state when server data changes
 	useEffect(() => {

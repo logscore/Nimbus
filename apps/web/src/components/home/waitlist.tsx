@@ -1,45 +1,41 @@
 "use client";
+
+import { emailObjectSchema, type ApiResponse, type WaitlistCount } from "@nimbus/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { clientEnv } from "@/lib/env/client-env";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { publicClient } from "@/utils/client";
 import NumberFlow from "@number-flow/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { z } from "zod";
+import z from "zod";
 
-const formSchema = z.object({
-	email: z.string().email("Invalid email. Please check the spelling and try again"),
-});
+const formSchema = emailObjectSchema;
 
 // this is a copy of Analogs waitlist component with some changes
 // https://github.com/analogdotnow/Analog/blob/main/apps/web/src/components/sections/home/waitlist-form.tsx
 type FormSchema = z.infer<typeof formSchema>;
 
 // API functions for Hono backend
-async function getWaitlistCount(): Promise<{ count: number }> {
-	return fetch(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/count`).then(res => {
-		if (!res.ok) {
-			throw new Error("Failed to get waitlist count");
-		}
-		return res.json();
-	});
+async function getWaitlistCount(): Promise<WaitlistCount> {
+	const response = await publicClient.api.waitlist.count.$get();
+	if (!response.ok) {
+		throw new Error("Failed to get waitlist count");
+	}
+	return (await response.json()) as WaitlistCount;
 }
 
 async function joinWaitlist(email: string): Promise<void> {
-	const response = await fetch(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/waitlist/join`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({ email }),
-	});
+	const body = {
+		email,
+	};
+	const response = await publicClient.api.waitlist.join.$post({ json: body });
 	if (!response.ok) {
-		const errorData = await response.json().catch(() => ({}));
-		throw new Error(errorData.error || "Failed to join waitlist");
+		const errorData = (await response.json()) as ApiResponse;
+		throw new Error(errorData?.message || "Failed to join waitlist");
 	}
 }
 
@@ -144,7 +140,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
 	return (
 		<div className={cn("mx-auto flex w-full max-w-3xl flex-col items-center justify-center gap-4", className)}>
 			{waitlist.success ? (
-				<div className="flex flex-col items-center justify-center gap-4 rounded-xl border-1 border-dashed border-neutral-500 bg-neutral-900 p-4 text-center">
+				<div className="flex flex-col items-center justify-center gap-4 rounded-xl border-1 border-dashed bg-white p-4 text-center dark:border-neutral-500 dark:bg-neutral-900">
 					<p className="text-xl font-semibold">Welcome to the waitlist! 🎉</p>
 					<p className="text-muted-foreground text-base">
 						We&apos;ll let you know when we&#39;re ready to show you what we&#39;ve been working on.

@@ -2,11 +2,11 @@
 
 import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
 import { PasswordInput } from "@/components/auth/shared/password-input";
+import { signInSchema, type SignInFormData } from "@nimbus/shared";
 import { AuthCard } from "@/components/auth/shared/auth-card";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { signInSchema, type SignInFormData } from "@/schemas";
 import { FieldError } from "@/components/ui/field-error";
-import type { ComponentProps, ChangeEvent } from "react";
+import type { ChangeEvent, ComponentProps } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -49,11 +49,16 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 			{...props}
 		>
 			<div className="flex flex-col gap-4">
-				<SocialAuthButton provider="google" action="signin" onClick={signInWithGoogleProvider} disabled={isLoading} />
+				<SocialAuthButton
+					provider="google"
+					action="signin"
+					onClick={() => signInWithGoogleProvider()}
+					disabled={isLoading}
+				/>
 				<SocialAuthButton
 					provider="microsoft"
 					action="signin"
-					onClick={signInWithMicrosoftProvider}
+					onClick={() => signInWithMicrosoftProvider()}
 					disabled={isLoading}
 				/>
 
