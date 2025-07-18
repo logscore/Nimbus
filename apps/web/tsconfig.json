@@ -1,6 +1,7 @@
 {
 	"extends": "@nimbus/tsconfig/base",
 	"compilerOptions": {
+		"jsx": "preserve",
 		"lib": ["esnext", "dom", "dom.iterable"],
 		"plugins": [
 			{

@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -11,7 +10,6 @@ interface LoadingStatePageProps {
 	description?: string;
 	errorTitle?: string;
 	errorDescription?: string;
-	className?: string;
 	error: Error | null;
 }
 
@@ -20,13 +18,8 @@ export function LoadingStatePage({
 	description = "Please wait while we load your content.",
 	errorTitle = "Something went wrong",
 	errorDescription = "Please try again.",
-	className,
 	error,
 }: LoadingStatePageProps) {
-	const { theme } = useTheme();
-
-	const isDark = theme === "dark";
-
 	useEffect(() => {
 		if (error) {
 			toast.error(error.message);
@@ -36,18 +29,12 @@ export function LoadingStatePage({
 	return (
 		<div className="flex min-h-screen items-center justify-center">
 			<div className="text-center">
-				<div
-					className={cn(
-						"flex flex-col items-center justify-center p-8 text-center",
-						isDark ? "bg-background" : "bg-background/80",
-						className
-					)}
-				>
+				<div className="dark:bg-background bg-background/80 flex flex-col items-center justify-center p-8 text-center">
 					{error ? (
 						<div className="flex flex-col items-center space-y-4">
-							<div className={cn("rounded-full p-4", isDark ? "bg-destructive/20" : "bg-destructive/10")}>
+							<div className="dark:bg-destructive/20 bg-destructive/10 rounded-full p-4">
 								<svg
-									className={cn("h-8 w-8", isDark ? "text-destructive-foreground" : "text-destructive")}
+									className={cn("h-8 w-8", "dark:text-destructive-foreground text-destructive")}
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -60,23 +47,19 @@ export function LoadingStatePage({
 									/>
 								</svg>
 							</div>
-							<h3 className={cn("text-lg font-medium", isDark ? "text-foreground" : "text-foreground/90")}>
-								{errorTitle}
-							</h3>
+							<h3 className={cn("text-lg font-medium", "dark:text-foreground text-foreground/90")}>{errorTitle}</h3>
 							{errorDescription && (
-								<p className={cn("text-sm", isDark ? "text-muted-foreground" : "text-muted-foreground/80")}>
+								<p className={cn("text-sm", "dark:text-muted-foreground text-muted-foreground/80")}>
 									{errorDescription}
 								</p>
 							)}
 						</div>
 					) : (
 						<div className="flex flex-col items-center space-y-4">
-							<Loader2 className={cn("h-8 w-8 animate-spin", isDark ? "text-primary-foreground" : "text-primary")} />
-							<h3 className={cn("text-lg font-medium", isDark ? "text-foreground" : "text-foreground/90")}>{title}</h3>
+							<Loader2 className={cn("h-8 w-8 animate-spin", "dark:text-primary-foreground text-primary")} />
+							<h3 className={cn("text-lg font-medium", "dark:text-foreground text-foreground/90")}>{title}</h3>
 							{description && (
-								<p className={cn("text-sm", isDark ? "text-muted-foreground" : "text-muted-foreground/80")}>
-									{description}
-								</p>
+								<p className={cn("text-sm", "dark:text-muted-foreground text-muted-foreground/80")}>{description}</p>
 							)}
 						</div>
 					)}

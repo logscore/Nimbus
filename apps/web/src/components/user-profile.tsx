@@ -42,15 +42,15 @@ const getInitials = (name?: string | null) => {
 };
 
 const Profile = ({ className, url, name, size }: ProfileProps) => {
-	const [mounted, setMounted] = useState(false);
+	const [isMounted, setIsMounted] = useState(false);
 	const initials = useMemo(() => getInitials(name), [name]);
 
 	useEffect(() => {
-		setMounted(true);
+		setIsMounted(true);
 	}, []);
 
 	// Don't render anything on the server to avoid hydration mismatch
-	if (!mounted) {
+	if (!isMounted) {
 		return <div className={cn(iconvVariants({ size }), "animate-pulse bg-gray-200 dark:bg-gray-700", className)} />;
 	}
 
@@ -58,7 +58,7 @@ const Profile = ({ className, url, name, size }: ProfileProps) => {
 		<Avatar className={cn(iconvVariants({ size }), className)}>
 			{url && <AvatarImage src={url} alt={name} />}
 			<AvatarFallback className="rounded-md bg-gray-100 font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-				{initials}
+				{isMounted ? initials : "..."}
 			</AvatarFallback>
 		</Avatar>
 	);

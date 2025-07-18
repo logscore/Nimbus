@@ -6,22 +6,17 @@ import { useDriveInfo } from "@/hooks/useDriveOps";
 import { Moon, Settings, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@nimbus/shared";
+import { useTheme } from "@/hooks/useTheme";
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export default function StorageFooter() {
-	const [mounted, setMounted] = useState(false);
 	const { data, error, isError, isPending } = useDriveInfo();
-	const { theme, setTheme } = useTheme();
+	const { theme, toggleTheme, isMounted } = useTheme();
 	const [usedSpace, setUsedSpace] = useState<number>(0);
 	const [totalSpace, setTotalSpace] = useState<number>(0);
 	const [usagePercent, setUsagePercent] = useState<number>(0);
-
-	useEffect(() => {
-		setMounted(true);
-	}, []);
 
 	useEffect(() => {
 		if (isError && error) {
@@ -38,10 +33,6 @@ export default function StorageFooter() {
 			setUsagePercent(percent);
 		}
 	}, [data]);
-
-	const toggleTheme = (): void => {
-		setTheme(theme === "dark" ? "light" : "dark");
-	};
 
 	return (
 		<SidebarFooter className="flex flex-col items-start gap-2 self-stretch p-2 pb-0 transition-all duration-300 ease-linear dark:bg-neutral-800">
@@ -64,9 +55,9 @@ export default function StorageFooter() {
 								<div className="h-4 w-32 animate-pulse rounded bg-neutral-300 dark:bg-neutral-500"></div>
 							) : (
 								<div className="flex flex-wrap items-center gap-1 text-sm font-medium text-neutral-500 dark:text-neutral-300">
-									<span>{isPending || isError ? "--" : formatFileSize(usedSpace)}</span>
+									{fileSizeText(isError, usedSpace)}
 									<span>of</span>
-									<span>{isPending || isError ? "--" : formatFileSize(totalSpace)}</span>
+									{fileSizeText(isError, totalSpace)}
 								</div>
 							)}
 							<Button
@@ -82,7 +73,7 @@ export default function StorageFooter() {
 					onClick={() => toggleTheme()}
 					className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
 				>
-					{mounted && (theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />)}
+					{isMounted && (theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />)}
 					<span>Theme</span>
 				</SidebarMenuButton>
 				<SidebarMenuButton asChild>
@@ -94,4 +85,8 @@ export default function StorageFooter() {
 			</SidebarMenu>
 		</SidebarFooter>
 	);
+}
+
+function fileSizeText(isError: boolean, num: number | undefined) {
+	return <span>{isError || !num ? "--" : formatFileSize(num)}</span>;
 }

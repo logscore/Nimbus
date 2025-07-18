@@ -7,7 +7,6 @@ export const useDriveInfo = () => {
 	return useQuery<DriveInfo>({
 		queryKey: ["driveInfo", providerId, accountId],
 		queryFn: async () => {
-			console.log("getting drive info...");
 			const client = await clientPromise;
 			const response = await client.api.drives.about.$get();
 			return (await response.json()) as DriveInfo;
