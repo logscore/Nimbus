@@ -12,7 +12,6 @@ import { useUploadFile } from "@/hooks/useFileOperations";
 import type { UploadFileDialogProps } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/loader";
-import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 export function UploadFileDialog({ open, onOpenChange, parentId }: UploadFileDialogProps) {
@@ -53,16 +52,15 @@ export function UploadFileDialog({ open, onOpenChange, parentId }: UploadFileDia
 			uploadFile(
 				{
 					file,
-					parentId: parentId,
+					parentId,
 					// TODO: The bar gets hung up on multi-file uploads. Make a progress bar that actually works correctly.
-					onProgress: progress => {
-						// Calculate overall progress across all files
-						const progressPerFile = Math.floor(100 / files.length);
-						const currentFileProgress = (progress / 100) * progressPerFile;
-						const previousFilesProgress = (completedUploads * 100) / files.length;
-						setUploadProgress(previousFilesProgress + currentFileProgress);
-					},
-					returnedValues: ["name"],
+					// onProgress: progress => {
+					// 	// Calculate overall progress across all files
+					// 	const progressPerFile = Math.floor(100 / files.length);
+					// 	const currentFileProgress = (progress / 100) * progressPerFile;
+					// 	const previousFilesProgress = (completedUploads * 100) / files.length;
+					// 	setUploadProgress(previousFilesProgress + currentFileProgress);
+					// },
 				},
 				{
 					onSuccess: () => {
@@ -76,11 +74,11 @@ export function UploadFileDialog({ open, onOpenChange, parentId }: UploadFileDia
 							toast.success(`Successfully uploaded ${files.length} ${files.length === 1 ? "file" : "files"}`);
 						}
 					},
-					onError: (error: AxiosError<{ message?: string }>) => {
+					onError: error => {
 						console.error("Upload error:", error);
 						setIsUploading(false);
 						const fileName = files[index]?.name || "file";
-						const errorMessage = error.response?.data?.message || `Failed to upload file: ${fileName}`;
+						const errorMessage = error.message || `Failed to upload file: ${fileName}`;
 						toast.error(errorMessage);
 					},
 				}

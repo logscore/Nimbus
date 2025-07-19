@@ -3,39 +3,43 @@
 	"version": "0.0.3",
 	"type": "module",
 	"private": true,
-	"module": "src/index.ts",
+	"exports": {
+		".": "./src/index.ts"
+	},
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"dev:hot": "bun --hot src/index.ts",
-		"build": "bun build src/index.ts --target bun --outdir dist",
+		"check": "tsc --noEmit",
+		"build": "bun run check && bun build src/index.ts --target bun --outdir dist",
 		"start": "bun dist/index.js",
+		"deploy": "bunx wrangler deploy --env production --keep-vars",
 		"docker:build": "bun run build && docker build -t nimbus-server-manual .",
 		"docker:run": "source .env && docker run --name nimbus-server-manual --env-file .env -p $SERVER_PORT:$SERVER_PORT nimbus-server-manual:latest",
 		"docker:up": "bun run build && docker compose up -d",
 		"docker:down": "docker compose down",
 		"docker:remove": "docker compose down --rmi local -v",
-		"docker:reset": "bun run docker:remove && bun run docker:up",
-		"fly:secrets:stage": "flyctl secrets import --stage < .env",
-		"fly:deploy": "bun run build && bash ../../scripts/fly:deploy.sh server"
+		"docker:reset": "bun run docker:remove && bun run docker:up"
 	},
 	"dependencies": {
-		"@googleapis/drive": "^13.0.1",
-		"@hono/zod-validator": "^0.7.0",
+		"@googleapis/drive": "^14.1.0",
+		"@hono/zod-validator": "^0.7.1",
+		"@microsoft/microsoft-graph-client": "^3.0.7",
 		"@nimbus/auth": "workspace:*",
 		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
-		"@t3-oss/env-core": "^0.13.8",
-		"drizzle-orm": "^0.43.1",
+		"@nimbus/env": "workspace:*",
+		"@nimbus/shared": "workspace:*",
+		"drizzle-orm": "^0.44.2",
 		"google-auth-library": "^10.1.0",
-		"hono": "^4.8.0",
+		"hono": "^4.8.5",
 		"nanoid": "^5.1.5",
-		"pg": "^8.16.1",
-		"rate-limiter-flexible": "^7.1.1",
-		"resend": "^4.6.0",
-		"zod": "^3.25.67"
+		"pg": "^8.16.3",
+		"zod": "^4.0.5"
 	},
 	"devDependencies": {
+		"@microsoft/microsoft-graph-types": "^2.40.0",
 		"@nimbus/tsconfig": "workspace:*",
-		"@types/pg": "^8.15.4"
+		"@types/pg": "^8.15.4",
+		"typescript": "^5.8.3"
 	}
 }

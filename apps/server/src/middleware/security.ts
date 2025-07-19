@@ -1,6 +1,65 @@
-import type { SecurityOptions } from "@/routes/types";
+import { waitlistRateLimiter, type UserRateLimiter } from "@nimbus/cache/rate-limiters";
+import type { RateLimiter } from "@nimbus/cache";
+import { sendError } from "../routes/utils";
 import type { Context, Next } from "hono";
 import { webcrypto } from "node:crypto";
+
+/**
+ * Security middleware options
+ */
+export interface SecurityOptions {
+	rateLimiting?: {
+		enabled: boolean;
+		rateLimiter: (c: Context) => RateLimiter;
+	};
+	securityHeaders?: boolean;
+}
+
+export function buildUserSecurityMiddleware(rateLimiter: UserRateLimiter) {
+	return buildSecurityMiddleware(c => rateLimiter(c.var.user));
+}
+
+export function buildWaitlistSecurityMiddleware() {
+	return buildSecurityMiddleware(c =>
+		waitlistRateLimiter(
+			c.req.header("cf-connecting-ip") || c.req.header("x-real-ip") || c.req.header("x-forwarded-for") || "unknown"
+		)
+	);
+}
+
+function buildSecurityMiddleware(rateLimiter: (c: Context) => RateLimiter) {
+	return securityMiddleware({
+		rateLimiting: {
+			enabled: true,
+			rateLimiter,
+		},
+		securityHeaders: true,
+	});
+}
+
+/**
+ * A utility function to safely get the client's IP address.
+ * It parses the X-Forwarded-For header and trusts the leftmost IP,
+ * which is standard when behind a properly configured reverse proxy.
+ *
+ * IMPORTANT: This relies on your reverse proxy (e.g., NGINX, Vercel, Cloudflare)
+ * correctly setting or stripping the X-Forwarded-For header to prevent spoofing.
+ */
+const getClientIp = (c: Context): string => {
+	const xff = c.req.header("x-forwarded-for");
+	// If XFF exists, take the first IP in the list.
+	const firstIpAddress = xff?.split(",")[0];
+	if (firstIpAddress) {
+		return firstIpAddress.trim();
+	}
+	// Fallback to other common headers.
+	const realIp = c.req.header("x-real-ip");
+	if (realIp) {
+		return realIp.trim();
+	}
+
+	return `unidentifiable-${webcrypto.randomUUID()}`;
+};
 
 export const securityMiddleware = (options: SecurityOptions = {}) => {
 	const {
@@ -19,6 +78,7 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 				.replace(/\+/g, "-")
 				.replace(/\//g, "_")
 				.replace(/=/g, "");
+
 			c.header("X-Content-Type-Options", "nosniff");
 			c.header("X-Frame-Options", "DENY");
 			c.header("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -40,11 +100,16 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 				"Content-Security-Policy",
 				`default-src 'self'; ` +
 					`script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:; ` +
-					`style-src 'self' https:; ` +
-					`img-src 'self' data: blob: https:; ` +
-					`font-src 'self' https: data:; ` +
-					`connect-src 'self' https: wss:; ` +
-					`media-src 'self' https: data:; ` +
+					// FIXED: CSP is now more restrictive. You MUST add your trusted sources.
+					// Example: `style-src 'self' 'https://fonts.googleapis.com';`
+					`style-src 'self'; ` +
+					// Example: `img-src 'self' data: blob: https://cdn.example.com;`
+					`img-src 'self' data: blob:; ` +
+					// Example: `font-src 'self' https://fonts.gstatic.com;`
+					`font-src 'self' data:; ` +
+					// Example: `connect-src 'self' wss://api.example.com;`
+					`connect-src 'self'; ` +
+					`media-src 'self' data:; ` +
 					`object-src 'none'; ` +
 					`base-uri 'self'; ` +
 					`form-action 'self'; ` +
@@ -53,31 +118,52 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 					`block-all-mixed-content;`
 			);
 		}
-
 		// Rate limiting
 		if (rateLimiting.enabled && rateLimiting.rateLimiter) {
-			const user = c.get("user");
-			const ip = c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
+			const user = c.var.user;
+			const ip = getClientIp(c);
 			const identifier = user?.id || ip;
 
 			try {
-				await rateLimiting.rateLimiter.consume(identifier);
+				const limiter = rateLimiting.rateLimiter(c);
+				if ("limit" in limiter) {
+					// Handle Upstash limit
+					const result = await limiter.limit(identifier);
+					if (!result.success) {
+						const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
+						c.header("Retry-After", retryAfter.toString());
+						return c.json(
+							{
+								success: false,
+								error: "Too many requests",
+								retryAfter: `${retryAfter} seconds`,
+							},
+							429
+						);
+					}
+				} else {
+					// Handle Valkey limit
+					await limiter.consume(identifier);
+				}
 			} catch (error: any) {
-				if (error instanceof Error) {
-					console.error("Rate limiter error:", error);
-					return c.json({ error: "Internal server error" }, { status: 500 });
+				console.error("Rate limiter error:", error);
+
+				// Handle different types of rate limit errors
+				if (error.remaining === 0 || error.msBeforeNext) {
+					// This is a rate limit exceeded error for Valkey
+					const retryAfter = Math.ceil((error.msBeforeNext || 60000) / 1000);
+					c.header("Retry-After", retryAfter.toString());
+					return c.json(
+						{
+							success: false,
+							error: "Too many requests. Please try again later.",
+							retryAfter: `${retryAfter} seconds`,
+						},
+						429
+					);
 				}
 
-				// Rate limit exceeded
-				const retryAfter = Math.ceil(error.msBeforeNext / 1000) || 1;
-				c.header("Retry-After", retryAfter.toString());
-				return c.json(
-					{
-						error: "Too many requests",
-						retryAfter: `${retryAfter} seconds`,
-					},
-					{ status: 429 }
-				);
+				return sendError(c);
 			}
 		}
 

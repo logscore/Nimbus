@@ -1,6 +1,7 @@
 {
 	"extends": "@nimbus/tsconfig/base",
 	"compilerOptions": {
+		"jsx": "preserve",
 		"lib": ["esnext", "dom", "dom.iterable"],
 		"plugins": [
 			{
@@ -13,6 +14,21 @@
 			"@/public/*": ["./public/*"]
 		}
 	},
-	"include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
+	// https://catalins.tech/hono-rpc-in-monorepos/#the-solutiontypescript-project-references
+	"references": [
+		{
+			"path": "../server/tsconfig.json"
+		},
+		{
+			"path": "../../packages/shared/tsconfig.json"
+		}
+	],
+	"include": [
+		"next-env.d.ts",
+		".next/types/**/*.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		"src/components/providers/useDefaultAccount"
+	],
 	"exclude": ["node_modules"]
 }

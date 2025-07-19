@@ -1,17 +1,15 @@
+import { useAccountProvider } from "@/components/providers/account-provider";
 import { useQuery } from "@tanstack/react-query";
-import { clientEnv } from "@/lib/env/client-env";
-import type { DriveInfo } from "@/lib/types";
-import axios from "axios";
+import type { DriveInfo } from "@nimbus/shared";
 
 export const useDriveInfo = () => {
+	const { clientPromise, providerId, accountId } = useAccountProvider();
 	return useQuery<DriveInfo>({
-		queryKey: ["driveInfo"],
+		queryKey: ["driveInfo", providerId, accountId],
 		queryFn: async () => {
-			const response = await axios.get(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/drives/about`, {
-				withCredentials: true,
-				signal: new AbortController().signal,
-			});
-			return response.data;
+			const client = await clientPromise;
+			const response = await client.api.drives.about.$get();
+			return (await response.json()) as DriveInfo;
 		},
 	});
 };

@@ -12,11 +12,16 @@
 		"@nimbus/tsconfig": "workspace:*"
 	},
 	"peerDependencies": {
-		"typescript": "^5"
+		"typescript": "^5.8.3"
 	},
 	"dependencies": {
+		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
-		"axios": "^1.10.0",
-		"better-auth": "^1.2.9"
+		"@nimbus/env": "workspace:*",
+		"@upstash/redis": "^1.35.1",
+		"better-auth": "^1.2.12",
+		"drizzle-orm": "^0.44.2",
+		"iovalkey": "^0.3.3",
+		"resend": "^4.6.0"
 	}
 }

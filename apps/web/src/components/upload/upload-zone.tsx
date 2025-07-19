@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, type ChangeEvent } from "react";
 import { Progress } from "@/components/ui/progress";
+import { formatFileSize } from "@nimbus/shared";
 import { Label } from "@/components/ui/label";
 import { Folder, Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
@@ -132,7 +133,7 @@ export function UploadZone({
 										{truncateFilename(fileWithPath.webkitRelativePath || file.name)}
 									</span>
 									<span className="ml-2 shrink-0 text-xs text-black dark:text-neutral-200">
-										{(file.size / 1024 / 1024).toFixed(2)} MB
+										{formatFileSize(file.size)}
 									</span>
 								</div>
 							);

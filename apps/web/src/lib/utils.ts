@@ -1,29 +1,26 @@
-import { clientEnv } from "@/lib/env/client-env";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import env from "@nimbus/env/client";
 
+/**
+ * Merges class names using clsx and tailwind-merge
+ */
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export function fileSize(size: unknown) {
-	let num = typeof size === "number" ? size : Number(size);
-	if (typeof num !== "number" || isNaN(num) || num < 0) {
-		return "Invalid size";
-	}
-	const units = ["B", "KB", "MB", "GB", "TB"];
-	let idx = 0;
-	while (num >= 1024 && idx < units.length - 1) {
-		num /= 1024;
-		idx++;
-	}
-	return `${num.toFixed(idx === 0 ? 0 : 2)} ${units[idx]}`;
-}
-
+/**
+ * Gets the base URL for the frontend
+ */
 export const getBaseUrl = () => {
-	return clientEnv.NEXT_PUBLIC_FRONTEND_URL;
+	return env.NEXT_PUBLIC_FRONTEND_URL;
 };
 
+/**
+ * Builds a full URL from a path
+ * @param path The path to append to the base URL
+ * @returns The full URL
+ */
 export const buildUrl = (path: string) => {
 	const baseUrl = getBaseUrl();
 	return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;

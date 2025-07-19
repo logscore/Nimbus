@@ -1,29 +1,30 @@
-import { createTagSchema, updateTagSchema, type CreateTagInput, type UpdateTagInput } from "@/schemas";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { clientEnv } from "@/lib/env/client-env";
-import axios, { type AxiosError } from "axios";
-import type { Tag } from "@/lib/types";
+import { createTagSchema, updateTagSchema, type CreateTagSchema, type UpdateTagSchema } from "@nimbus/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAccountProvider } from "@/components/providers/account-provider";
+import type { DriveProviderClient } from "@/utils/client";
+import type { Tag } from "@nimbus/shared";
 import { toast } from "sonner";
 
 const TAGS_QUERY_KEY = "tags";
 
 export function useTags() {
 	const queryClient = useQueryClient();
+	const { clientPromise, providerId, accountId } = useAccountProvider();
 
 	const {
 		data: tags,
 		isLoading,
 		error,
 	} = useQuery<Tag[]>({
-		queryKey: [TAGS_QUERY_KEY],
-		queryFn: getTags,
+		queryKey: [TAGS_QUERY_KEY, providerId, accountId],
+		queryFn: () => getTags(clientPromise),
 	});
 
 	const createTagMutation = useMutation({
-		mutationFn: (data: CreateTagInput) => {
+		mutationFn: (data: CreateTagSchema) => {
 			// Validate data before sending to API
 			const validatedData = createTagSchema.parse(data);
-			return createTag(validatedData);
+			return createTag(validatedData, clientPromise);
 		},
 		onSuccess: newTag => {
 			toast.success("Tag created successfully");
@@ -46,37 +47,37 @@ export function useTags() {
 				return [...oldData, newTag];
 			});
 		},
-		onError: (error: AxiosError<{ message: string }> | Error) => {
+		onError: (error: Error) => {
 			if (error instanceof Error && error.name === "ZodError") {
 				toast.error("Invalid tag data. Please check your input.");
 			} else {
-				toast.error((error as AxiosError<{ message: string }>).response?.data?.message || "Failed to create tag");
+				toast.error(error.message || "Failed to create tag");
 			}
 		},
 	});
 
 	const updateTagMutation = useMutation({
-		mutationFn: (data: UpdateTagInput) => {
+		mutationFn: (data: UpdateTagSchema) => {
 			// Validate data before sending to API
 			const validatedData = updateTagSchema.parse(data);
-			return updateTag(validatedData);
+			return updateTag(validatedData, clientPromise);
 		},
 		onSuccess: () => {
 			toast.success("Tag updated successfully");
 			// Invalidate the query to get the latest data
 			void queryClient.invalidateQueries({ queryKey: [TAGS_QUERY_KEY] });
 		},
-		onError: (error: AxiosError<{ message: string }> | Error) => {
+		onError: error => {
 			if (error instanceof Error && error.name === "ZodError") {
 				toast.error("Invalid tag data. Please check your input.");
 			} else {
-				toast.error((error as AxiosError<{ message: string }>).response?.data?.message || "Failed to update tag");
+				toast.error(error.message || "Failed to update tag");
 			}
 		},
 	});
 
 	const deleteTagMutation = useMutation({
-		mutationFn: deleteTag,
+		mutationFn: (id: string) => deleteTag(id, clientPromise),
 		onSuccess: (_, deletedId) => {
 			toast.success("Tag deleted successfully");
 			// remove the tag and all its descendants from the local data
@@ -130,13 +131,14 @@ export function useTags() {
 				return removeRecursive(oldData, allIdsToRemove);
 			});
 		},
-		onError: (error: AxiosError<{ message: string }>) => {
-			toast.error(error.response?.data?.message || "Failed to delete tag");
+		onError: error => {
+			toast.error(error.message || "Failed to delete tag");
 		},
 	});
 
 	const addTagsToFileMutation = useMutation({
-		mutationFn: addTagsToFile,
+		mutationFn: (variables: { fileId: string; tagIds: string[]; onSuccess?: () => void }) =>
+			addTagsToFile(variables, clientPromise),
 		onSuccess: (_data, variables) => {
 			toast.success("Tag added to file successfully");
 			// Update cache locally by incrementing count for each added tag
@@ -156,13 +158,14 @@ export function useTags() {
 			});
 			variables.onSuccess?.();
 		},
-		onError: (error: AxiosError<{ message: string }>) => {
-			toast.error(error.response?.data?.message || "Failed to add tag to file");
+		onError: error => {
+			toast.error(error.message || "Failed to add tag to file");
 		},
 	});
 
 	const removeTagsFromFileMutation = useMutation({
-		mutationFn: removeTagsFromFile,
+		mutationFn: (variables: { fileId: string; tagIds: string[]; onSuccess?: () => void }) =>
+			removeTagsFromFile(variables, clientPromise),
 		onSuccess: (_data, variables) => {
 			toast.success("Tag removed from file successfully");
 			// Update cache locally by decrementing count for each removed tag
@@ -182,8 +185,8 @@ export function useTags() {
 			});
 			variables.onSuccess?.();
 		},
-		onError: (error: AxiosError<{ message: string }>) => {
-			toast.error(error.response?.data?.message || "Failed to remove tag from file");
+		onError: error => {
+			toast.error(error.message || "Failed to remove tag from file");
 		},
 	});
 
@@ -199,51 +202,63 @@ export function useTags() {
 	};
 }
 
-async function getTags(): Promise<Tag[]> {
-	const response = await axios.get(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags`, {
-		withCredentials: true,
-	});
-	return response.data.data;
+async function getBaseTagClient(clientPromise: Promise<DriveProviderClient>) {
+	const client = await clientPromise;
+	const BASE_TAG_CLIENT = client.api.tags;
+	return BASE_TAG_CLIENT;
 }
 
-async function createTag(data: CreateTagInput): Promise<Tag> {
-	const response = await axios.post(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags`, data, {
-		withCredentials: true,
-	});
-	return response.data.data;
+async function getTags(clientPromise: Promise<DriveProviderClient>): Promise<Tag[]> {
+	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
+	const response = await BASE_TAG_CLIENT.$get();
+	return (await response.json()) as Tag[];
 }
 
-async function updateTag(data: UpdateTagInput): Promise<Tag> {
+async function createTag(data: CreateTagSchema, clientPromise: Promise<DriveProviderClient>): Promise<Tag> {
+	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
+	const response = await BASE_TAG_CLIENT.$post({ json: data });
+	return (await response.json()) as Tag;
+}
+
+async function updateTag(data: UpdateTagSchema, clientPromise: Promise<DriveProviderClient>): Promise<Tag> {
+	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
 	const { id, ...updateData } = data;
-	const response = await axios.put(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags/${id}`, updateData, {
-		withCredentials: true,
+	const response = await BASE_TAG_CLIENT[":id"].$put({
+		param: { id },
+		json: updateData,
 	});
-	return response.data.data;
+	return (await response.json()) as Tag;
 }
 
-async function deleteTag(id: string): Promise<void> {
-	await axios.delete(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags/${id}`, {
-		withCredentials: true,
+async function deleteTag(id: string, clientPromise: Promise<DriveProviderClient>): Promise<void> {
+	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
+	await BASE_TAG_CLIENT[":id"].$delete({
+		param: { id },
 	});
 }
 
-async function addTagsToFile(variables: { fileId: string; tagIds: string[]; onSuccess?: () => void }): Promise<void> {
-	await axios.post(
-		`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags/files/${variables.fileId}`,
-		{ tagIds: variables.tagIds },
-		{
-			withCredentials: true,
-		}
-	);
+async function addTagsToFile(
+	variables: { fileId: string; tagIds: string[]; onSuccess?: () => void },
+	clientPromise: Promise<DriveProviderClient>
+): Promise<void> {
+	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
+	await BASE_TAG_CLIENT.files[":fileId"].$post({
+		param: { fileId: variables.fileId },
+		json: { tagIds: variables.tagIds },
+	});
 }
 
-async function removeTagsFromFile(variables: {
-	fileId: string;
-	tagIds: string[];
-	onSuccess?: () => void;
-}): Promise<void> {
-	await axios.delete(`${clientEnv.NEXT_PUBLIC_BACKEND_URL}/api/tags/files/${variables.fileId}`, {
-		data: { tagIds: variables.tagIds },
-		withCredentials: true,
+async function removeTagsFromFile(
+	variables: {
+		fileId: string;
+		tagIds: string[];
+		onSuccess?: () => void;
+	},
+	clientPromise: Promise<DriveProviderClient>
+): Promise<void> {
+	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
+	await BASE_TAG_CLIENT.files[":fileId"].$delete({
+		param: { fileId: variables.fileId },
+		json: { tagIds: variables.tagIds },
 	});
 }

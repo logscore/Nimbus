@@ -12,13 +12,13 @@ export function FileBrowser() {
 	const searchParams = useSearchParams();
 	const folderId = searchParams.get("folderId") ?? "root";
 
-	const { data, refetch, isLoading, error } = useGetFiles(
-		folderId,
-		30,
+	const { data, refetch, isLoading, error } = useGetFiles({
+		parentId: folderId,
+		pageSize: 30,
+		pageToken: undefined,
 		// TODO: implement sorting, filtering, pagination, and a generalized web content/view interfaces
-		["id", "name", "mimeType", "size", "modifiedTime", "webContentLink", "webViewLink"],
-		undefined
-	);
+		returnedValues: ["id", "name", "mimeType", "size", "modifiedTime", "webContentLink", "webViewLink"],
+	});
 
 	return (
 		<div className={`flex flex-1 flex-col space-y-4`}>

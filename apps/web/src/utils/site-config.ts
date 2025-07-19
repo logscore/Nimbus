@@ -1,8 +1,8 @@
-import { clientEnv } from "@/lib/env/client-env";
+import env from "@nimbus/env/client";
 
 export const siteConfig = {
 	name: "Nimbus",
 	description: "A better cloud storage solution.",
-	url: clientEnv.NEXT_PUBLIC_FRONTEND_URL,
+	url: env.NEXT_PUBLIC_FRONTEND_URL,
 	twitterHandle: "@nimbusdotcloud",
 } as const;

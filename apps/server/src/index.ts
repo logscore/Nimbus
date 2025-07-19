@@ -1,51 +1,36 @@
-import { serverEnv } from "@/lib/env/server-env";
-import { auth } from "@nimbus/auth/auth";
+import { DRIVE_PROVIDER_HEADERS } from "@nimbus/shared";
+import { contextStorage } from "hono/context-storage";
+import { createAuth } from "@nimbus/auth/auth";
+import { createPublicRouter } from "./hono";
+import { createDb } from "@nimbus/db";
+import env from "@nimbus/env/server";
 import { cors } from "hono/cors";
-import { db } from "@nimbus/db";
-import routes from "@/routes";
-import { Hono } from "hono";
+import routes from "./routes";
 
-export interface ReqVariables {
-	user: typeof auth.$Infer.Session.user | null;
-	session: typeof auth.$Infer.Session.session | null;
-	db: typeof db | null;
-}
-
-const app = new Hono<{ Variables: ReqVariables }>();
-
-app.use(
-	cors({
-		origin: serverEnv.FRONTEND_URL,
-		credentials: true,
-		allowHeaders: ["Content-Type", "Authorization"],
-		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-		maxAge: 43200, // 12 hours
+const app = createPublicRouter()
+	.use(
+		cors({
+			origin: env.FRONTEND_URL,
+			credentials: true,
+			allowHeaders: ["Content-Type", "Authorization", ...DRIVE_PROVIDER_HEADERS],
+			allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+			maxAge: 43200, // 12 hours
+		})
+	)
+	.use(contextStorage())
+	.use("*", async (c, next) => {
+		const db = createDb(env.DATABASE_URL);
+		const auth = createAuth();
+		c.set("db", db);
+		c.set("auth", auth);
+		await next();
 	})
-);
+	.get("/kamehame", c => c.text("HAAAAAAAAAAAAAA"))
+	.route("/api", routes);
 
-app.use("*", async (c, next) => {
-	const session = await auth.api.getSession({ headers: c.req.raw.headers });
-
-	// TODO: Add auth middleware and ratelimiting to the drive operations endpoints.
-	if (!session) {
-		c.set("db", null);
-		c.set("user", null);
-		c.set("session", null);
-		// return c.json({ error: "Unauthorized" }, 401);
-		return next();
-	}
-
-	c.set("db", db);
-	c.set("user", session.user);
-	c.set("session", session.session);
-	return next();
-});
-
-app.get("/kamehame", c => c.text("HAAAAAAAAAAAAAA"));
-
-app.route("/api", routes);
+export type AppType = typeof app;
 
 export default {
-	port: 1284,
+	port: env.SERVER_PORT,
 	fetch: app.fetch,
 };

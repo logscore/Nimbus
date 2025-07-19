@@ -3,9 +3,9 @@ import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
-	SidebarMenuItem,
 	SidebarMenu,
 	SidebarMenuButton,
+	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
 	DropdownMenu,
@@ -22,7 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTags } from "@/hooks/useTags";
-import type { Tag } from "@/lib/types";
+import type { Tag } from "@nimbus/shared";
 import { useState } from "react";
 
 // TODO: add keyboard shortcuts

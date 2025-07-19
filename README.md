@@ -123,7 +123,7 @@ Follow the instructions on the first step of this [guide](https://www.better-aut
   - `openid` – Sign users in
   - `profile` – View users' basic profile
   - `User.Read` – Sign in and read user profile
-  - `Files.ReadWrite` – Have full access to user files (OneDrive access)
+  - `Files.ReadWrite.All` – Have full access to user files (OneDrive access)
 
 - Click <b>Grant admin consent</b> to apply the permissions.
 
@@ -209,9 +209,9 @@ to work properly. Additionally, configure your Resend API key for the forgot pas
 If you want to contribute, please refer to the
 [contributing guide](https://github.com/nimbusdotstorage/Nimbus/blob/main/CONTRIBUTING.md)
 
-## Deploying Docker images (ex. Fly.io)
+## Deploying Docker images (ex. Coolify)
 
-Follow the [DEPLOYMENT.md](DEPLOYMENT.md) file for instructions on how to deploy to Fly.
+Follow the [DEPLOYMENT.md](DEPLOYMENT.md) file for instructions on how to deploy with Coolify.
 
 ## Our Amazing Contributors
 

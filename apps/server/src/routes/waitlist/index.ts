@@ -1,69 +1,57 @@
-import { createRateLimiterMiddleware } from "@/utils/rate-limiter-utils";
-import { waitlistRateLimiter } from "@nimbus/cache/rate-limiters";
+import { emailObjectSchema, type WaitlistCount } from "@nimbus/shared";
+import { buildWaitlistSecurityMiddleware } from "../../middleware";
+import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
+import { createPublicRouter } from "../../hono";
 import { waitlist } from "@nimbus/db/schema";
-import { emailSchema } from "@/validators";
 import { count, eq } from "drizzle-orm";
-import type { Context } from "hono";
-import { db } from "@nimbus/db";
 import { nanoid } from "nanoid";
-import { Hono } from "hono";
 
-const waitlistRouter = new Hono();
-
-const waitlistRateLimiterMiddleware = createRateLimiterMiddleware({ limiter: waitlistRateLimiter });
-
-waitlistRouter.post(
-	"/join",
-	waitlistRateLimiterMiddleware,
-	zValidator("json", emailSchema, (result, c) => {
-		if (!result.success) {
-			// const firstError = result.error.errors[0];
-			return c.json(
-				{
-					success: false,
-					error: result.error.errors[0]?.message,
-				},
-				400
-			);
-		}
-	}),
-	async (c: Context) => {
+const waitlistRouter = createPublicRouter()
+	.get("/count", buildWaitlistSecurityMiddleware(), async c => {
 		try {
-			const email = (await c.req.json()).email;
-
-			const existing = await db
-				.select()
-				.from(waitlist)
-				.where(eq(waitlist.email, email.toLowerCase().trim()))
-				.limit(1)
-				.then(rows => rows[0]);
-
-			if (existing) {
-				return c.json({ success: false, error: "This email is already on the waitlist" }, 400);
-			}
-
-			await db.insert(waitlist).values({
-				id: nanoid(),
-				email: email.toLowerCase().trim(),
-			});
-
-			return c.json({ success: true }, 201);
+			const result = await c.var.db.select({ count: count() }).from(waitlist);
+			const waitlistCount = result[0]?.count || 0;
+			const data: WaitlistCount = { count: waitlistCount };
+			return sendSuccess(c, { data });
 		} catch (error) {
-			console.error("Error adding email to waitlist:", error);
-			return c.json({ success: false, error: "Internal server error" }, 500);
+			console.error("Error getting waitlist count:", error);
+			return sendError(c);
 		}
-	}
-);
+	})
+	.post(
+		"/join",
+		buildWaitlistSecurityMiddleware(),
+		zValidator("json", emailObjectSchema, (result, c) => {
+			if (!result.success) {
+				return sendError(c, { message: result.error.message, status: 400 });
+			}
+		}),
+		async c => {
+			try {
+				const email = (await c.req.json()).email;
 
-waitlistRouter.get("/count", async c => {
-	try {
-		const result = await db.select({ count: count() }).from(waitlist);
-		return c.json({ count: result[0]?.count || 0 });
-	} catch (error) {
-		console.error("Error getting waitlist count:", error);
-		return c.json({ success: false, error: "Internal server error" }, 500);
-	}
-});
+				const existing = await c.var.db
+					.select()
+					.from(waitlist)
+					.where(eq(waitlist.email, email.toLowerCase().trim()))
+					.limit(1)
+					.then(rows => rows[0]);
+
+				if (existing) {
+					return sendError(c, { message: "This email is already on the waitlist", status: 400 });
+				}
+
+				await c.var.db.insert(waitlist).values({
+					id: nanoid(),
+					email: email.toLowerCase().trim(),
+				});
+				return sendSuccess(c, { message: "Email added to waitlist", status: 201 });
+			} catch (error) {
+				console.error("Error adding email to waitlist:", error);
+				return sendError(c);
+			}
+		}
+	);
 
 export default waitlistRouter;

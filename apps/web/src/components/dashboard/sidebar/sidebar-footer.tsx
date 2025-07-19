@@ -1,16 +1,22 @@
+"use client";
+
 import { SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Progress } from "@/components/ui/progress";
 import { useDriveInfo } from "@/hooks/useDriveOps";
 import { Moon, Settings, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fileSize } from "@/utils/fileSize";
-import { useTheme } from "next-themes";
-import { useEffect } from "react";
+import { formatFileSize } from "@nimbus/shared";
+import { useTheme } from "@/hooks/useTheme";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function StorageFooter() {
 	const { data, error, isError, isPending } = useDriveInfo();
-	const { theme, setTheme } = useTheme();
+	const { theme, toggleTheme, isMounted } = useTheme();
+	const [usedSpace, setUsedSpace] = useState<number>(0);
+	const [totalSpace, setTotalSpace] = useState<number>(0);
+	const [usagePercent, setUsagePercent] = useState<number>(0);
 
 	useEffect(() => {
 		if (isError && error) {
@@ -18,12 +24,15 @@ export default function StorageFooter() {
 		}
 	}, [isError, error]);
 
-	const usagePercent: number =
-		data && Number(data.limit) > 0 ? Math.floor((Number(data.usage) / Number(data.limit)) * 100) : 0;
-
-	const toggleTheme = (): void => {
-		setTheme(theme === "dark" ? "light" : "dark");
-	};
+	useEffect(() => {
+		if (data) {
+			setUsedSpace(data.usedSpace);
+			setTotalSpace(data.totalSpace);
+			const percent =
+				Number(data.totalSpace) > 0 ? Math.floor((Number(data.usedSpace) / Number(data.totalSpace)) * 100) : 0;
+			setUsagePercent(percent);
+		}
+	}, [data]);
 
 	return (
 		<SidebarFooter className="flex flex-col items-start gap-2 self-stretch p-2 pb-0 transition-all duration-300 ease-linear dark:bg-neutral-800">
@@ -41,16 +50,20 @@ export default function StorageFooter() {
 							</div>
 							<Progress value={usagePercent} />
 						</div>
-						<div className="flex h-8 items-center justify-between self-stretch px-3">
+						<div className="flex min-h-[2rem] items-center justify-between self-stretch px-3 py-1">
 							{isPending ? (
 								<div className="h-4 w-32 animate-pulse rounded bg-neutral-300 dark:bg-neutral-500"></div>
 							) : (
-								<p className="text-sm font-medium text-neutral-500 dark:text-neutral-300">
-									{isPending || isError ? "--" : fileSize(data.usage)} of{" "}
-									{isPending || isError ? "--" : fileSize(data.limit)}
-								</p>
+								<div className="flex flex-wrap items-center gap-1 text-sm font-medium text-neutral-500 dark:text-neutral-300">
+									{fileSizeText(isError, usedSpace)}
+									<span>of</span>
+									{fileSizeText(isError, totalSpace)}
+								</div>
 							)}
-							<Button variant="link" className="text-xs font-medium text-neutral-800 dark:text-neutral-300">
+							<Button
+								variant="link"
+								className="ml-2 px-2 text-xs font-medium text-neutral-800 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+							>
 								Upgrade
 							</Button>
 						</div>
@@ -60,14 +73,23 @@ export default function StorageFooter() {
 					onClick={() => toggleTheme()}
 					className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
 				>
-					{theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+					{isMounted && (theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />)}
 					<span>Theme</span>
 				</SidebarMenuButton>
-				<SidebarMenuButton className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700">
-					<Settings />
-					<span>Settings</span>
+				<SidebarMenuButton
+					asChild
+					className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
+				>
+					<Link href="/dashboard/settings">
+						<Settings className="size-4" />
+						<span>Settings</span>
+					</Link>
 				</SidebarMenuButton>
 			</SidebarMenu>
 		</SidebarFooter>
 	);
+}
+
+function fileSizeText(isError: boolean, num: number | undefined) {
+	return <span>{isError || !num ? "--" : formatFileSize(num)}</span>;
 }

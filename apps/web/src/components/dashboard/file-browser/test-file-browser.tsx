@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 // import { PdfIcon } from "@/components/icons";
 import { FileActions } from "./file-actions";
-import type { _File } from "@/lib/types";
+import type { File } from "@nimbus/shared";
 import { format } from "date-fns";
 
 // Utility function for date formatting
@@ -71,7 +71,7 @@ export function FileTable({ files, isLoading }: FileTableProps) {
 	const searchParams = useSearchParams();
 	const [sorting, setSorting] = useState<SortingState>([]);
 
-	const handleRowDoubleClick = (file: _File) => {
+	const handleRowDoubleClick = (file: File) => {
 		const fileType =
 			file.mimeType === "application/vnd.google-apps.folder" || file.mimeType === "folder" ? "folder" : "file";
 

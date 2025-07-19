@@ -1,8 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { resetPasswordSchema, type ResetPasswordFormData } from "@/schemas";
-import { Loader2, ArrowLeft, Eye, EyeClosed } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { resetPasswordSchema, type ResetPasswordFormData } from "@nimbus/shared";
+import { AuthErrorCard } from "@/components/auth/shared/auth-error-card";
+import { ArrowLeft, Eye, EyeClosed, Loader2 } from "lucide-react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { FieldError } from "@/components/ui/field-error";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,36 +44,12 @@ export function ResetPasswordForm({ ...props }: ComponentProps<"div">) {
 
 	if (error === "invalid_token" || !token) {
 		return (
-			<div className="flex size-full flex-col items-center justify-center gap-0 select-none" {...props}>
-				<Card className="w-full max-w-md gap-6 pb-0">
-					<CardHeader className="overflow-x-hidden">
-						<div className="-mx-6 flex flex-row items-center justify-start border-b">
-							<Button className="cursor-pointer rounded-none px-6 py-6 font-semibold" variant="link" asChild>
-								<Link href="/">
-									<ArrowLeft />
-									Cancel
-								</Link>
-							</Button>
-						</div>
-						<div className="gap-2 pt-6">
-							<CardTitle className="text-center text-lg md:text-xl">Invalid Reset Link</CardTitle>
-							<CardDescription className="text-center text-xs md:text-sm">
-								This password reset link is invalid or has expired.
-							</CardDescription>
-						</div>
-					</CardHeader>
-
-					<CardContent className="px-6">
-						<p className="text-muted-foreground text-center">Please request a new password reset link to continue.</p>
-					</CardContent>
-
-					<CardFooter className="px-6 py-4">
-						<Button asChild className="w-full">
-							<Link href="/forgot-password">Request New Reset Link</Link>
-						</Button>
-					</CardFooter>
-				</Card>
-			</div>
+			<AuthErrorCard
+				title="Invalid Reset Link"
+				content="This password reset link is invalid or has expired. Please request a new password reset link to continue."
+				actionText="Request New Reset Link"
+				actionHref="/forgot-password"
+			/>
 		);
 	}
 

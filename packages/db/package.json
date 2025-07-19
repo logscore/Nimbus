@@ -21,13 +21,15 @@
 	},
 	"devDependencies": {
 		"@nimbus/tsconfig": "workspace:*",
-		"drizzle-kit": "^0.31.1"
+		"drizzle-kit": "^0.31.4"
 	},
 	"peerDependencies": {
-		"typescript": "^5"
+		"typescript": "^5.8.3"
 	},
 	"dependencies": {
-		"drizzle-orm": "^0.43.1",
-		"pg": "^8.16.1"
+		"@nimbus/env": "workspace:*",
+		"drizzle-orm": "^0.44.2",
+		"pg": "^8.16.3",
+		"postgres": "^3.4.7"
 	}
 }

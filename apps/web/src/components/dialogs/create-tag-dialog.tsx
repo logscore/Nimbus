@@ -1,19 +1,18 @@
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogFooter,
-	DialogDescription,
 } from "@/components/ui/dialog";
+import { useEffect, useState, type ReactNode } from "react";
 import { FieldError } from "@/components/ui/field-error";
+import { createTagSchema } from "@nimbus/shared";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { createTagSchema } from "@/schemas";
-import { useState, useEffect } from "react";
-import type { Tag } from "@/lib/types";
-import { type ReactNode } from "react";
+import type { Tag } from "@nimbus/shared";
 
 function renderTagOptions(tags: Tag[], level = 0): ReactNode[] {
 	return tags.flatMap(tag => [
@@ -59,12 +58,12 @@ export function CreateTagDialog({ isOpen, onClose, onCreate, tags, initialParent
 		});
 		if (!validationResult.success) {
 			const newErrors: { name?: string; color?: string } = {};
-			validationResult.error.errors.forEach(error => {
-				if (error.path.includes("name")) {
-					newErrors.name = error.message;
+			validationResult.error.issues.forEach(issue => {
+				if (issue.path.includes("name")) {
+					newErrors.name = issue.message;
 				}
-				if (error.path.includes("color")) {
-					newErrors.color = error.message;
+				if (issue.path.includes("color")) {
+					newErrors.color = issue.message;
 				}
 			});
 			setErrors(newErrors);
@@ -89,12 +88,12 @@ export function CreateTagDialog({ isOpen, onClose, onCreate, tags, initialParent
 		} else {
 			// Update errors for final validation
 			const newErrors: { name?: string; color?: string } = {};
-			validationResult.error.errors.forEach(error => {
-				if (error.path.includes("name")) {
-					newErrors.name = error.message;
+			validationResult.error.issues.forEach(issue => {
+				if (issue.path.includes("name")) {
+					newErrors.name = issue.message;
 				}
-				if (error.path.includes("color")) {
-					newErrors.color = error.message;
+				if (issue.path.includes("color")) {
+					newErrors.color = issue.message;
 				}
 			});
 			setErrors(newErrors);
