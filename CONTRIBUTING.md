@@ -157,7 +157,7 @@ We use Docker to run a PostgreSQL database and Valkey for local development. Fol
 After setting up the database, run the migrations:
 
 ```bash
-bun db:migrate
+bun db:push
 ```
 
 ### 6. Enable Google Drive API
