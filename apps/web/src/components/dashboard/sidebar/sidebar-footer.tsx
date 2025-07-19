@@ -76,7 +76,10 @@ export default function StorageFooter() {
 					{isMounted && (theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />)}
 					<span>Theme</span>
 				</SidebarMenuButton>
-				<SidebarMenuButton asChild>
+				<SidebarMenuButton
+					asChild
+					className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
+				>
 					<Link href="/dashboard/settings">
 						<Settings className="size-4" />
 						<span>Settings</span>
