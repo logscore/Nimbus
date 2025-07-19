@@ -1,20 +1,46 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function FileTabs({ type }: { type: string | null }) {
+	const router = useRouter();
+	const searchParams = useSearchParams();
+
+	const handleTabChange = (value: string) => {
+		const params = new URLSearchParams(searchParams);
+		if (value === "all") {
+			params.delete("type");
+		} else {
+			params.set("type", value);
+		}
+		router.push(`?${params.toString()}`);
+	};
+
 	return (
-		<Tabs value={type ?? "all"} className="w-[400px]">
-			<TabsList>
-				<TabsTrigger asChild value="all">
-					<p>All</p>
+		<Tabs value={type ?? "all"} onValueChange={handleTabChange} className="w-[400px]">
+			<TabsList className="bg-muted/50 grid w-full grid-cols-4 rounded-lg p-1">
+				<TabsTrigger
+					value="all"
+					className="data-[state=active]:bg-background data-[state=active]:text-foreground text-sm transition-all data-[state=active]:shadow-sm"
+				>
+					All
 				</TabsTrigger>
-				<TabsTrigger asChild value="folder">
-					<p>Folders</p>
+				<TabsTrigger
+					value="folder"
+					className="data-[state=active]:bg-background data-[state=active]:text-foreground text-sm transition-all data-[state=active]:shadow-sm"
+				>
+					Folders
 				</TabsTrigger>
-				<TabsTrigger asChild value="document">
-					<p>Documents</p>
+				<TabsTrigger
+					value="document"
+					className="data-[state=active]:bg-background data-[state=active]:text-foreground text-sm transition-all data-[state=active]:shadow-sm"
+				>
+					Documents
 				</TabsTrigger>
-				<TabsTrigger asChild value="media">
-					<p>Media</p>
+				<TabsTrigger
+					value="media"
+					className="data-[state=active]:bg-background data-[state=active]:text-foreground text-sm transition-all data-[state=active]:shadow-sm"
+				>
+					Media
 				</TabsTrigger>
 			</TabsList>
 		</Tabs>

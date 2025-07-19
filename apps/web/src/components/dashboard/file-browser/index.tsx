@@ -30,10 +30,53 @@ export function FileBrowser() {
 	// Update local state when server data changes
 	useEffect(() => {
 		if (data) {
-			setLocalFiles(data);
+			let filteredFiles = [...data];
+
+			if (type) {
+				filteredFiles = data.filter((file: _File) => {
+					const mimeType = file.mimeType?.toLowerCase() ?? "";
+					const fileName = file.name?.toLowerCase() ?? "";
+
+					switch (type) {
+						case "folder":
+							return mimeType === "application/vnd.google-apps.folder" || mimeType === "folder";
+						case "document":
+							return (
+								// Google Docs
+								mimeType.includes("application/vnd.google-apps.document") ||
+								mimeType.includes("application/vnd.google-apps.spreadsheet") ||
+								mimeType.includes("application/vnd.google-apps.presentation") ||
+								// Microsoft Office
+								mimeType.includes("officedocument") ||
+								mimeType.includes("msword") ||
+								// PDFs
+								mimeType.includes("pdf") ||
+								// Text files
+								mimeType.includes("text/") ||
+								// Common document extensions
+								/\.(doc|docx|xls|xlsx|ppt|pptx|pdf|txt|rtf|odt|ods|odp)$/i.test(fileName)
+							);
+						case "media":
+							return (
+								// Images
+								mimeType.includes("image/") ||
+								// Videos
+								mimeType.includes("video/") ||
+								// Audio
+								mimeType.includes("audio/") ||
+								// Common media extensions
+								/\.(jpg|jpeg|png|gif|bmp|webp|mp4|webm|mov|mp3|wav|ogg)$/i.test(fileName)
+							);
+						default:
+							return true;
+					}
+				});
+			}
+
+			setLocalFiles(filteredFiles);
 			setOriginalFiles(data);
 		}
-	}, [data]);
+	}, [data, type]);
 
 	// Optimistic delete handler
 	const handleOptimisticDelete = (fileId: string) => {
