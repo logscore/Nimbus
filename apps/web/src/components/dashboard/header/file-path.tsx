@@ -1,15 +1,14 @@
 "use client";
 
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from "@/components/ui/breadcrumb";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBreadcrumbPath } from "@/hooks/useBreadcrumb";
-import { motion, AnimatePresence } from "framer-motion";
-import SourceSelector from "./source-selector";
+import { SourceSelector } from "./source-selector";
 import { HomeIcon } from "lucide-react";
-import * as React from "react";
 
 // Define animation variants for slide-in/slide-out
-const itemVariants = {
+const variants: Variants = {
 	hidden: { opacity: 0, x: -10 }, // Starts hidden, slightly to the right
 	visible: {
 		opacity: 1,
@@ -86,7 +85,7 @@ export function FileBreadcrumb() {
 								{data?.map((item, index) => (
 									<div key={item.id}>
 										<motion.div
-											variants={itemVariants}
+											variants={variants}
 											initial="hidden"
 											animate="visible"
 											exit="exit"
@@ -96,7 +95,7 @@ export function FileBreadcrumb() {
 											<BreadcrumbItem>
 												<BreadcrumbLink
 													onClick={() => handleFolderClick(item.id)}
-													className="flex items-center gap-2 rounded-md p-1 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.04)]"
+													className="flex items-center gap-2 rounded-md p-1 text-nowrap"
 												>
 													<span>{item.name}</span>
 												</BreadcrumbLink>
@@ -109,7 +108,7 @@ export function FileBreadcrumb() {
 												animate={{ opacity: 1 }}
 												exit={{ opacity: 0 }}
 												transition={{ duration: 0.2 }}
-												className="text-neutral-200"
+												className="pl-3 text-neutral-200"
 											>
 												/
 											</motion.span>

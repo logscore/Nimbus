@@ -17,21 +17,21 @@ interface driveProviderRouterVars extends protectedRouterVars {
 	provider: Provider;
 }
 
-export interface PublicRouterEnv {
+interface PublicRouterEnv {
 	Variables: publicRouterVars;
 }
 
-export interface ProtectedRouterEnv {
+interface ProtectedRouterEnv {
 	Variables: protectedRouterVars;
 }
 
-export interface DriveProviderRouterEnv {
+interface DriveProviderRouterEnv {
 	Variables: driveProviderRouterVars;
 }
 
-export type PublicRouterContext = Context<PublicRouterEnv>;
-export type ProtectedRouterContext = Context<ProtectedRouterEnv>;
-export type DriveProviderRouterContext = Context<DriveProviderRouterEnv>;
+type PublicRouterContext = Context<PublicRouterEnv>;
+type ProtectedRouterContext = Context<ProtectedRouterEnv>;
+type DriveProviderRouterContext = Context<DriveProviderRouterEnv>;
 
 function createHono<T extends Env>() {
 	return new Hono<T>();

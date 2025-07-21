@@ -20,7 +20,7 @@ interface FileTagsProps {
 }
 
 export function FileTags({ file, availableTags, refetch }: FileTagsProps) {
-	const { addTagsToFile, removeTagsFromFile, createTag } = useTags();
+	const { addTagsToFile, removeTagsFromFile, createTag } = useTags(file.parentId);
 	const [isCreateTagOpen, setIsCreateTagOpen] = useState(false);
 
 	const handleAddTag = (tagId: string) => {
@@ -88,7 +88,7 @@ export function FileTags({ file, availableTags, refetch }: FileTagsProps) {
 	const flattenedAvailableTags = flattenTags(availableTags).filter(tag => !fileTagIds.includes(tag.id));
 
 	return (
-		<div className="flex max-w-full items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+		<div className="flex max-w-30 items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 			{updatedFileTags.map(tag => (
 				<div key={tag.id} className="group relative cursor-pointer">
 					<Badge
@@ -113,7 +113,7 @@ export function FileTags({ file, availableTags, refetch }: FileTagsProps) {
 					<Button
 						variant="ghost"
 						size="sm"
-						className="h-6 w-6 rounded-full p-0 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+						className="h-6 w-6 rounded-full border-0 p-0 text-gray-400 ring-0 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-0 focus-visible:ring-offset-0"
 					>
 						<Plus className="h-4 w-4" />
 					</Button>

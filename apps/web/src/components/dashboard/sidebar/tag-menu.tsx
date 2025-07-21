@@ -124,7 +124,7 @@ function TagTree({ tags, openUpdateDialog, openDeleteDialog, openCreateDialog }:
 		<>
 			{tags.map(tag => (
 				<Collapsible key={tag.id} asChild>
-					<SidebarMenuItem className="group/item p-0">
+					<SidebarMenuItem className="group/item pr-2">
 						<div className="flex w-full items-center">
 							<SidebarMenuButton
 								className="peer flex flex-1 cursor-pointer items-center justify-between pl-3"

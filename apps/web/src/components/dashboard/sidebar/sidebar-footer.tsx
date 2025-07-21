@@ -28,11 +28,14 @@ export default function StorageFooter() {
 		if (data) {
 			setUsedSpace(data.usedSpace);
 			setTotalSpace(data.totalSpace);
-			const percent =
-				Number(data.totalSpace) > 0 ? Math.floor((Number(data.usedSpace) / Number(data.totalSpace)) * 100) : 0;
+			console.log("Used Space: ", usedSpace);
+			console.log("Total Space: ", totalSpace);
+			console.log(usedSpace / totalSpace);
+			const percent = Number(totalSpace) > 0 ? Math.floor((Number(usedSpace) / Number(totalSpace)) * 100) : 0;
+			console.log(percent);
 			setUsagePercent(percent);
 		}
-	}, [data]);
+	}, [data, totalSpace, usedSpace]);
 
 	return (
 		<SidebarFooter className="flex flex-col items-start gap-2 self-stretch p-2 pb-0 transition-all duration-300 ease-linear dark:bg-neutral-800">
@@ -50,7 +53,7 @@ export default function StorageFooter() {
 							</div>
 							<Progress value={usagePercent} />
 						</div>
-						<div className="flex min-h-[2rem] items-center justify-between self-stretch px-3 py-1">
+						<div className="flex h-8 items-center justify-between self-stretch px-3">
 							{isPending ? (
 								<div className="h-4 w-32 animate-pulse rounded bg-neutral-300 dark:bg-neutral-500"></div>
 							) : (

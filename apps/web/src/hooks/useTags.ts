@@ -1,39 +1,56 @@
 import { createTagSchema, updateTagSchema, type CreateTagSchema, type UpdateTagSchema } from "@nimbus/shared";
+import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAccountProvider } from "@/components/providers/account-provider";
 import type { DriveProviderClient } from "@/utils/client";
-import type { Tag } from "@nimbus/shared";
+import type { File, Tag } from "@nimbus/shared";
 import { toast } from "sonner";
 
 const TAGS_QUERY_KEY = "tags";
+const FILES_QUERY_KEY = "files";
 
-export function useTags() {
+export function useTags(parentId?: string) {
 	const queryClient = useQueryClient();
 	const { clientPromise, providerId, accountId } = useAccountProvider();
+
+	const { user } = useUserInfoProvider();
+
+	const tagsQueryKey = [TAGS_QUERY_KEY, providerId, accountId];
+	const filesQueryKey = [FILES_QUERY_KEY, providerId, accountId, parentId];
 
 	const {
 		data: tags,
 		isLoading,
 		error,
 	} = useQuery<Tag[]>({
-		queryKey: [TAGS_QUERY_KEY, providerId, accountId],
+		queryKey: tagsQueryKey,
 		queryFn: () => getTags(clientPromise),
 	});
 
 	const createTagMutation = useMutation({
 		mutationFn: (data: CreateTagSchema) => {
-			// Validate data before sending to API
 			const validatedData = createTagSchema.parse(data);
 			return createTag(validatedData, clientPromise);
 		},
-		onSuccess: newTag => {
-			toast.success("Tag created successfully");
-			// update data locally with the new tag
-			queryClient.setQueryData<Tag[]>([TAGS_QUERY_KEY], (oldData = []) => {
+		onMutate: async newTagData => {
+			await queryClient.cancelQueries({ queryKey: tagsQueryKey });
+			const previousTags = queryClient.getQueryData<Tag[]>(tagsQueryKey);
+
+			const optimisticTag: Tag = {
+				...newTagData,
+				id: `temp-${Date.now()}`,
+				children: [],
+				userId: user?.id || "",
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				_count: 0,
+			};
+
+			queryClient.setQueryData<Tag[]>(tagsQueryKey, (oldData = []) => {
 				const addRecursive = (tags: Tag[]): Tag[] => {
 					return tags.map(tag => {
-						if (tag.id === newTag.parentId) {
-							return { ...tag, children: [...(tag.children || []), newTag] };
+						if (tag.id === optimisticTag.parentId) {
+							return { ...tag, children: [...(tag.children || []), optimisticTag] };
 						}
 						if (tag.children) {
 							return { ...tag, children: addRecursive(tag.children) };
@@ -41,13 +58,38 @@ export function useTags() {
 						return tag;
 					});
 				};
-				if (newTag.parentId) {
+
+				if (optimisticTag.parentId) {
 					return addRecursive(oldData);
 				}
-				return [...oldData, newTag];
+				return [...oldData, optimisticTag];
+			});
+
+			return { previousTags, optimisticTag };
+		},
+		onSuccess: (newTag, variables, context) => {
+			toast.success("Tag created successfully");
+
+			queryClient.setQueryData<Tag[]>(tagsQueryKey, (oldData = []) => {
+				const replaceRecursive = (tags: Tag[]): Tag[] => {
+					return tags.map(tag => {
+						if (tag.id === context?.optimisticTag.id) {
+							return newTag;
+						}
+						if (tag.children) {
+							return { ...tag, children: replaceRecursive(tag.children) };
+						}
+						return tag;
+					});
+				};
+				return replaceRecursive(oldData);
 			});
 		},
-		onError: (error: Error) => {
+		onError: (error: Error, _, context) => {
+			if (context?.previousTags) {
+				queryClient.setQueryData(tagsQueryKey, context.previousTags);
+			}
+
 			if (error instanceof Error && error.name === "ZodError") {
 				toast.error("Invalid tag data. Please check your input.");
 			} else {
@@ -58,38 +100,69 @@ export function useTags() {
 
 	const updateTagMutation = useMutation({
 		mutationFn: (data: UpdateTagSchema) => {
-			// Validate data before sending to API
 			const validatedData = updateTagSchema.parse(data);
 			return updateTag(validatedData, clientPromise);
 		},
-		onSuccess: () => {
-			toast.success("Tag updated successfully");
-			// Invalidate the query to get the latest data
-			void queryClient.invalidateQueries({ queryKey: [TAGS_QUERY_KEY] });
+		onMutate: async updatedTag => {
+			await queryClient.cancelQueries({ queryKey: tagsQueryKey });
+			const previousTags = queryClient.getQueryData<Tag[]>(tagsQueryKey);
+
+			queryClient.setQueryData<Tag[]>(tagsQueryKey, (oldData = []) => {
+				const updateRecursive = (tags: Tag[]): Tag[] => {
+					return tags.map(tag => {
+						if (tag.id === updatedTag.id) {
+							return { ...tag, ...updatedTag, updatedAt: new Date().toISOString() };
+						}
+						if (tag.children) {
+							return { ...tag, children: updateRecursive(tag.children) };
+						}
+						return tag;
+					});
+				};
+				return updateRecursive(oldData);
+			});
+
+			return { previousTags };
 		},
-		onError: error => {
-			if (error instanceof Error && error.name === "ZodError") {
-				toast.error("Invalid tag data. Please check your input.");
-			} else {
-				toast.error(error.message || "Failed to update tag");
+		onSuccess: updatedTag => {
+			toast.success("Tag updated successfully");
+
+			// Replace optimistic update with real data
+			queryClient.setQueryData<Tag[]>(tagsQueryKey, (oldData = []) => {
+				const replaceRecursive = (tags: Tag[]): Tag[] => {
+					return tags.map(tag => {
+						if (tag.id === updatedTag.id) {
+							return updatedTag;
+						}
+						if (tag.children) {
+							return { ...tag, children: replaceRecursive(tag.children) };
+						}
+						return tag;
+					});
+				};
+				return replaceRecursive(oldData);
+			});
+		},
+		onError: (error, _, context) => {
+			if (context?.previousTags) {
+				queryClient.setQueryData(tagsQueryKey, context.previousTags);
 			}
+			toast.error(error.message || "Failed to update tag");
 		},
 	});
 
 	const deleteTagMutation = useMutation({
 		mutationFn: (id: string) => deleteTag(id, clientPromise),
-		onSuccess: (_, deletedId) => {
-			toast.success("Tag deleted successfully");
-			// remove the tag and all its descendants from the local data
-			queryClient.setQueryData<Tag[]>([TAGS_QUERY_KEY], (oldData = []) => {
-				// First, find all descendant IDs to remove
+		onMutate: async id => {
+			await queryClient.cancelQueries({ queryKey: tagsQueryKey });
+			const previousTags = queryClient.getQueryData<Tag[]>(tagsQueryKey) || [];
+
+			queryClient.setQueryData<Tag[]>(tagsQueryKey, (oldData = []) => {
 				const getDescendantIds = (tags: Tag[], targetId: string): string[] => {
 					const descendants: string[] = [];
-
 					const findDescendants = (tagList: Tag[]) => {
 						for (const tag of tagList) {
 							if (tag.id === targetId) {
-								// Found the target tag, collect all its children
 								if (tag.children) {
 									const collectChildren = (children: Tag[]) => {
 										for (const child of children) {
@@ -108,85 +181,130 @@ export function useTags() {
 							}
 						}
 					};
-
 					findDescendants(tags);
 					return descendants;
 				};
 
-				const descendantIds = getDescendantIds(oldData, deletedId);
-				const allIdsToRemove = [deletedId, ...descendantIds];
+				const descendantIds = getDescendantIds(oldData, id);
+				const allIdsToRemove = [id, ...descendantIds];
 
-				// Remove all tags (parent and descendants)
 				const removeRecursive = (tags: Tag[], idsToRemove: string[]): Tag[] => {
 					return tags
 						.filter(tag => !idsToRemove.includes(tag.id))
-						.map(tag => {
-							if (tag.children && tag.children.length > 0) {
-								return { ...tag, children: removeRecursive(tag.children, idsToRemove) };
-							}
-							return tag;
-						});
+						.map(tag => ({
+							...tag,
+							children: tag.children ? removeRecursive(tag.children, idsToRemove) : undefined,
+						}));
 				};
 
 				return removeRecursive(oldData, allIdsToRemove);
 			});
+
+			return { previousTags };
 		},
-		onError: error => {
+		onSuccess: () => {
+			toast.success("Tag deleted successfully");
+		},
+		onError: (error, _, context) => {
+			if (context?.previousTags) {
+				queryClient.setQueryData(tagsQueryKey, context.previousTags);
+			}
 			toast.error(error.message || "Failed to delete tag");
+		},
+		onSettled: async () => {
+			await queryClient.invalidateQueries({ queryKey: tagsQueryKey });
 		},
 	});
 
 	const addTagsToFileMutation = useMutation({
 		mutationFn: (variables: { fileId: string; tagIds: string[]; onSuccess?: () => void }) =>
 			addTagsToFile(variables, clientPromise),
+		onMutate: async variables => {
+			const { fileId, tagIds } = variables;
+			await queryClient.cancelQueries({ queryKey: filesQueryKey });
+			const previousFiles = queryClient.getQueryData<File[]>(filesQueryKey) || [];
+
+			// Get the tags that are being added
+			const tagsToAdd = queryClient.getQueryData<Tag[]>(tagsQueryKey)?.filter(tag => tagIds.includes(tag.id)) || [];
+
+			// Optimistically update the file with the new tags
+			queryClient.setQueryData<File[]>(filesQueryKey, (oldData = []) => {
+				return oldData.map(file => {
+					if (file.id === fileId) {
+						const existingTagIds = new Set(file.tags?.map(tag => tag.id) || []);
+						const newTags = [...(file.tags || []), ...tagsToAdd.filter(tag => !existingTagIds.has(tag.id))];
+
+						return {
+							...file,
+							tags: newTags,
+						};
+					}
+					return file;
+				});
+			});
+
+			return { previousFiles };
+		},
 		onSuccess: (_data, variables) => {
 			toast.success("Tag added to file successfully");
-			// Update cache locally by incrementing count for each added tag
-			queryClient.setQueryData<Tag[]>([TAGS_QUERY_KEY], (oldData = []) => {
-				const updateCountRecursive = (tags: Tag[]): Tag[] => {
-					return tags.map(tag => {
-						if (variables.tagIds.includes(tag.id)) {
-							return { ...tag, _count: (tag._count || 0) + 1 };
-						}
-						if (tag.children) {
-							return { ...tag, children: updateCountRecursive(tag.children) };
-						}
-						return tag;
-					});
-				};
-				return updateCountRecursive(oldData);
-			});
 			variables.onSuccess?.();
 		},
-		onError: error => {
+		onError: (error, _, context) => {
+			if (context?.previousFiles) {
+				queryClient.setQueryData(filesQueryKey, context.previousFiles);
+			}
 			toast.error(error.message || "Failed to add tag to file");
+		},
+		onSettled: async () => {
+			// Invalidate both files and tags queries to ensure consistency
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: filesQueryKey }),
+				queryClient.invalidateQueries({ queryKey: tagsQueryKey }),
+			]);
 		},
 	});
 
 	const removeTagsFromFileMutation = useMutation({
 		mutationFn: (variables: { fileId: string; tagIds: string[]; onSuccess?: () => void }) =>
 			removeTagsFromFile(variables, clientPromise),
+		onMutate: async variables => {
+			const { fileId, tagIds } = variables;
+			await queryClient.cancelQueries({ queryKey: filesQueryKey });
+			const previousFiles = queryClient.getQueryData<File[]>(filesQueryKey) || [];
+
+			// Optimistically update the file by removing the specified tags
+			queryClient.setQueryData<File[]>(filesQueryKey, (oldData = []) => {
+				return oldData.map(file => {
+					if (file.id === fileId) {
+						const updatedTags = (file.tags || []).filter(tag => !tagIds.includes(tag.id));
+
+						return {
+							...file,
+							tags: updatedTags,
+						};
+					}
+					return file;
+				});
+			});
+
+			return { previousFiles };
+		},
 		onSuccess: (_data, variables) => {
 			toast.success("Tag removed from file successfully");
-			// Update cache locally by decrementing count for each removed tag
-			queryClient.setQueryData<Tag[]>([TAGS_QUERY_KEY], (oldData = []) => {
-				const updateCountRecursive = (tags: Tag[]): Tag[] => {
-					return tags.map(tag => {
-						if (variables.tagIds.includes(tag.id)) {
-							return { ...tag, _count: Math.max(0, (tag._count || 0) - 1) };
-						}
-						if (tag.children) {
-							return { ...tag, children: updateCountRecursive(tag.children) };
-						}
-						return tag;
-					});
-				};
-				return updateCountRecursive(oldData);
-			});
 			variables.onSuccess?.();
 		},
-		onError: error => {
+		onError: (error, _, context) => {
+			if (context?.previousFiles) {
+				queryClient.setQueryData(filesQueryKey, context.previousFiles);
+			}
 			toast.error(error.message || "Failed to remove tag from file");
+		},
+		onSettled: async () => {
+			// Invalidate both files and tags queries to ensure consistency
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: filesQueryKey }),
+				queryClient.invalidateQueries({ queryKey: tagsQueryKey }),
+			]);
 		},
 	});
 
@@ -202,6 +320,7 @@ export function useTags() {
 	};
 }
 
+// API functions remain the same
 async function getBaseTagClient(clientPromise: Promise<DriveProviderClient>) {
 	const client = await clientPromise;
 	const BASE_TAG_CLIENT = client.api.tags;

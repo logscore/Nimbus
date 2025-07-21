@@ -148,11 +148,7 @@ export default function SettingsPage() {
 
 	return (
 		<div className="flex flex-1 flex-col">
-			<SettingsHeader
-				title="Settings"
-				description="Manage your account settings and preferences"
-				showBackButton={true}
-			/>
+			<SettingsHeader />
 			<div className="container mx-auto flex-1 space-y-6 p-6">
 				<ProfileSection
 					name={name}

@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AddAccountDialog } from "@/components/settings/add-account-dialog";
 import { AlertCircle, Check, Edit, Loader2, Plus, X } from "lucide-react";
 import { nicknameSchema, type DriveProvider } from "@nimbus/shared";
@@ -82,7 +81,11 @@ const NicknameInput = ({
 					onChange={e => onChange(e.target.value)}
 					onKeyDown={handleKeyDown}
 					placeholder="Enter nickname"
-					className={cn("h-8 w-full pr-8", error && "border-destructive", isSuccess && "border-green-500")}
+					className={cn(
+						"h-8 w-full pr-8 ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+						error && "border-destructive",
+						isSuccess && "border-green-500"
+					)}
 					aria-invalid={!!error}
 					aria-describedby={error ? "nickname-error" : undefined}
 					maxLength={maxLength}
@@ -92,22 +95,15 @@ const NicknameInput = ({
 					{isSuccess ? (
 						<Check className="h-4 w-4 text-green-500" />
 					) : (
-						<TooltipProvider>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button
-										variant="ghost"
-										size="icon"
-										className="h-6 w-6 p-0 hover:bg-transparent"
-										onClick={onCancel}
-										aria-label="Cancel editing"
-									>
-										<X className="text-muted-foreground hover:text-destructive h-4 w-4" />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent>Cancel</TooltipContent>
-							</Tooltip>
-						</TooltipProvider>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="h-6 w-6 p-0 hover:bg-transparent"
+							onClick={onCancel}
+							aria-label="Cancel editing"
+						>
+							<X className="text-muted-foreground hover:text-destructive h-4 w-4" />
+						</Button>
 					)}
 				</div>
 				{/* Character counter - positioned absolutely relative to input */}
@@ -259,22 +255,15 @@ export function ConnectedAccountsSection({
 									) : (
 										<div className="flex items-center justify-between">
 											<span>{account.nickname || "—"}</span>
-											<TooltipProvider>
-												<Tooltip>
-													<TooltipTrigger asChild>
-														<Button
-															variant="ghost"
-															size="icon"
-															className="h-8 w-8 opacity-0 group-hover:opacity-100"
-															onClick={() => handleEdit(account)}
-															aria-label={`Edit ${account.nickname || "unnamed account"}`}
-														>
-															<Edit className="h-4 w-4" />
-														</Button>
-													</TooltipTrigger>
-													<TooltipContent>Edit nickname</TooltipContent>
-												</Tooltip>
-											</TooltipProvider>
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-8 w-8 opacity-0 group-hover:opacity-100"
+												onClick={() => handleEdit(account)}
+												aria-label={`Edit ${account.nickname || "unnamed account"}`}
+											>
+												<Edit className="h-4 w-4" />
+											</Button>
 										</div>
 									)}
 								</TableCell>
@@ -282,54 +271,36 @@ export function ConnectedAccountsSection({
 								<TableCell className="text-right">
 									<div className="flex justify-end gap-2">
 										{defaultAccountId !== account.accountId && (
-											<TooltipProvider>
-												<Tooltip>
-													<TooltipTrigger asChild>
-														<Button
-															variant="outline"
-															size="sm"
-															disabled={isSettingDefault === account.accountId}
-															onClick={() => onSetDefault(account.providerId as DriveProvider, account.accountId)}
-														>
-															{isSettingDefault === account.accountId ? (
-																<>
-																	<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-																	Setting...
-																</>
-															) : (
-																<>
-																	<Check className="mr-2 h-4 w-4" />
-																	Set as Default
-																</>
-															)}
-															<span className="sr-only">Set {account.nickname || "this account"} as default</span>
-														</Button>
-													</TooltipTrigger>
-													<TooltipContent>
-														<p>Set as default account</p>
-													</TooltipContent>
-												</Tooltip>
-											</TooltipProvider>
+											<Button
+												variant="outline"
+												size="sm"
+												disabled={isSettingDefault === account.accountId}
+												onClick={() => onSetDefault(account.providerId as DriveProvider, account.accountId)}
+											>
+												{isSettingDefault === account.accountId ? (
+													<>
+														<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+														Setting...
+													</>
+												) : (
+													<>
+														<Check className="mr-2 h-4 w-4" />
+														Set as Default
+													</>
+												)}
+												<span className="sr-only">Set {account.nickname || "this account"} as default</span>
+											</Button>
 										)}
 
-										<TooltipProvider>
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<Button
-														variant="outline"
-														size="sm"
-														disabled={defaultAccountId === account.accountId || isSettingDefault === account.accountId}
-														onClick={() => onDisconnect(account.providerId as DriveProvider, account.accountId)}
-													>
-														{isSaving ? "Disconnecting..." : "Disconnect"}
-														<span className="sr-only">Disconnect {account.nickname || "unnamed account"}</span>
-													</Button>
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>Disconnect {account.providerId} account</p>
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={defaultAccountId === account.accountId || isSettingDefault === account.accountId}
+											onClick={() => onDisconnect(account.providerId as DriveProvider, account.accountId)}
+										>
+											{isSaving ? "Disconnecting..." : "Disconnect"}
+											<span className="sr-only">Disconnect {account.nickname || "unnamed account"}</span>
+										</Button>
 									</div>
 								</TableCell>
 							</TableRow>
@@ -338,19 +309,10 @@ export function ConnectedAccountsSection({
 				</Table>
 			</CardContent>
 			<CardFooter className="flex justify-between">
-				<TooltipProvider>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button variant="outline" onClick={() => onAddAccountDialogOpenChange(true)}>
-								<Plus className="mr-2 h-4 w-4" />
-								Add Account
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>
-							<p>Connect a new social account</p>
-						</TooltipContent>
-					</Tooltip>
-				</TooltipProvider>
+				<Button variant="outline" onClick={() => onAddAccountDialogOpenChange(true)}>
+					<Plus className="mr-2 h-4 w-4" />
+					Add Account
+				</Button>
 
 				<AddAccountDialog
 					open={isAddAccountDialogOpen}

@@ -27,7 +27,7 @@ export function UploadButton() {
 					<Button
 						variant="default"
 						size="lg"
-						className="flex h-8 w-20 cursor-pointer items-center gap-2 rounded-lg bg-neutral-100 font-medium"
+						className="flex h-8 w-20 cursor-pointer items-center gap-2 rounded-lg bg-neutral-900 font-medium dark:bg-neutral-100"
 					>
 						<Plus className="h-4 w-4" />
 						New

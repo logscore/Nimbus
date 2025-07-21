@@ -7,7 +7,7 @@ import { webcrypto } from "node:crypto";
 /**
  * Security middleware options
  */
-export interface SecurityOptions {
+interface SecurityOptions {
 	rateLimiting?: {
 		enabled: boolean;
 		rateLimiter: (c: Context) => RateLimiter;
@@ -61,7 +61,7 @@ const getClientIp = (c: Context): string => {
 	return `unidentifiable-${webcrypto.randomUUID()}`;
 };
 
-export const securityMiddleware = (options: SecurityOptions = {}) => {
+const securityMiddleware = (options: SecurityOptions = {}) => {
 	const {
 		rateLimiting = {
 			enabled: options.rateLimiting?.enabled ?? true,
