@@ -13,11 +13,13 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Copy, Download, ExternalLink, FileIcon, FileText, MoreVertical } from "lucide-react";
+import { Copy, Download, ExternalLink, FileIcon, FileText, MoreVertical, Pin } from "lucide-react";
 import { useDeleteFile, useDownloadFile, useUpdateFile } from "@/hooks/useFileOperations";
 import { useDownloadContext } from "@/components/providers/download-provider";
+import { useAccountProvider } from "@/components/providers/account-provider";
 import { RenameFileDialog } from "@/components/dialogs/rename-file-dialog";
 import { DeleteFileDialog } from "@/components/dialogs/delete-file-dialog";
+import { usePinFile } from "@/hooks/useDriveOps";
 import { Button } from "@/components/ui/button";
 import type { File } from "@nimbus/shared";
 import { useState } from "react";
@@ -27,10 +29,12 @@ export function FileActions({ file, fileType }: { file: File; fileType: "file" |
 	const { mutate: deleteFile } = useDeleteFile();
 	const { mutate: renameFile } = useUpdateFile();
 	const { mutate: downloadFile } = useDownloadFile();
+	const { mutate: pinFile } = usePinFile();
 	const { startDownload, updateProgress, completeDownload, errorDownload } = useDownloadContext();
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 	const [mimeDownloadType, setMimeDownloadType] = useState<string | null>(null);
+	const { providerId } = useAccountProvider();
 
 	const handleDelete = async () => {
 		deleteFile({ fileId: file.id });
@@ -55,6 +59,17 @@ export function FileActions({ file, fileType }: { file: File; fileType: "file" |
 		} else {
 			toast.error("Cannot open file or folder");
 		}
+	};
+
+	const handlePinFile = async () => {
+		if (!providerId) return;
+		pinFile({
+			fileId: file.id,
+			name: file.name,
+			type: fileType,
+			mimeType: file.mimeType,
+			provider: providerId,
+		});
 	};
 
 	const getGoogleWorkspaceExportMimeType = (mimeType: string): string | undefined => {
@@ -184,6 +199,10 @@ export function FileActions({ file, fileType }: { file: File; fileType: "file" |
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
+						<DropdownMenuItem onClick={handlePinFile} className="cursor-pointer">
+							<Pin className="mr-2 h-4 w-4" />
+							Pin
+						</DropdownMenuItem>
 						{file.webViewLink && (
 							<DropdownMenuItem onClick={handleOpenInDrive} className="cursor-pointer">
 								<ExternalLink className="mr-2 h-4 w-4" />

@@ -25,3 +25,38 @@ export const buildUrl = (path: string) => {
 	const baseUrl = getBaseUrl();
 	return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 };
+
+// Convert MIME type to internal file type
+export function mimeTypeToFileType(mimeType: string): string {
+	if (mimeType === "application/vnd.google-apps.folder") {
+		return "folder";
+	}
+
+	if (mimeType.startsWith("image/")) {
+		return "image";
+	}
+
+	if (mimeType.startsWith("video/")) {
+		return "video";
+	}
+
+	if (mimeType.startsWith("audio/")) {
+		return "music";
+	}
+
+	if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("tar") || mimeType.includes("7z")) {
+		return "archive";
+	}
+
+	if (
+		mimeType.includes("document") ||
+		mimeType.includes("pdf") ||
+		mimeType.includes("text") ||
+		mimeType.includes("spreadsheet") ||
+		mimeType.includes("presentation")
+	) {
+		return "document";
+	}
+
+	return "document";
+}

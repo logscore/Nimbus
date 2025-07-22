@@ -14,7 +14,7 @@ export function Header() {
 				{/* Share button */}
 
 				{/* Upload files button */}
-				<UploadButton />
+				<UploadButton name="New" />
 			</div>
 		</header>
 	);

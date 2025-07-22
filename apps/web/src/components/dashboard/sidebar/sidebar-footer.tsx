@@ -28,11 +28,7 @@ export default function StorageFooter() {
 		if (data) {
 			setUsedSpace(data.usedSpace);
 			setTotalSpace(data.totalSpace);
-			console.log("Used Space: ", usedSpace);
-			console.log("Total Space: ", totalSpace);
-			console.log(usedSpace / totalSpace);
 			const percent = Number(totalSpace) > 0 ? Math.floor((Number(usedSpace) / Number(totalSpace)) * 100) : 0;
-			console.log(percent);
 			setUsagePercent(percent);
 		}
 	}, [data, totalSpace, usedSpace]);
@@ -63,10 +59,7 @@ export default function StorageFooter() {
 									{fileSizeText(isError, totalSpace)}
 								</div>
 							)}
-							<Button
-								variant="link"
-								className="ml-2 px-2 text-xs font-medium text-neutral-800 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-							>
+							<Button variant="link" className="ml-2 px-2 text-xs font-medium text-neutral-800 dark:text-neutral-300">
 								Upgrade
 							</Button>
 						</div>

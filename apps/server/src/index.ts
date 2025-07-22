@@ -7,6 +7,10 @@ import env from "@nimbus/env/server";
 import { cors } from "hono/cors";
 import routes from "./routes";
 
+// TODO: Edge runtimes are probably not worth it tbh
+const db = createDb(env.DATABASE_URL);
+const auth = createAuth(db);
+
 const app = createPublicRouter()
 	.use(
 		cors({
@@ -19,8 +23,6 @@ const app = createPublicRouter()
 	)
 	.use(contextStorage())
 	.use("*", async (c, next) => {
-		const db = createDb(env.DATABASE_URL);
-		const auth = createAuth();
 		c.set("db", db);
 		c.set("auth", auth);
 		await next();

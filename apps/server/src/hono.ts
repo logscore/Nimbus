@@ -4,28 +4,28 @@ import { Hono, type Context, type Env } from "hono";
 import { getContext } from "hono/context-storage";
 import type { DB } from "@nimbus/db";
 
-interface publicRouterVars {
+export interface publicRouterVars {
 	db: DB;
 	auth: Auth;
 }
 
-interface protectedRouterVars extends publicRouterVars {
+export interface protectedRouterVars extends publicRouterVars {
 	user: SessionUser;
 }
 
-interface driveProviderRouterVars extends protectedRouterVars {
+export interface driveProviderRouterVars extends protectedRouterVars {
 	provider: Provider;
 }
 
-interface PublicRouterEnv {
+export interface PublicRouterEnv {
 	Variables: publicRouterVars;
 }
 
-interface ProtectedRouterEnv {
+export interface ProtectedRouterEnv {
 	Variables: protectedRouterVars;
 }
 
-interface DriveProviderRouterEnv {
+export interface DriveProviderRouterEnv {
 	Variables: driveProviderRouterVars;
 }
 

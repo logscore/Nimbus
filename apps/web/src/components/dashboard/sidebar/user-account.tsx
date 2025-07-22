@@ -31,7 +31,7 @@ export default function UserAccount() {
 					<DropdownMenuTrigger asChild>
 						<SidebarMenuButton
 							size="lg"
-							className="flex h-10 items-center justify-between self-stretch rounded-lg px-2 py-1 transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
+							className="flex h-10 items-center justify-between self-stretch rounded-lg py-1 pr-3 pl-2 transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
 						>
 							{isPending ? (
 								<div className="flex items-center gap-2">

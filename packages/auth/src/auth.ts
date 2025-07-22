@@ -7,14 +7,12 @@ import env /*, { isEdge }*/ from "@nimbus/env/server";
 // import { providerSchema } from "@nimbus/shared";
 import { sendMail } from "./utils/send-mail";
 // import redisClient from "@nimbus/cache";
-import { createDb } from "@nimbus/db";
+import { type DB } from "@nimbus/db";
 import { eq } from "drizzle-orm";
 
 // TODO(shared): move constants to shared package. use in validation.
 
-const db = createDb(env.DATABASE_URL);
-
-export const createAuth = () => {
+export const createAuth = (db: DB) => {
 	return betterAuth({
 		appName: "Nimbus",
 		baseURL: env.BACKEND_URL,
@@ -206,7 +204,7 @@ export const createAuth = () => {
 		databaseHooks: {
 			account: {
 				create: {
-					after: afterAccountCreation,
+					after: account => afterAccountCreation(db, account),
 				},
 			},
 		},
@@ -217,7 +215,7 @@ export type Auth = ReturnType<typeof createAuth>;
 export type AuthSession = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
 export type SessionUser = AuthSession["user"];
 
-async function afterAccountCreation(account: Account) {
+async function afterAccountCreation(db: DB, account: Account) {
 	const user = await db.query.user.findFirst({
 		where: (table, { eq }) => eq(table.id, account.userId),
 	});

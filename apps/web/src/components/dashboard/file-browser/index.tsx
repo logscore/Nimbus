@@ -26,6 +26,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState, type JSX } from "react";
+import { UploadButton } from "@/components/upload-button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatFileSize } from "@/lib/file-utils";
 import { Button } from "@/components/ui/button";
@@ -281,35 +282,38 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 								</TableCell>
 							</TableRow>
 						</TableBody>
+					) : table.getRowModel().rows.length === 0 ? (
+						<TableBody>
+							<TableRow className="hover:bg-transparent">
+								<TableCell colSpan={columns.length} className="h-[600px]">
+									<div className="flex h-full flex-col items-center justify-center gap-2">
+										<p>No files found. Lets add one!</p>
+										<UploadButton name="Add File" />
+									</div>
+								</TableCell>
+							</TableRow>
+						</TableBody>
 					) : (
 						<TableBody>
-							{table.getRowModel()?.rows.length === 0 ? (
-								<TableRow className="h-8 hover:bg-transparent">
-									<TableCell colSpan={columns.length} className="py-0">
-										No files found
-									</TableCell>
+							{table.getRowModel().rows.map(row => (
+								<TableRow
+									key={row.id}
+									className="h-8 hover:bg-transparent"
+									onDoubleClick={() => handleRowDoubleClick(row.original)}
+								>
+									{row.getVisibleCells().map(cell => (
+										<TableCell
+											key={cell.id}
+											className="h-10 py-0 whitespace-nowrap"
+											style={{
+												width: cell.column.id === "tags" || cell.column.id === "actions" ? "50px" : undefined,
+											}}
+										>
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										</TableCell>
+									))}
 								</TableRow>
-							) : (
-								table.getRowModel().rows.map(row => (
-									<TableRow
-										key={row.id}
-										className="h-8 hover:bg-transparent"
-										onDoubleClick={() => handleRowDoubleClick(row.original)}
-									>
-										{row.getVisibleCells().map(cell => (
-											<TableCell
-												key={cell.id}
-												className="h-10 py-0 whitespace-nowrap"
-												style={{
-													width: cell.column.id === "tags" || cell.column.id === "actions" ? "50px" : undefined,
-												}}
-											>
-												{flexRender(cell.column.columnDef.cell, cell.getContext())}
-											</TableCell>
-										))}
-									</TableRow>
-								))
-							)}
+							))}
 						</TableBody>
 					)}
 				</Table>
@@ -321,7 +325,7 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 /**
  * Get modern Lucide React icon for file type
  */
-function getModernFileIcon(mimeType?: string, filename?: string) {
+export function getModernFileIcon(mimeType?: string, filename?: string) {
 	if (!mimeType) {
 		if (filename) {
 			const ext = filename.split(".").pop()?.toLowerCase();
@@ -331,7 +335,7 @@ function getModernFileIcon(mimeType?: string, filename?: string) {
 	}
 
 	// Folder
-	if (mimeType === "application/vnd.google-apps.folder") {
+	if (mimeType.includes("folder")) {
 		return <Folder className="h-4 w-4 text-blue-500" />;
 	}
 

@@ -65,12 +65,12 @@ export function SourceSelector() {
 				<DropdownMenuTrigger asChild>
 					<Button
 						variant="ghost"
-						className="has-[>svg]:px-2ring-0 flex items-center gap-2 rounded-lg border-0 p-1 focus-visible:ring-0 focus-visible:ring-offset-0"
+						className="flex items-center gap-2 rounded-lg border-0 p-1 ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 has-[>svg]:px-2"
 						disabled={isLoading}
 					>
 						<div className="flex items-center gap-2">
 							{selectedIcon}
-							<span className="truncate">{selectedAccountNickname || "Select a source"}</span>
+							<span className="truncate capitalize">{selectedAccountNickname || providerId || "Select a source"}</span>
 						</div>
 						<ChevronsUpDown className="h-4 w-4 opacity-50" />
 					</Button>
