@@ -8,12 +8,7 @@ export { UpstashRateLimit, UpstashRedis, ValkeyRateLimit, ValkeyRedis };
 export type RedisClient = UpstashRedis | ValkeyRedis;
 export type RateLimiter = UpstashRateLimit | ValkeyRateLimit;
 
-// Overload signatures
-function redisClientInstance(): Promise<UpstashRedis>;
-function redisClientInstance(): Promise<ValkeyRedis>;
-
-// Implementation
-async function redisClientInstance(): Promise<RedisClient> {
+export async function redisClientInstance(): Promise<RedisClient> {
 	if (isEdge) {
 		if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
 			throw new Error(
@@ -38,7 +33,3 @@ async function redisClientInstance(): Promise<RedisClient> {
 		});
 	}
 }
-
-const redisClient = await redisClientInstance();
-
-export default redisClient;
