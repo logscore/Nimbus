@@ -217,14 +217,16 @@ export type Auth = ReturnType<typeof createAuth>;
 export type AuthSession = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
 export type SessionUser = AuthSession["user"];
 
-async function afterAccountCreation(account: Account) {
+export async function afterAccountCreation(account: Account) {
 	const user = await db.query.user.findFirst({
 		where: (table, { eq }) => eq(table.id, account.userId),
 	});
 
-	if (!user || user.defaultAccountId || user.defaultProviderId) {
+	if (!user) {
 		return;
 	}
+
+	if (user.defaultAccountId && user.defaultProviderId) return;
 
 	const defaultAccountId = account.accountId;
 	const defaultProviderId = account.providerId;
