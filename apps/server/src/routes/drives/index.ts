@@ -1,13 +1,17 @@
+import { createPinnedFileSchema, deletePinnedFileSchema } from "@nimbus/shared";
 import { createDriveProviderRouter } from "../../hono";
 import { sendError, sendSuccess } from "../utils";
+import { zValidator } from "@hono/zod-validator";
 import { pinnedFile } from "@nimbus/db/schema";
-import { eq, and } from "drizzle-orm";
-import type { Context } from "hono";
+import { and, eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
+
+// TODO(rate-limiting): implement for pinned files
 
 const drivesRouter = createDriveProviderRouter()
-	.get("/about", async (c: Context) => {
+	.get("/about", async c => {
 		try {
-			const drive = c.get("provider");
+			const drive = c.var.provider;
 			const data = await drive.getDriveInfo();
 
 			if (!data) {
@@ -20,59 +24,29 @@ const drivesRouter = createDriveProviderRouter()
 			return sendError(c);
 		}
 	})
+
 	.get("/pinned", async c => {
 		const user = c.var.user;
-		if (!user) {
-			return sendError(c, { message: "User not authenticated", status: 401 });
-		}
-
-		const files = await c.var.db
-			.select()
-			.from(pinnedFile)
-			.where(eq(pinnedFile.userId, (user as { id: string }).id));
-
+		const files = await c.var.db.query.pinnedFile.findMany({ where: (table, { eq }) => eq(table.userId, user.id) });
 		return sendSuccess(c, { data: files });
 	})
-	.post("/pinned", async (c: Context) => {
+
+	.post("/pinned", zValidator("query", createPinnedFileSchema), async c => {
 		try {
 			const user = c.var.user;
-			const accountId = c.req.header("X-Account-Id");
-
-			if (!user) {
-				return sendError(c, { message: "User not authenticated", status: 401 });
-			}
-
-			if (!accountId) {
-				return sendError(c, { message: "Account ID is required", status: 400 });
-			}
-
-			const fileId = c.req.query("fileId");
-			const name = c.req.query("name");
-			const type = c.req.query("type");
-			const mimeType = c.req.query("mimeType");
-			const provider = c.req.query("provider");
-
-			// Validate required fields
-			if (!fileId || !name || !provider) {
-				return sendError(c, {
-					message: "Missing required fields: fileId, name, and provider are required",
-					status: 400,
-				});
-			}
+			const fileId = c.req.valid("query").fileId;
+			const name = c.req.valid("query").name;
+			const type = c.req.valid("query").type;
+			const mimeType = c.req.valid("query").mimeType;
+			const provider = c.req.valid("query").provider;
+			const accountId = c.req.valid("query").accountId;
 
 			// Check if file is already pinned for this account
-			const existing = await c.var.db
-				.select()
-				.from(pinnedFile)
-				.where(
-					and(
-						eq(pinnedFile.userId, (user as { id: string }).id),
-						eq(pinnedFile.fileId, fileId),
-						eq(pinnedFile.accountId, accountId)
-					)
-				);
+			const firstResult = await c.var.db.query.pinnedFile.findFirst({
+				where: (table, { eq }) => eq(table.userId, user.id),
+			});
 
-			if (existing.length > 0) {
+			if (firstResult) {
 				return sendError(c, {
 					message: "File already pinned",
 					status: 409,
@@ -80,18 +54,16 @@ const drivesRouter = createDriveProviderRouter()
 			}
 
 			// Insert new pinned file
-			const id = crypto.randomUUID();
+			const id = nanoid();
 			await c.var.db.insert(pinnedFile).values({
 				id,
 				userId: user.id,
-				accountId,
 				fileId,
 				name,
 				type: type || "file",
 				mimeType: mimeType || null,
 				provider,
-				createdAt: new Date(),
-				updatedAt: new Date(),
+				accountId,
 			});
 
 			// Return success with the new pinned file ID
@@ -110,30 +82,12 @@ const drivesRouter = createDriveProviderRouter()
 			});
 		}
 	})
-	.delete("/pinned/:id", async (c: Context) => {
+
+	.delete("/pinned/:id", zValidator("param", deletePinnedFileSchema), async c => {
 		const user = c.var.user;
-		const accountId = c.req.header("X-Account-Id");
+		const id = c.req.valid("param").id;
 
-		if (!user) {
-			return sendError(c, { message: "User not authenticated", status: 401 });
-		}
-
-		if (!accountId) {
-			return sendError(c, { message: "Account ID is required", status: 400 });
-		}
-
-		const id = c.req.param("id");
-		if (!id) {
-			return sendError(c, { message: "Missing pinned file id", status: 400 });
-		}
-
-		const result = await c.var.db
-			.delete(pinnedFile)
-			.where(and(eq(pinnedFile.id, id), eq(pinnedFile.userId, (user as { id: string }).id)));
-
-		if (result.rowCount === 0) {
-			return sendError(c, { message: "Pinned file not found", status: 404 });
-		}
+		await c.var.db.delete(pinnedFile).where(and(eq(pinnedFile.id, id), eq(pinnedFile.userId, user.id)));
 
 		return sendSuccess(c, {
 			data: {

@@ -2,21 +2,21 @@
 	"name": "nimbus",
 	"version": "0.1.0",
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250715.0",
+		"@cloudflare/workers-types": "^4.20250724.0",
 		"@nimbus/eslint": "workspace:*",
 		"@nimbus/tsconfig": "workspace:*",
 		"concurrently": "^9.2.0",
 		"eslint": "^9.31.0",
 		"glob": "^11.0.3",
 		"husky": "^9.1.7",
-		"knip": "^5.61.3",
+		"knip": "^5.62.0",
 		"lint-staged": "^16.1.2",
-		"oxlint": "^1.7.0",
+		"oxlint": "^1.8.0",
 		"prettier": "^3.6.2",
 		"prettier-plugin-sort-imports": "^1.8.8",
 		"prettier-plugin-tailwindcss": "^0.6.14",
 		"typescript": "^5.8.3",
-		"wrangler": "^4.25.0"
+		"wrangler": "^4.26.0"
 	},
 	"private": true,
 	"scripts": {

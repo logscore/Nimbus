@@ -11,6 +11,7 @@ import { type DB } from "@nimbus/db";
 import { eq } from "drizzle-orm";
 
 // TODO(shared): move constants to shared package. use in validation.
+// TODO(rate-limiting): implement for auth
 
 export const createAuth = (db: DB) => {
 	return betterAuth({
@@ -147,7 +148,6 @@ export const createAuth = (db: DB) => {
 			changeEmail: {
 				enabled: true,
 				sendChangeEmailVerification: async ({ user, newEmail, url }) => {
-					console.log("sendChangeEmailVerification", { user, newEmail, url });
 					const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
 					const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
 					await sendMail({

@@ -25,6 +25,7 @@ export function useTags(parentId?: string) {
 	} = useQuery<Tag[]>({
 		queryKey: tagsQueryKey,
 		queryFn: () => getTags(clientPromise),
+		enabled: !!providerId && !!accountId,
 	});
 
 	const createTagMutation = useMutation({

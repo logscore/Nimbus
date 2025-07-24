@@ -17,8 +17,9 @@ import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
 import { TagService } from "./tag-service";
 
-const tagService = new TagService();
+// TODO(rate-limiting): implement for tags
 
+const tagService = new TagService();
 const tagsRouter = createDriveProviderRouter()
 	// Get all tags for the authenticated user
 	.get("/", async c => {

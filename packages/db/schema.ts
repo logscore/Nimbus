@@ -132,10 +132,10 @@ export const pinnedFile = pgTable("pinned_file", {
   provider: text("provider").notNull(),
   accountId: text("account_id").notNull(),
   createdAt: timestamp("created_at")
-    .$defaultFn(() => new Date())
+    .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
   updatedAt: timestamp("updated_at")
-    .$defaultFn(() => new Date())
+    .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
 
@@ -171,5 +171,6 @@ export type UserTableInsert = typeof user.$inferInsert;
 export type UserTableSelect = typeof user.$inferSelect;
 export type SessionTableInsert = typeof session.$inferInsert;
 export type AccountTableSelect = typeof account.$inferSelect;
+export type PinnedFileTableSelect = typeof pinnedFile.$inferSelect;
 
 export default schema;

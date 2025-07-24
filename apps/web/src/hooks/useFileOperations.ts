@@ -23,6 +23,7 @@ export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: G
 			});
 			return await response.json();
 		},
+		enabled: !!providerId && !!accountId,
 		retry: 2,
 	});
 }
@@ -39,6 +40,7 @@ export function useGetFile({ fileId, returnedValues }: GetFileByIdSchema) {
 			});
 			return await response.json();
 		},
+		enabled: !!providerId && !!accountId,
 		retry: 2,
 	});
 }

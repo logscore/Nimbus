@@ -55,7 +55,7 @@ const driveProviderRouter = createDriveProviderRouter()
 		const provider: Provider =
 			parsedProviderName.data === "google" ? new GoogleDriveProvider(accessToken) : new OneDriveProvider(accessToken);
 		c.set("provider", provider);
-		return next();
+		await next();
 	})
 	.route(driveProviderPaths[0], driveProviderRouters[0])
 	.route(driveProviderPaths[1], driveProviderRouters[1])

@@ -5,16 +5,16 @@ import {
 	SidebarGroupContent,
 	SidebarGroupLabel,
 	SidebarMenu,
-	SidebarMenuItem,
 	SidebarMenuButton,
+	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { ChevronDown, Folder, PinOff, FileText } from "lucide-react";
+import { ChevronDown, FileText, Folder, PinOff } from "lucide-react";
 import { providerToSlug, type DriveProvider } from "@nimbus/shared";
 import { usePinnedFiles, useUnpinFile } from "@/hooks/useDriveOps";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { PinnedFile } from "@nimbus/shared";
 import { Button } from "@/components/ui/button";
-import type { PinnedFile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 

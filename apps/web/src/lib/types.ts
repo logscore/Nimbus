@@ -35,24 +35,3 @@ export interface PasswordInputProps extends Omit<ComponentProps<typeof Input>, "
 	value?: string;
 	onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
 }
-
-// Drive route types
-
-export interface DriveInfo {
-	usage: string;
-	limit: string;
-	usageInTrash: string;
-}
-
-export interface PinnedFile {
-	id: string;
-	userId: string;
-	fileId: string;
-	name: string;
-	type: string;
-	mimeType?: string;
-	provider: string;
-	accountId: string;
-	createdAt: string;
-	updatedAt: string;
-}

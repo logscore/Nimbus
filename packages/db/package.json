@@ -3,7 +3,6 @@
 	"version": "0.0.0",
 	"type": "module",
 	"private": true,
-	"module": "src/index.ts",
 	"scripts": {
 		"build": "bun build src/index.ts --outdir dist --target bun",
 		"generate": "bun --bun run drizzle-kit generate --config=drizzle.config.ts",

@@ -1,26 +1,26 @@
 "use client";
 
 import {
-	ChevronUp,
-	ChevronDown,
-	Loader2,
-	Folder,
-	FileText,
-	ImageIcon,
-	Video,
-	Music,
-	FileSpreadsheet,
-	Presentation,
 	Archive,
+	ChevronDown,
+	ChevronUp,
 	Code,
 	FileIcon,
+	FileSpreadsheet,
+	FileText,
+	Folder,
+	ImageIcon,
+	Loader2,
+	Music,
+	Presentation,
+	Video,
 } from "lucide-react";
 import {
-	useReactTable,
-	getCoreRowModel,
-	getSortedRowModel,
 	createColumnHelper,
 	flexRender,
+	getCoreRowModel,
+	getSortedRowModel,
+	useReactTable,
 	type SortingState,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,8 +28,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState, type JSX } from "react";
 import { UploadButton } from "@/components/upload-button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatFileSize } from "@/lib/file-utils";
 import { Button } from "@/components/ui/button";
+import { formatFileSize } from "@nimbus/shared";
 import { PdfIcon } from "@/components/icons";
 import { FileActions } from "./file-actions";
 import type { File } from "@nimbus/shared";
