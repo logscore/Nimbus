@@ -45,7 +45,7 @@ async function comprehensiveTest() {
 
 		// Test 2: Drive Information
 		console.log("\n2️⃣ Testing Drive Information...");
-		const driveInfo = await s3Provider.getDriveInfo();
+		const _driveInfo = await s3Provider.getDriveInfo();
 		console.log(`   ✅ getDriveInfo(): Bucket accessible`);
 		testResults.push("✅ Drive Information");
 
