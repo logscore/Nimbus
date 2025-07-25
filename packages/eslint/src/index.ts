@@ -49,8 +49,36 @@ export function buildEslintConfig() {
 	// Oxlint configuration
 	const oxlintConfig = oxlintPlugin.configs["flat/all"];
 
+	// Test files configuration
+	const testConfig = {
+		files: ["**/__tests__/**/*.js", "**/*.test.js", "**/*.test.ts"],
+		languageOptions: {
+			globals: {
+				console: "readonly",
+				process: "readonly",
+				Buffer: "readonly",
+				__dirname: "readonly",
+				__filename: "readonly",
+				module: "readonly",
+				require: "readonly",
+				exports: "readonly",
+				global: "readonly",
+			},
+		},
+		rules: {
+			"@typescript-eslint/no-floating-promises": "off",
+		},
+	};
+
 	// Combine all configurations
-	const eslintConfig = tseslint.config(baseConfig, commonConfig, typescriptConfig, javascriptConfig, oxlintConfig);
+	const eslintConfig = tseslint.config(
+		baseConfig,
+		commonConfig,
+		typescriptConfig,
+		javascriptConfig,
+		testConfig,
+		oxlintConfig
+	);
 
 	return eslintConfig;
 }
