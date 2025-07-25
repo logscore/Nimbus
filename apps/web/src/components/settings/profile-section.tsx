@@ -36,7 +36,7 @@ export function ProfileSection({
 			<CardContent className="space-y-6">
 				<div className="flex items-center gap-6">
 					<div className="space-y-2 text-center">
-						<div className="relative mx-auto">
+						<div className="relative mx-auto w-24">
 							<Profile url={previewUrl} name={name} size="xxxxxxl" />
 							<TooltipProvider>
 								<Tooltip>

@@ -5,6 +5,8 @@ import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
 
+// TODO(rate-limiting): implement for user
+
 const userRouter = createProtectedRouter()
 	.get("/", async c => {
 		const user = await c.var.db.query.user.findFirst({

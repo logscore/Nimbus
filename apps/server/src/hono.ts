@@ -1,19 +1,21 @@
 import type { Provider } from "./providers/interface/provider";
 import type { Auth, SessionUser } from "@nimbus/auth/auth";
-import { Hono, type Context, type Env } from "hono";
 import { getContext } from "hono/context-storage";
+import type { RedisClient } from "@nimbus/cache";
+import { Hono, type Env } from "hono";
 import type { DB } from "@nimbus/db";
 
-interface publicRouterVars {
+export interface publicRouterVars {
 	db: DB;
+	redisClient: RedisClient;
 	auth: Auth;
 }
 
-interface protectedRouterVars extends publicRouterVars {
+export interface protectedRouterVars extends publicRouterVars {
 	user: SessionUser;
 }
 
-interface driveProviderRouterVars extends protectedRouterVars {
+export interface driveProviderRouterVars extends protectedRouterVars {
 	provider: Provider;
 }
 
@@ -28,10 +30,6 @@ export interface ProtectedRouterEnv {
 export interface DriveProviderRouterEnv {
 	Variables: driveProviderRouterVars;
 }
-
-export type PublicRouterContext = Context<PublicRouterEnv>;
-export type ProtectedRouterContext = Context<ProtectedRouterEnv>;
-export type DriveProviderRouterContext = Context<DriveProviderRouterEnv>;
 
 function createHono<T extends Env>() {
 	return new Hono<T>();

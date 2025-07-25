@@ -17,6 +17,7 @@ dist
 # next.js
 /.next/
 /out/
+.open-next
 
 # production
 /build
@@ -40,6 +41,9 @@ yarn-error.log*
 .env*disabled
 .dev.vars
 .dev.vars.production
+
+# cloudflare
+.dev.vars*
 
 # vercel
 .vercel

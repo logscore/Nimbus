@@ -7,14 +7,14 @@
 		"./server": "./server.ts"
 	},
 	"devDependencies": {
-		"@types/bun": "^1.2.18"
+		"@types/bun": "^1.2.19"
 	},
 	"peerDependencies": {
 		"typescript": "^5.8.3"
 	},
 	"dependencies": {
 		"@t3-oss/env-core": "^0.13.8",
-		"cloudflare": "^4.4.1",
-		"zod": "^4.0.5"
+		"cloudflare": "^4.5.0",
+		"zod": "^4.0.9"
 	}
 }

@@ -39,7 +39,7 @@ const filesRouter = createDriveProviderRouter()
 
 	// Get file by ID
 	.get(
-		"/:id",
+		"/:fileId",
 		buildUserSecurityMiddleware(fileGetRateLimiter),
 		zValidator("param", getFileByIdParamSchema),
 		zValidator("query", getFileByIdQuerySchema),

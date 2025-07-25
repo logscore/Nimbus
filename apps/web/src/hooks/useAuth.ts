@@ -15,7 +15,7 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-export interface AuthState {
+interface AuthState {
 	isLoading: boolean;
 	error: string | null;
 }
@@ -45,7 +45,7 @@ const getProviderDisplayName = (provider: DriveProvider): string => {
 	return provider.charAt(0).toUpperCase() + provider.slice(1);
 };
 
-export const useSocialAuth = (provider: DriveProvider) => {
+const useSocialAuth = (provider: DriveProvider) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const providerName = getProviderDisplayName(provider);
 
@@ -270,7 +270,7 @@ export const useSignOut = () => {
 	};
 };
 
-export const checkEmailExists = async (email: string): Promise<CheckEmailExists> => {
+const checkEmailExists = async (email: string): Promise<CheckEmailExists> => {
 	try {
 		const body = {
 			email,

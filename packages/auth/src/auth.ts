@@ -5,16 +5,15 @@ import { type Account, betterAuth } from "better-auth";
 // import type { Redis as ValkeyRedis } from "iovalkey";
 import env /*, { isEdge }*/ from "@nimbus/env/server";
 // import { providerSchema } from "@nimbus/shared";
+import type { RedisClient } from "@nimbus/cache";
 import { sendMail } from "./utils/send-mail";
-// import redisClient from "@nimbus/cache";
-import { createDb } from "@nimbus/db";
+import { type DB } from "@nimbus/db";
 import { eq } from "drizzle-orm";
 
 // TODO(shared): move constants to shared package. use in validation.
+// TODO(rate-limiting): implement for auth
 
-const db = createDb(env.DATABASE_URL);
-
-export const createAuth = () => {
+export const createAuth = (db: DB, redisClient: RedisClient) => {
 	return betterAuth({
 		appName: "Nimbus",
 		baseURL: env.BACKEND_URL,
@@ -149,7 +148,6 @@ export const createAuth = () => {
 			changeEmail: {
 				enabled: true,
 				sendChangeEmailVerification: async ({ user, newEmail, url }) => {
-					console.log("sendChangeEmailVerification", { user, newEmail, url });
 					const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
 					const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
 					await sendMail({
@@ -206,7 +204,7 @@ export const createAuth = () => {
 		databaseHooks: {
 			account: {
 				create: {
-					after: afterAccountCreation,
+					after: account => afterAccountCreation(db, account),
 				},
 			},
 		},
@@ -217,7 +215,7 @@ export type Auth = ReturnType<typeof createAuth>;
 export type AuthSession = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
 export type SessionUser = AuthSession["user"];
 
-async function afterAccountCreation(account: Account) {
+async function afterAccountCreation(db: DB, account: Account) {
 	const user = await db.query.user.findFirst({
 		where: (table, { eq }) => eq(table.id, account.userId),
 	});

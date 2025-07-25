@@ -7,38 +7,45 @@ import { Redis as ValkeyRedis } from "iovalkey";
 export { UpstashRateLimit, UpstashRedis, ValkeyRateLimit, ValkeyRedis };
 export type RedisClient = UpstashRedis | ValkeyRedis;
 export type RateLimiter = UpstashRateLimit | ValkeyRateLimit;
+export type RedisClientData = { redisClient: RedisClient; closeRedisClient: () => Promise<void> };
 
 // Overload signatures
-function redisClientInstance(): Promise<UpstashRedis>;
-function redisClientInstance(): Promise<ValkeyRedis>;
+export function createRedisClient(): Promise<RedisClientData>;
+export function createRedisClient(): Promise<RedisClientData>;
 
 // Implementation
-async function redisClientInstance(): Promise<RedisClient> {
+export async function createRedisClient(): Promise<RedisClientData> {
 	if (isEdge) {
 		if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
 			throw new Error(
 				"Missing environment variables. UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN is not defined"
 			);
 		}
-		return new UpstashRedis({
+		const redisClient = new UpstashRedis({
 			url: env.UPSTASH_REDIS_REST_URL,
 			token: env.UPSTASH_REDIS_REST_TOKEN,
 		});
+		return {
+			redisClient: redisClient,
+			closeRedisClient: async () => {},
+		};
 	} else {
 		if (!env.VALKEY_HOST || !env.VALKEY_PORT || !env.VALKEY_USERNAME || !env.VALKEY_PASSWORD) {
 			throw new Error(
 				"Missing environment variables. VALKEY_HOST, VALKEY_PORT, VALKEY_USERNAME, or VALKEY_PASSWORD is not defined"
 			);
 		}
-		return new ValkeyRedis({
+		const redisClient = new ValkeyRedis({
 			port: Number(env.VALKEY_PORT),
 			host: env.VALKEY_HOST,
 			username: env.VALKEY_USERNAME,
 			password: env.VALKEY_PASSWORD,
 		});
+		return {
+			redisClient,
+			closeRedisClient: async () => {
+				await redisClient.quit();
+			},
+		};
 	}
 }
-
-const redisClient = await redisClientInstance();
-
-export default redisClient;

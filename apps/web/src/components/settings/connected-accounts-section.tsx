@@ -1,8 +1,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertCircle, Check, Edit, Loader2, Plus, Save, X } from "lucide-react";
 import { AddAccountDialog } from "@/components/settings/add-account-dialog";
+import { AlertCircle, Check, Edit, Loader2, Plus, X } from "lucide-react";
 import { nicknameSchema, type DriveProvider } from "@nimbus/shared";
 import type { LimitedAccessAccount } from "@nimbus/shared";
 import { useEffect, useRef, useState } from "react";
@@ -40,6 +39,7 @@ interface NicknameInputProps {
 	error?: string | null;
 	maxLength?: number;
 	autoFocus?: boolean;
+	isSuccess?: boolean;
 }
 
 const NicknameInput = ({
@@ -50,6 +50,7 @@ const NicknameInput = ({
 	error,
 	maxLength = 50,
 	autoFocus = true,
+	isSuccess = false,
 }: NicknameInputProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const remainingChars = maxLength - value.length;
@@ -72,54 +73,47 @@ const NicknameInput = ({
 	};
 
 	return (
-		<div className="flex w-full flex-col gap-2">
-			<div className="relative flex w-full items-center gap-2">
-				<div className="relative flex-1">
-					<Input
-						ref={inputRef}
-						value={value}
-						onChange={e => onChange(e.target.value)}
-						onKeyDown={handleKeyDown}
-						placeholder="Enter nickname"
-						className={cn("h-8 w-full pr-16", error && "border-destructive")}
-						aria-invalid={!!error}
-						aria-describedby={error ? "nickname-error" : undefined}
-						maxLength={maxLength}
-					/>
-					<div className="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 text-xs">
-						{remainingChars}
-					</div>
+		<div className="w-full">
+			<div className="relative">
+				<Input
+					ref={inputRef}
+					value={value}
+					onChange={e => onChange(e.target.value)}
+					onKeyDown={handleKeyDown}
+					placeholder="Enter nickname"
+					className={cn(
+						"h-8 w-full pr-8 ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+						error && "border-destructive",
+						isSuccess && "border-green-500"
+					)}
+					aria-invalid={!!error}
+					aria-describedby={error ? "nickname-error" : undefined}
+					maxLength={maxLength}
+				/>
+				{/* Success checkmark or cancel X */}
+				<div className="absolute top-1/2 right-2 -translate-y-1/2">
+					{isSuccess ? (
+						<Check className="h-4 w-4 text-green-500" />
+					) : (
+						<Button
+							variant="ghost"
+							size="icon"
+							className="h-6 w-6 p-0 hover:bg-transparent"
+							onClick={onCancel}
+							aria-label="Cancel editing"
+						>
+							<X className="text-muted-foreground hover:text-destructive h-4 w-4" />
+						</Button>
+					)}
 				</div>
-				<TooltipProvider>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="h-8 w-8"
-								onClick={onSave}
-								aria-label="Save changes"
-								disabled={!!error}
-							>
-								<Save className="h-4 w-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>Save changes</TooltipContent>
-					</Tooltip>
-				</TooltipProvider>
-				<TooltipProvider>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button variant="ghost" size="icon" className="h-8 w-8" onClick={onCancel} aria-label="Cancel editing">
-								<X className="h-4 w-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>Cancel</TooltipContent>
-					</Tooltip>
-				</TooltipProvider>
+				{/* Character counter - positioned absolutely relative to input */}
+				<div className="text-muted-foreground absolute -bottom-5 left-0 text-xs">
+					{remainingChars} characters remaining
+				</div>
 			</div>
+			{/* Error message with proper spacing */}
 			{error && (
-				<p className="text-destructive flex items-center gap-1 text-xs" id="nickname-error" role="alert">
+				<p className="text-destructive mt-6 flex items-center gap-1 text-xs" id="nickname-error" role="alert">
 					<AlertCircle className="h-3 w-3" />
 					{error}
 				</p>
@@ -141,10 +135,17 @@ export function ConnectedAccountsSection({
 	const [editing, setEditing] = useState<EditingState | null>(null);
 	const [validationError, setValidationError] = useState<string | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
+	const [successStates, setSuccessStates] = useState<Set<string>>(new Set());
 
 	const handleEdit = (account: LimitedAccessAccount) => {
 		setEditing({ id: account.id, nickname: account.nickname || "" });
 		setValidationError(null);
+		// Clear any existing success state for this account
+		setSuccessStates(prev => {
+			const newSet = new Set(prev);
+			newSet.delete(account.id);
+			return newSet;
+		});
 	};
 
 	const handleSave = async (provider: DriveProvider, accountId: string, tableAccountId: string) => {
@@ -161,8 +162,20 @@ export function ConnectedAccountsSection({
 		try {
 			setIsSaving(true);
 			await onUpdateAccount(provider, accountId, tableAccountId, editing.nickname.trim());
-			setEditing(null);
+
+			// Show success state
+			setSuccessStates(prev => new Set(prev).add(tableAccountId));
 			setValidationError(null);
+
+			// Clear success state and editing after a delay
+			setTimeout(() => {
+				setSuccessStates(prev => {
+					const newSet = new Set(prev);
+					newSet.delete(tableAccountId);
+					return newSet;
+				});
+				setEditing(null);
+			}, 1500);
 		} catch (error) {
 			console.error("Failed to update account nickname:", error);
 			setValidationError("Failed to save changes. Please try again.");
@@ -174,6 +187,14 @@ export function ConnectedAccountsSection({
 	const handleCancel = () => {
 		setEditing(null);
 		setValidationError(null);
+		// Clear any success states
+		if (editing) {
+			setSuccessStates(prev => {
+				const newSet = new Set(prev);
+				newSet.delete(editing.id);
+				return newSet;
+			});
+		}
 	};
 
 	const handleNicknameChange = (value: string) => {
@@ -220,7 +241,7 @@ export function ConnectedAccountsSection({
 										)}
 									</div>
 								</TableCell>
-								<TableCell>
+								<TableCell className="relative w-60">
 									{editing?.id === account.id ? (
 										<NicknameInput
 											value={editing.nickname}
@@ -229,26 +250,20 @@ export function ConnectedAccountsSection({
 											onCancel={handleCancel}
 											error={validationError}
 											maxLength={50}
+											isSuccess={successStates.has(account.id)}
 										/>
 									) : (
 										<div className="flex items-center justify-between">
 											<span>{account.nickname || "—"}</span>
-											<TooltipProvider>
-												<Tooltip>
-													<TooltipTrigger asChild>
-														<Button
-															variant="ghost"
-															size="icon"
-															className="h-8 w-8 opacity-0 group-hover:opacity-100"
-															onClick={() => handleEdit(account)}
-															aria-label={`Edit ${account.nickname || "unnamed account"}`}
-														>
-															<Edit className="h-4 w-4" />
-														</Button>
-													</TooltipTrigger>
-													<TooltipContent>Edit nickname</TooltipContent>
-												</Tooltip>
-											</TooltipProvider>
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-8 w-8 opacity-0 group-hover:opacity-100"
+												onClick={() => handleEdit(account)}
+												aria-label={`Edit ${account.nickname || "unnamed account"}`}
+											>
+												<Edit className="h-4 w-4" />
+											</Button>
 										</div>
 									)}
 								</TableCell>
@@ -256,54 +271,36 @@ export function ConnectedAccountsSection({
 								<TableCell className="text-right">
 									<div className="flex justify-end gap-2">
 										{defaultAccountId !== account.accountId && (
-											<TooltipProvider>
-												<Tooltip>
-													<TooltipTrigger asChild>
-														<Button
-															variant="outline"
-															size="sm"
-															disabled={isSettingDefault === account.accountId}
-															onClick={() => onSetDefault(account.providerId as DriveProvider, account.accountId)}
-														>
-															{isSettingDefault === account.accountId ? (
-																<>
-																	<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-																	Setting...
-																</>
-															) : (
-																<>
-																	<Check className="mr-2 h-4 w-4" />
-																	Set as Default
-																</>
-															)}
-															<span className="sr-only">Set {account.nickname || "this account"} as default</span>
-														</Button>
-													</TooltipTrigger>
-													<TooltipContent>
-														<p>Set as default account</p>
-													</TooltipContent>
-												</Tooltip>
-											</TooltipProvider>
+											<Button
+												variant="outline"
+												size="sm"
+												disabled={isSettingDefault === account.accountId}
+												onClick={() => onSetDefault(account.providerId as DriveProvider, account.accountId)}
+											>
+												{isSettingDefault === account.accountId ? (
+													<>
+														<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+														Setting...
+													</>
+												) : (
+													<>
+														<Check className="mr-2 h-4 w-4" />
+														Set as Default
+													</>
+												)}
+												<span className="sr-only">Set {account.nickname || "this account"} as default</span>
+											</Button>
 										)}
 
-										<TooltipProvider>
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<Button
-														variant="outline"
-														size="sm"
-														disabled={defaultAccountId === account.accountId || isSettingDefault === account.accountId}
-														onClick={() => onDisconnect(account.providerId as DriveProvider, account.accountId)}
-													>
-														{isSaving ? "Disconnecting..." : "Disconnect"}
-														<span className="sr-only">Disconnect {account.nickname || "unnamed account"}</span>
-													</Button>
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>Disconnect {account.providerId} account</p>
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={defaultAccountId === account.accountId || isSettingDefault === account.accountId}
+											onClick={() => onDisconnect(account.providerId as DriveProvider, account.accountId)}
+										>
+											{isSaving ? "Disconnecting..." : "Disconnect"}
+											<span className="sr-only">Disconnect {account.nickname || "unnamed account"}</span>
+										</Button>
 									</div>
 								</TableCell>
 							</TableRow>
@@ -312,19 +309,10 @@ export function ConnectedAccountsSection({
 				</Table>
 			</CardContent>
 			<CardFooter className="flex justify-between">
-				<TooltipProvider>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button variant="outline" onClick={() => onAddAccountDialogOpenChange(true)}>
-								<Plus className="mr-2 h-4 w-4" />
-								Add Account
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>
-							<p>Connect a new social account</p>
-						</TooltipContent>
-					</Tooltip>
-				</TooltipProvider>
+				<Button variant="outline" onClick={() => onAddAccountDialogOpenChange(true)}>
+					<Plus className="mr-2 h-4 w-4" />
+					Add Account
+				</Button>
 
 				<AddAccountDialog
 					open={isAddAccountDialogOpen}

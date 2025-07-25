@@ -5,6 +5,8 @@ import { zValidator } from "@hono/zod-validator";
 import { sendSuccess } from "../utils";
 import { eq } from "drizzle-orm";
 
+// TODO(rate-limiting): implement for accounts
+
 const accountRouter = createProtectedRouter()
 	.get("/", async c => {
 		const accounts = await c.var.db.query.account.findMany({

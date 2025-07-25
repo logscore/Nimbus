@@ -7,7 +7,7 @@ import { webcrypto } from "node:crypto";
 /**
  * Security middleware options
  */
-export interface SecurityOptions {
+interface SecurityOptions {
 	rateLimiting?: {
 		enabled: boolean;
 		rateLimiter: (c: Context) => RateLimiter;
@@ -16,12 +16,13 @@ export interface SecurityOptions {
 }
 
 export function buildUserSecurityMiddleware(rateLimiter: UserRateLimiter) {
-	return buildSecurityMiddleware(c => rateLimiter(c.var.user));
+	return buildSecurityMiddleware(c => rateLimiter(c.var.redisClient, c.var.user));
 }
 
 export function buildWaitlistSecurityMiddleware() {
 	return buildSecurityMiddleware(c =>
 		waitlistRateLimiter(
+			c.var.redisClient,
 			c.req.header("cf-connecting-ip") || c.req.header("x-real-ip") || c.req.header("x-forwarded-for") || "unknown"
 		)
 	);
@@ -61,7 +62,7 @@ const getClientIp = (c: Context): string => {
 	return `unidentifiable-${webcrypto.randomUUID()}`;
 };
 
-export const securityMiddleware = (options: SecurityOptions = {}) => {
+const securityMiddleware = (options: SecurityOptions = {}) => {
 	const {
 		rateLimiting = {
 			enabled: options.rateLimiting?.enabled ?? true,

@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16
-    container_name: nimbus-db-local-compose
+    container_name: nimbus-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -19,4 +19,4 @@ services:
 
 volumes:
   postgres-data:
-    name: nimbus-db-local-compose-postgres-data
+    name: nimbus-db-data

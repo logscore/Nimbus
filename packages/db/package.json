@@ -3,7 +3,6 @@
 	"version": "0.0.0",
 	"type": "module",
 	"private": true,
-	"module": "src/index.ts",
 	"scripts": {
 		"build": "bun build src/index.ts --outdir dist --target bun",
 		"generate": "bun --bun run drizzle-kit generate --config=drizzle.config.ts",
@@ -28,7 +27,7 @@
 	},
 	"dependencies": {
 		"@nimbus/env": "workspace:*",
-		"drizzle-orm": "^0.44.2",
+		"drizzle-orm": "^0.44.3",
 		"pg": "^8.16.3",
 		"postgres": "^3.4.7"
 	}

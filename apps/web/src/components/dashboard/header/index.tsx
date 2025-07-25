@@ -1,31 +1,21 @@
-import { SourceSelector } from "../../header/components/source-selector";
-import { HeaderActions } from "../../header/components/header-actions";
-import { HeaderSearch } from "../../header/components/header-search";
-import { SearchDialog } from "@/components/search/search-dialog";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useState } from "react";
+import { UploadButton } from "@/components/upload-button";
+// import { SidebarTrigger } from "@/components/ui/sidebar";
+import { FileBreadcrumb } from "./file-path";
 
 export function Header() {
-	const [isSearchOpen, setIsSearchOpen] = useState(false);
-
 	return (
-		<header className="bg-background border-b">
-			<div className="flex h-16 items-center justify-between gap-4 px-4">
-				<SidebarTrigger className="size-9 cursor-pointer" />
-				<SourceSelector />
+		<header className="bg-background">
+			<div className="flex items-center justify-center gap-2.5 self-stretch py-1 pr-2 pl-6">
+				{/* <SidebarTrigger className="block size-9 cursor-pointer md:hidden" /> */}
+				{/* Bread Crumb */}
+				<FileBreadcrumb />
+				{/* Filter Button */}
 
-				<div className="flex max-w-xl flex-1 items-center">
-					<HeaderSearch
-						placeholder="Search smarter with AI"
-						onFocus={() => setIsSearchOpen(true)}
-						onSearch={query => console.log("Search:", query)}
-					/>
-				</div>
+				{/* Share button */}
 
-				<HeaderActions />
+				{/* Upload files button */}
+				<UploadButton name="New" />
 			</div>
-
-			<SearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
 		</header>
 	);
 }

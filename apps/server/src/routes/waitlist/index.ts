@@ -29,7 +29,7 @@ const waitlistRouter = createPublicRouter()
 		}),
 		async c => {
 			try {
-				const email = (await c.req.json()).email;
+				const email = c.req.valid("json").email;
 
 				const existing = await c.var.db
 					.select()

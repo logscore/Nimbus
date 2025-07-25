@@ -119,6 +119,26 @@ export const fileTag = pgTable("file_tag", {
     .notNull(),
 });
 
+// Pinned Files schema
+export const pinnedFile = pgTable("pinned_file", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  fileId: text("file_id").notNull(),
+  name: text("name").notNull(),
+  type: text("type").notNull().default("folder"),
+  mimeType: text("mime_type"),
+  provider: text("provider").notNull(),
+  accountId: text("account_id").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
 // Waitlist Schema
 export const waitlist = pgTable("waitlist", {
   id: text("id").primaryKey(),
@@ -142,6 +162,7 @@ const schema = {
   verification,
   tag,
   fileTag,
+  pinnedFile,
   waitlist,
   rateLimitAttempts,
 };
@@ -150,5 +171,6 @@ export type UserTableInsert = typeof user.$inferInsert;
 export type UserTableSelect = typeof user.$inferSelect;
 export type SessionTableInsert = typeof session.$inferInsert;
 export type AccountTableSelect = typeof account.$inferSelect;
+export type PinnedFileTableSelect = typeof pinnedFile.$inferSelect;
 
 export default schema;
