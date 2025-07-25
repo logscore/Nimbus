@@ -3,6 +3,8 @@ import { GoogleDriveProvider } from "../providers/google/google-drive";
 import { OneDriveProvider } from "../providers/microsoft/one-drive";
 import type { Provider } from "../providers/interface/provider";
 import { driveProviderSchema } from "@nimbus/shared";
+import { decrypt } from "../utils/encryption";
+import { S3Provider } from "../providers/s3";
 import { sendUnauthorized } from "./utils";
 import waitlistRoutes from "./waitlist";
 import accountRouter from "./account";
@@ -32,19 +34,7 @@ const driveProviderRouter = createDriveProviderRouter()
 					eq(table.accountId, accountIdHeader)
 				),
 		});
-		if (!account || !account.accessToken || !account.providerId || !account.accountId) {
-			return sendUnauthorized(c);
-		}
-
-		const { accessToken } = await c.var.auth.api.getAccessToken({
-			body: {
-				providerId: account.providerId,
-				accountId: account.id,
-				userId: account.userId,
-			},
-			headers: c.req.raw.headers,
-		});
-		if (!accessToken) {
+		if (!account || !account.providerId || !account.accountId) {
 			return sendUnauthorized(c);
 		}
 
@@ -52,8 +42,41 @@ const driveProviderRouter = createDriveProviderRouter()
 		if (!parsedProviderName.success) {
 			return sendUnauthorized(c, "Invalid provider");
 		}
-		const provider: Provider =
-			parsedProviderName.data === "google" ? new GoogleDriveProvider(accessToken) : new OneDriveProvider(accessToken);
+
+		let provider: Provider;
+
+		if (parsedProviderName.data === "s3") {
+			if (!account.s3AccessKeyId || !account.s3SecretAccessKey || !account.s3Region || !account.s3BucketName) {
+				return sendUnauthorized(c, "Missing S3 credentials");
+			}
+
+			provider = new S3Provider({
+				accessKeyId: account.s3AccessKeyId,
+				secretAccessKey: decrypt(account.s3SecretAccessKey),
+				region: account.s3Region,
+				bucketName: account.s3BucketName,
+				endpoint: account.s3Endpoint || undefined,
+			});
+		} else {
+			if (!account.accessToken) {
+				return sendUnauthorized(c, "Missing access token");
+			}
+
+			const { accessToken } = await c.var.auth.api.getAccessToken({
+				body: {
+					providerId: account.providerId,
+					accountId: account.id,
+					userId: account.userId,
+				},
+				headers: c.req.raw.headers,
+			});
+			if (!accessToken) {
+				return sendUnauthorized(c);
+			}
+
+			provider =
+				parsedProviderName.data === "google" ? new GoogleDriveProvider(accessToken) : new OneDriveProvider(accessToken);
+		}
 		c.set("provider", provider);
 		return next();
 	})
