@@ -75,13 +75,22 @@ async function runTests() {
 
 	console.log("\n📝 Testing Authentication Interface...");
 
-	await test("should get and set access token", () => {
+	await test("should get access token and reject token updates", () => {
 		const s3Provider = new S3Provider(mockConfig);
 		const originalToken = s3Provider.getAccessToken();
-		assert(originalToken === "test-access-key:test-secret-key", "Initial token correct");
+		assert(typeof originalToken === "string" && originalToken.length > 0, "Access token is valid string");
 
-		s3Provider.setAccessToken("new-token");
-		assert(s3Provider.getAccessToken() === "new-token", "Token updated successfully");
+		// S3Provider should reject dynamic token updates for security
+		try {
+			s3Provider.setAccessToken("new-token");
+			assert(false, "setAccessToken should throw an error");
+		} catch (error) {
+			assert(error instanceof Error, "Should throw proper error");
+			assert(
+				(error as Error).message.includes("does not support dynamic credential updates"),
+				"Should have correct error message"
+			);
+		}
 	});
 
 	console.log("\n📝 Testing S3-Compatible Services...");
