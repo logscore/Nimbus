@@ -10,6 +10,7 @@ import {
 	paginateListObjectsV2,
 	type PutObjectCommandInput,
 	type GetObjectCommandOutput,
+	type HeadObjectCommandOutput,
 } from "@aws-sdk/client-s3";
 import {
 	DEFAULT_MIME_TYPE,
@@ -201,22 +202,19 @@ export class S3Provider implements Provider {
 	async delete(id: string, _permanent = true): Promise<boolean> {
 		try {
 			if (id.endsWith("/")) {
-				const listResponse = await this.s3.send(
-					new ListObjectsV2Command({
-						Bucket: this.bucketName,
-						Prefix: id,
-					})
-				);
+				const paginator = paginateListObjectsV2({ client: this.s3 }, { Bucket: this.bucketName, Prefix: id });
 
-				if (listResponse.Contents) {
-					for (const object of listResponse.Contents) {
-						if (object.Key) {
-							await this.s3.send(
-								new DeleteObjectCommand({
-									Bucket: this.bucketName,
-									Key: object.Key,
-								})
-							);
+				for await (const page of paginator) {
+					if (page.Contents) {
+						for (const object of page.Contents) {
+							if (object.Key) {
+								await this.s3.send(
+									new DeleteObjectCommand({
+										Bucket: this.bucketName,
+										Key: object.Key,
+									})
+								);
+							}
 						}
 					}
 				}
@@ -415,6 +413,8 @@ export class S3Provider implements Provider {
 	}
 
 	async search(query: string, options: Omit<ListFilesOptions, "filter"> = {}): Promise<ListFilesResult> {
+		// Note: S3 doesn't support native search, so this lists all objects and filters client-side
+		// This can be slow and expensive for large buckets
 		try {
 			const command = new ListObjectsV2Command({
 				Bucket: this.bucketName,
@@ -471,7 +471,7 @@ export class S3Provider implements Provider {
 		return `${prefix}${name}`;
 	}
 
-	private mapToFile(key: string, response: any): File {
+	private mapToFile(key: string, response: HeadObjectCommandOutput): File {
 		const fileName = key.split("/").pop() || key;
 		const parentPath = key.substring(0, key.lastIndexOf("/"));
 
