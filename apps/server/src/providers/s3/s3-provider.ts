@@ -7,12 +7,12 @@ import {
 	CopyObjectCommand,
 	HeadObjectCommand,
 	HeadBucketCommand,
+	paginateListObjectsV2,
 	type PutObjectCommandInput,
 	type GetObjectCommandOutput,
 } from "@aws-sdk/client-s3";
 import {
 	DEFAULT_MIME_TYPE,
-	DEFAULT_ORDER_BY,
 	DEFAULT_PAGE_SIZE,
 	type DownloadFileSchema,
 	type DriveInfo,
@@ -21,6 +21,7 @@ import {
 } from "@nimbus/shared";
 import type { DownloadResult, ListFilesOptions, ListFilesResult } from "../interface/types";
 import type { Provider } from "../interface/provider";
+import { Upload } from "@aws-sdk/lib-storage";
 import { Readable } from "node:stream";
 
 interface S3Config {
@@ -37,7 +38,8 @@ export class S3Provider implements Provider {
 	private accessToken: string; // Store for interface compatibility
 
 	constructor(config: S3Config) {
-		this.accessToken = `${config.accessKeyId}:${config.secretAccessKey}`;
+		// Store a reference instead of raw credentials for security
+		this.accessToken = Buffer.from(`${config.accessKeyId}:${Date.now()}`).toString("base64");
 		this.bucketName = config.bucketName;
 
 		this.s3 = new S3Client({
@@ -50,7 +52,7 @@ export class S3Provider implements Provider {
 		});
 	}
 
-	async create(metadata: FileMetadata, content?: Buffer | NodeJS.ReadableStream): Promise<File | null> {
+	async create(metadata: FileMetadata, content?: Buffer | Readable): Promise<File | null> {
 		try {
 			const key = this.buildKey(metadata.parentId || "", metadata.name);
 			const isFolder =
@@ -85,20 +87,36 @@ export class S3Provider implements Provider {
 				throw new Error("Content is required for file creation");
 			}
 
-			const body = content instanceof Buffer ? content : await this.streamToBuffer(content as NodeJS.ReadableStream);
 			const mimeType = metadata.mimeType || DEFAULT_MIME_TYPE;
 
-			const params: PutObjectCommandInput = {
-				Bucket: this.bucketName,
-				Key: key,
-				Body: body,
-				ContentType: mimeType,
-				...(metadata.description && {
-					Metadata: { description: metadata.description },
-				}),
-			};
-
-			await this.s3.send(new PutObjectCommand(params));
+			// For streams, use multipart upload to handle large files efficiently
+			if (content instanceof Readable) {
+				const upload = new Upload({
+					client: this.s3,
+					params: {
+						Bucket: this.bucketName,
+						Key: key,
+						Body: content,
+						ContentType: mimeType,
+						...(metadata.description && {
+							Metadata: { description: metadata.description },
+						}),
+					},
+				});
+				await upload.done();
+			} else {
+				// For buffers, use regular upload
+				const params: PutObjectCommandInput = {
+					Bucket: this.bucketName,
+					Key: key,
+					Body: content,
+					ContentType: mimeType,
+					...(metadata.description && {
+						Metadata: { description: metadata.description },
+					}),
+				};
+				await this.s3.send(new PutObjectCommand(params));
+			}
 
 			// Get the created object to return full file info
 			return this.getById(key);
@@ -108,7 +126,7 @@ export class S3Provider implements Provider {
 		}
 	}
 
-	async getById(id: string, fields?: string[]): Promise<File | null> {
+	async getById(id: string, _fields?: string[]): Promise<File | null> {
 		try {
 			const command = new HeadObjectCommand({
 				Bucket: this.bucketName,
@@ -117,8 +135,9 @@ export class S3Provider implements Provider {
 
 			const response = await this.s3.send(command);
 			return this.mapToFile(id, response);
-		} catch (error: any) {
-			if (error.name === "NotFound" || error.$metadata?.httpStatusCode === 404) {
+		} catch (error) {
+			const err = error as Error & { name?: string; $metadata?: { httpStatusCode?: number } };
+			if (err.name === "NotFound" || err.$metadata?.httpStatusCode === 404) {
 				return null;
 			}
 			console.error("Error getting S3 object:", error);
@@ -179,7 +198,7 @@ export class S3Provider implements Provider {
 		}
 	}
 
-	async delete(id: string, permanent = true): Promise<boolean> {
+	async delete(id: string, _permanent = true): Promise<boolean> {
 		try {
 			if (id.endsWith("/")) {
 				const listResponse = await this.s3.send(
@@ -282,7 +301,7 @@ export class S3Provider implements Provider {
 		}
 	}
 
-	async download(fileId: string, options?: DownloadFileSchema): Promise<DownloadResult | null> {
+	async download(fileId: string, _options?: DownloadFileSchema): Promise<DownloadResult | null> {
 		try {
 			const command = new GetObjectCommand({
 				Bucket: this.bucketName,
@@ -306,6 +325,21 @@ export class S3Provider implements Provider {
 			};
 		} catch (error) {
 			console.error("Error downloading S3 object:", error);
+			return null;
+		}
+	}
+
+	// Stream download for large files to avoid memory issues
+	async downloadStream(fileId: string): Promise<Readable | null> {
+		try {
+			const command = new GetObjectCommand({
+				Bucket: this.bucketName,
+				Key: fileId,
+			});
+			const response = await this.s3.send(command);
+			return response.Body as Readable;
+		} catch (error) {
+			console.error("Error streaming S3 object:", error);
 			return null;
 		}
 	}
@@ -346,18 +380,28 @@ export class S3Provider implements Provider {
 
 	async getDriveInfo(): Promise<DriveInfo | null> {
 		try {
-			await this.s3.send(
-				new HeadBucketCommand({
-					Bucket: this.bucketName,
-				})
-			);
+			// Verify bucket exists
+			await this.s3.send(new HeadBucketCommand({ Bucket: this.bucketName }));
+
+			// Calculate actual usage
+			let totalSize = 0;
+			let fileCount = 0;
+
+			const paginator = paginateListObjectsV2({ client: this.s3 }, { Bucket: this.bucketName });
+
+			for await (const page of paginator) {
+				if (page.Contents) {
+					fileCount += page.Contents.length;
+					totalSize += page.Contents.reduce((sum, obj) => sum + (obj.Size || 0), 0);
+				}
+			}
 
 			return {
-				totalSpace: 0,
-				usedSpace: 0,
+				totalSpace: 0, // S3 doesn't have quotas by default
+				usedSpace: totalSize,
 				trashSize: 0,
 				trashItems: 0,
-				fileCount: 0,
+				fileCount,
 			};
 		} catch (error) {
 			console.error("Error getting S3 bucket info:", error);
@@ -365,7 +409,7 @@ export class S3Provider implements Provider {
 		}
 	}
 
-	async getShareableLink(id: string, permission: "view" | "edit" = "view"): Promise<string | null> {
+	async getShareableLink(_id: string, _permission: "view" | "edit" = "view"): Promise<string | null> {
 		// S3 sharing requires pre-signed URLs or bucket policies
 		return null;
 	}
@@ -415,9 +459,8 @@ export class S3Provider implements Provider {
 		return this.accessToken;
 	}
 
-	setAccessToken(token: string): void {
-		this.accessToken = token;
-		// Note: Changing tokens requires recreating the S3 client
+	setAccessToken(_token: string): void {
+		throw new Error("S3Provider does not support dynamic credential updates. Create a new instance instead.");
 	}
 
 	private buildKey(parentId: string, name: string): string {
@@ -456,11 +499,31 @@ export class S3Provider implements Provider {
 			mp4: "video/mp4",
 			mp3: "audio/mpeg",
 			zip: "application/zip",
+			// Documents
+			doc: "application/msword",
+			docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			xls: "application/vnd.ms-excel",
+			xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			ppt: "application/vnd.ms-powerpoint",
+			pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+			// Code
+			js: "application/javascript",
+			json: "application/json",
+			html: "text/html",
+			css: "text/css",
+			// Media
+			webm: "video/webm",
+			avi: "video/x-msvideo",
+			wav: "audio/wav",
+			// Archives
+			tar: "application/x-tar",
+			gz: "application/gzip",
+			rar: "application/vnd.rar",
 		};
 		return mimeTypes[extension || ""] || DEFAULT_MIME_TYPE;
 	}
 
-	private async streamToBuffer(stream: NodeJS.ReadableStream | Readable): Promise<Buffer> {
+	private async streamToBuffer(stream: Readable): Promise<Buffer> {
 		return new Promise((resolve, reject) => {
 			const chunks: Buffer[] = [];
 			stream.on("data", chunk => chunks.push(chunk));
