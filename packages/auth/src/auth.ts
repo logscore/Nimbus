@@ -5,15 +5,15 @@ import { type Account, betterAuth } from "better-auth";
 // import type { Redis as ValkeyRedis } from "iovalkey";
 import env /*, { isEdge }*/ from "@nimbus/env/server";
 // import { providerSchema } from "@nimbus/shared";
+import type { RedisClient } from "@nimbus/cache";
 import { sendMail } from "./utils/send-mail";
-// import redisClient from "@nimbus/cache";
 import { type DB } from "@nimbus/db";
 import { eq } from "drizzle-orm";
 
 // TODO(shared): move constants to shared package. use in validation.
 // TODO(rate-limiting): implement for auth
 
-export const createAuth = (db: DB) => {
+export const createAuth = (db: DB, redisClient: RedisClient) => {
 	return betterAuth({
 		appName: "Nimbus",
 		baseURL: env.BACKEND_URL,

@@ -16,12 +16,13 @@ interface SecurityOptions {
 }
 
 export function buildUserSecurityMiddleware(rateLimiter: UserRateLimiter) {
-	return buildSecurityMiddleware(c => rateLimiter(c.var.user));
+	return buildSecurityMiddleware(c => rateLimiter(c.var.redisClient, c.var.user));
 }
 
 export function buildWaitlistSecurityMiddleware() {
 	return buildSecurityMiddleware(c =>
 		waitlistRateLimiter(
+			c.var.redisClient,
 			c.req.header("cf-connecting-ip") || c.req.header("x-real-ip") || c.req.header("x-forwarded-for") || "unknown"
 		)
 	);

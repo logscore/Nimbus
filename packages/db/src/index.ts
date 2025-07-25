@@ -12,7 +12,7 @@ export const createDb = (url: string) => {
 
 		return {
 			db,
-			cleanup: async () => {
+			closeDb: async () => {
 				await client.end();
 			},
 		};
@@ -26,7 +26,7 @@ export const createDb = (url: string) => {
 
 	return {
 		db,
-		cleanup: async () => {
+		closeDb: async () => {
 			//   If it is not edge, we do not want to close the connection pool
 			//   await pool.end();
 		},

@@ -1,6 +1,8 @@
-import redisClient, { type RateLimiter, UpstashRateLimit, ValkeyRateLimit } from "@nimbus/cache";
+import { type RateLimiter, type RedisClient, UpstashRateLimit, ValkeyRateLimit } from "@nimbus/cache";
+import { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import type { SessionUser } from "@nimbus/auth/auth";
 import env, { isEdge } from "@nimbus/env/server";
+import { Redis as ValkeyRedis } from "iovalkey";
 
 const isProduction = env.NODE_ENV === "production";
 
@@ -58,7 +60,10 @@ const waitlistRateLimiterConfig = {
 } as const;
 
 // Create Upstash rate limiter factory
-function createUpstashRateLimiter(config: RateLimiterConfig): RateLimiterFactory<UpstashRateLimit> {
+function createUpstashRateLimiter(
+	redisClient: UpstashRedis,
+	config: RateLimiterConfig
+): RateLimiterFactory<UpstashRateLimit> {
 	return (identifier: string) =>
 		new UpstashRateLimit({
 			redis: redisClient,
@@ -69,7 +74,10 @@ function createUpstashRateLimiter(config: RateLimiterConfig): RateLimiterFactory
 }
 
 // Create Valkey rate limiter factory
-function createValkeyRateLimiter(config: RateLimiterConfig): RateLimiterFactory<ValkeyRateLimit> {
+function createValkeyRateLimiter(
+	redisClient: ValkeyRedis,
+	config: RateLimiterConfig
+): RateLimiterFactory<ValkeyRateLimit> {
 	return (identifier: string) =>
 		new ValkeyRateLimit({
 			storeClient: redisClient,
@@ -82,28 +90,34 @@ function createValkeyRateLimiter(config: RateLimiterConfig): RateLimiterFactory<
 		});
 }
 
-function createRateLimiter(config: RateLimiterConfig): RateLimiterFactory<RateLimiter> {
+function createRateLimiter(redisClient: RedisClient, config: RateLimiterConfig): RateLimiterFactory<RateLimiter> {
 	return (identifier: string) => {
 		if (isEdge) {
-			return createUpstashRateLimiter(config)(identifier);
+			return createUpstashRateLimiter(redisClient as UpstashRedis, config)(identifier);
 		} else {
-			return createValkeyRateLimiter(config)(identifier);
+			return createValkeyRateLimiter(redisClient as ValkeyRedis, config)(identifier);
 		}
 	};
 }
 
 // Export the rate limiters
-function userRateLimiter(user: SessionUser): RateLimiter;
-function userRateLimiter(user: SessionUser): RateLimiter {
-	return createRateLimiter(fileRateLimiters.default)(user.id);
+function userRateLimiter(redisClient: RedisClient, user: SessionUser): RateLimiter;
+function userRateLimiter(redisClient: RedisClient, user: SessionUser): RateLimiter {
+	return createRateLimiter(redisClient, fileRateLimiters.default)(user.id);
 }
 export type UserRateLimiter = typeof userRateLimiter;
 
-export const fileRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.default)(user.id);
-export const fileGetRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.get)(user.id);
-export const fileUpdateRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.update)(user.id);
-export const fileDeleteRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.delete)(user.id);
-export const fileUploadRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.upload)(user.id);
+export const fileRateLimiter = (redisClient: RedisClient, user: SessionUser) =>
+	createRateLimiter(redisClient, fileRateLimiters.default)(user.id);
+export const fileGetRateLimiter = (redisClient: RedisClient, user: SessionUser) =>
+	createRateLimiter(redisClient, fileRateLimiters.get)(user.id);
+export const fileUpdateRateLimiter = (redisClient: RedisClient, user: SessionUser) =>
+	createRateLimiter(redisClient, fileRateLimiters.update)(user.id);
+export const fileDeleteRateLimiter = (redisClient: RedisClient, user: SessionUser) =>
+	createRateLimiter(redisClient, fileRateLimiters.delete)(user.id);
+export const fileUploadRateLimiter = (redisClient: RedisClient, user: SessionUser) =>
+	createRateLimiter(redisClient, fileRateLimiters.upload)(user.id);
 
-export const waitlistRateLimiter = (ip: string) => createRateLimiter(waitlistRateLimiterConfig)(ip);
+export const waitlistRateLimiter = (redisClient: RedisClient, ip: string) =>
+	createRateLimiter(redisClient, waitlistRateLimiterConfig)(ip);
 export type WaitlistRateLimiter = typeof waitlistRateLimiter;

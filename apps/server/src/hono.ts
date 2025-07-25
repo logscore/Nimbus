@@ -1,11 +1,13 @@
 import type { Provider } from "./providers/interface/provider";
 import type { Auth, SessionUser } from "@nimbus/auth/auth";
 import { getContext } from "hono/context-storage";
+import type { RedisClient } from "@nimbus/cache";
 import { Hono, type Env } from "hono";
 import type { DB } from "@nimbus/db";
 
 export interface publicRouterVars {
 	db: DB;
+	redisClient: RedisClient;
 	auth: Auth;
 }
 

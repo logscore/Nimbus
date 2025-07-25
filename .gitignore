@@ -42,6 +42,9 @@ yarn-error.log*
 .dev.vars
 .dev.vars.production
 
+# cloudflare
+.dev.vars*
+
 # vercel
 .vercel
 

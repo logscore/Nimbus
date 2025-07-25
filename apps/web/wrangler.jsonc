@@ -16,20 +16,4 @@
 		"local_protocol": "http",
 		"host": "localhost",
 	},
-	"env": {
-		"local": {
-			"name": "nimbus-local-web",
-			"vars": {
-				"NEXT_PUBLIC_BACKEND_URL": "${NEXT_PUBLIC_BACKEND_URL}",
-				"NEXT_PUBLIC_FRONTEND_URL": "${NEXT_PUBLIC_FRONTEND_URL}",
-			},
-		},
-		"production": {
-			"name": "nimbus-web",
-			"vars": {
-				"NEXT_PUBLIC_BACKEND_URL": "https://nimbus-server.logan-def.workers.dev",
-				"NEXT_PUBLIC_FRONTEND_URL": "https://nimbus-web.logan-def.workers.dev",
-			},
-		},
-	},
 }
