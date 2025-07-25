@@ -1,9 +1,18 @@
-import { limitedAccessAccountSchema, updateAccountSchema, type UpdateAccountSchema } from "@nimbus/shared";
+import {
+	limitedAccessAccountSchema,
+	updateAccountSchema,
+	createS3AccountSchema,
+	type UpdateAccountSchema,
+	type CreateS3AccountSchema,
+} from "@nimbus/shared";
 import { account as accountTable } from "@nimbus/db/schema";
 import { createProtectedRouter } from "../../hono";
+import { sendSuccess, sendError } from "../utils";
+import { encrypt } from "../../utils/encryption";
 import { zValidator } from "@hono/zod-validator";
-import { sendSuccess } from "../utils";
+import { S3Provider } from "../../providers/s3";
 import { eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 const accountRouter = createProtectedRouter()
 	.get("/", async c => {
@@ -27,6 +36,56 @@ const accountRouter = createProtectedRouter()
 		const metadata = { nickname: data.nickname };
 		await c.var.db.update(accountTable).set(metadata).where(eq(accountTable.id, data.id));
 		return sendSuccess(c, { message: "Account updated successfully" });
+	})
+	.post("/s3", zValidator("json", createS3AccountSchema), async c => {
+		const data: CreateS3AccountSchema = c.req.valid("json");
+
+		try {
+			const testProvider = new S3Provider({
+				accessKeyId: data.accessKeyId,
+				secretAccessKey: data.secretAccessKey,
+				region: data.region,
+				bucketName: data.bucketName,
+				endpoint: data.endpoint,
+			});
+
+			const driveInfo = await testProvider.getDriveInfo();
+			if (!driveInfo) {
+				return sendError(c, { message: "Invalid S3 credentials or bucket not accessible", status: 400 });
+			}
+
+			const accountId = nanoid();
+			const s3Account = {
+				id: nanoid(),
+				accountId: accountId,
+				providerId: "s3" as const,
+				userId: c.var.user.id,
+				nickname: data.nickname,
+				scope: "s3",
+				s3AccessKeyId: data.accessKeyId,
+				s3SecretAccessKey: encrypt(data.secretAccessKey),
+				s3Region: data.region,
+				s3BucketName: data.bucketName,
+				s3Endpoint: data.endpoint,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			};
+
+			await c.var.db.insert(accountTable).values(s3Account);
+
+			return sendSuccess(c, {
+				message: "S3 account added successfully",
+				data: {
+					id: s3Account.id,
+					accountId: s3Account.accountId,
+					providerId: s3Account.providerId,
+					nickname: s3Account.nickname,
+				},
+			});
+		} catch (error) {
+			console.error("Error creating S3 account:", error);
+			return sendError(c, { message: "Failed to connect to S3. Please check your credentials.", status: 400 });
+		}
 	});
 
 export default accountRouter;
