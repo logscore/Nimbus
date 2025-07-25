@@ -1,6 +1,9 @@
 // Simple Node.js test file for S3Provider
 // Since the project doesn't have a testing framework configured yet,
 // this provides basic validation of the S3Provider class
+// TODO: Project's CONTRIBUTING.md indicates Vitest should be used for backend testing,
+// but no testing framework is currently configured. Consider setting up Vitest for
+// better error reporting, test isolation, and IDE integration.
 
 import { S3Provider } from "./s3-provider";
 
@@ -100,7 +103,7 @@ async function runTests() {
 }
 
 // Run tests if this file is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
 	runTests().catch(error => {
 		console.error("\n❌ Test suite failed:", error.message);
 		process.exit(1);
