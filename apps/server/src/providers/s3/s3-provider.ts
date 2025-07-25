@@ -21,6 +21,7 @@ import {
 	type FileMetadata,
 } from "@nimbus/shared";
 import type { DownloadResult, ListFilesOptions, ListFilesResult } from "../interface/types";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Provider } from "../interface/provider";
 import { Upload } from "@aws-sdk/lib-storage";
 import { Readable } from "node:stream";
@@ -407,9 +408,25 @@ export class S3Provider implements Provider {
 		}
 	}
 
-	async getShareableLink(_id: string, _permission: "view" | "edit" = "view"): Promise<string | null> {
-		// S3 sharing requires pre-signed URLs or bucket policies
-		return null;
+	async getShareableLink(id: string, _permission: "view" | "edit" = "view"): Promise<string | null> {
+		try {
+			// S3 pre-signed URLs for file sharing (valid for 1 hour)
+			const command = new GetObjectCommand({
+				Bucket: this.bucketName,
+				Key: id,
+			});
+
+			// Note: S3 doesn't have granular view/edit permissions like Google Drive
+			// All pre-signed URLs provide download access
+			const signedUrl = await getSignedUrl(this.s3, command, {
+				expiresIn: 3600, // 1 hour
+			});
+
+			return signedUrl;
+		} catch (error) {
+			console.error("Error generating S3 pre-signed URL:", error);
+			return null;
+		}
 	}
 
 	async search(query: string, options: Omit<ListFilesOptions, "filter"> = {}): Promise<ListFilesResult> {
