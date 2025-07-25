@@ -4,6 +4,7 @@ import eslintPluginSonarjs from "eslint-plugin-sonarjs";
 import oxlintPlugin from "eslint-plugin-oxlint";
 import tseslint from "typescript-eslint";
 import eslint from "@eslint/js";
+import globals from "globals";
 
 const tsconfigRootDir = process.cwd();
 
@@ -54,19 +55,11 @@ export function buildEslintConfig() {
 		files: ["**/__tests__/**/*.js", "**/*.test.js", "**/*.test.ts"],
 		languageOptions: {
 			globals: {
-				console: "readonly",
-				process: "readonly",
-				Buffer: "readonly",
-				__dirname: "readonly",
-				__filename: "readonly",
-				module: "readonly",
-				require: "readonly",
-				exports: "readonly",
-				global: "readonly",
+				...globals.node,
 			},
 		},
 		rules: {
-			"@typescript-eslint/no-floating-promises": "off",
+			"@typescript-eslint/no-floating-promises": "off" as const,
 		},
 	};
 
