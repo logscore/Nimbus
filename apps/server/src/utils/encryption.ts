@@ -52,8 +52,7 @@ export function decrypt(encryptedText: string): string {
 			return decrypted;
 		} catch (error) {
 			console.error("Decryption error:", error);
-			// Migration compatibility: treat as plaintext if decryption fails
-			return encryptedText;
+			throw new Error("Failed to decrypt data - invalid format or corrupted data");
 		}
 	}
 
