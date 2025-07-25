@@ -21,6 +21,7 @@
 		"docker:reset": "bun run docker:remove && bun run docker:up"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.850.0",
 		"@googleapis/drive": "^14.1.0",
 		"@hono/zod-validator": "^0.7.1",
 		"@microsoft/microsoft-graph-client": "^3.0.7",
