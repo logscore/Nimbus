@@ -1,7 +1,17 @@
-import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
+import { createCipheriv, createDecipheriv, randomBytes, createHash } from "crypto";
 
 const ENCRYPTION_ALGORITHM = "aes-256-cbc";
-const ENCRYPTION_KEY = process.env.BETTER_AUTH_SECRET || "fallback-key-for-development";
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+function deriveKey(): Buffer {
+	if (!ENCRYPTION_KEY) {
+		throw new Error("ENCRYPTION_KEY environment variable is required");
+	}
+	if (ENCRYPTION_KEY.length < 32) {
+		throw new Error("ENCRYPTION_KEY must be at least 32 characters");
+	}
+	return createHash("sha256").update(ENCRYPTION_KEY).digest();
+}
 
 /**
  * Encrypts sensitive data using AES-256-CBC
@@ -10,7 +20,7 @@ export function encrypt(text: string): string {
 	if (!text) return text;
 
 	try {
-		const key = Buffer.from(ENCRYPTION_KEY.slice(0, 32).padEnd(32, "0"), "utf8");
+		const key = deriveKey();
 		const iv = randomBytes(16);
 		const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
 		let encrypted = cipher.update(text, "utf8", "hex");
@@ -18,8 +28,7 @@ export function encrypt(text: string): string {
 		return iv.toString("hex") + ":" + encrypted;
 	} catch (error) {
 		console.error("Encryption error:", error);
-		// Fallback for development; production should throw
-		return text;
+		throw new Error("Encryption failed - cannot store sensitive data as plaintext");
 	}
 }
 
@@ -35,7 +44,7 @@ export function decrypt(encryptedText: string): string {
 			if (!ivHex || !encrypted) {
 				throw new Error("Invalid encrypted format");
 			}
-			const key = Buffer.from(ENCRYPTION_KEY.slice(0, 32).padEnd(32, "0"), "utf8");
+			const key = deriveKey();
 			const iv = Buffer.from(ivHex, "hex");
 			const decipher = createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
 			let decrypted = decipher.update(encrypted, "hex", "utf8");
@@ -56,5 +65,6 @@ export function decrypt(encryptedText: string): string {
  */
 export function isEncrypted(text: string): boolean {
 	if (!text) return false;
-	return text.includes(":") && text.split(":").length === 2;
+	const parts = text.split(":");
+	return parts.length === 2 && parts[0]?.length === 32 && /^[0-9a-f]+$/i.test(parts[0] || "");
 }
