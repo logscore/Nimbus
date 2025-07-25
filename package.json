@@ -26,6 +26,7 @@
 		"dev:server": "bun --elide-lines 0 --filter @nimbus/server --env-file .env dev",
 		"dev": "concurrently --names \"WEB,SERVER\" --prefix-colors \"cyan,magenta\" --prefix \"[{name}]\" --kill-others-on-fail \"bun --env-file .env dev:web\" \"bun --env-file .env dev:server\"",
 		"dev:verbose": "bun --elide-lines 0 --filter \"*\" --env-file .env dev",
+		"dev:cf": "concurrently --names \"WEB,SERVER\" --prefix-colors \"cyan,magenta\" --prefix \"[{name}]\" --kill-others-on-fail \"bun run --cwd=apps/web dev:cf\" \"bun run --cwd=apps/server dev:cf\"",
 		"deploy": "bun run --cwd=apps/web deploy && bun run --cwd=apps/server deploy",
 		"db:up": "bun run --cwd=packages/db docker:up",
 		"db:down": "bun run --cwd=packages/db docker:down",

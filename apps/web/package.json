@@ -7,13 +7,14 @@
 		"typescript": "^5"
 	},
 	"scripts": {
-		"dev": "next dev --turbopack",
-		"dev:cf": "bunx wrangler dev -c ./wrangler.jsonc",
-		"build": "next build && bash scripts/handle-nextjs-standalone-build.sh",
-		"start": "bun run .next/build-start-folder/apps/web/server.js",
 		"lint": "next lint",
-		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env production",
+		"dev": "next dev --turbopack",
+		"dev:cf": "bunx --bun wrangler dev -c ./wrangler.jsonc --port $WEB_PORT",
+		"build": "next build && bash scripts/handle-nextjs-standalone-build.sh",
+		"build:cf": "opennextjs-cloudflare build",
+		"start": "bun run .next/build-start-folder/apps/web/server.js",
+		"preview": "bun run build:cf && opennextjs-cloudflare preview",
+		"deploy": "bun run build:cf && opennextjs-cloudflare deploy --env production",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
 		"docker:build": "bun run build && docker build -t nimbus-web-manual .",
 		"docker:run": "source .env && docker run --name nimbus-web-manual --env-file .env -p $WEB_PORT:$WEB_PORT nimbus-web-manual:latest",
@@ -55,7 +56,7 @@
 		"hono": "^4.8.5",
 		"lucide-react": "^0.525.0",
 		"motion": "^12.23.9",
-		"next": "15.4.4",
+		"next": "15.3",
 		"next-themes": "^0.4.6",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
@@ -75,7 +76,7 @@
 		"@types/react": "^19.1.8",
 		"@types/react-dom": "^19.1.6",
 		"eslint": "^9.31.0",
-		"eslint-config-next": "15.4.4",
+		"eslint-config-next": "15.3",
 		"typescript": "^5.8.3"
 	}
 }

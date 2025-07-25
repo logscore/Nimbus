@@ -9,10 +9,12 @@
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"dev:hot": "bun --hot src/index.ts",
+		"dev:cf": "bunx --bun wrangler dev -c ./wrangler.jsonc --port $SERVER_PORT",
 		"check": "tsc --noEmit",
 		"build": "bun run check && bun build src/index.ts --target bun --outdir dist",
 		"start": "bun dist/index.js",
 		"deploy": "bunx wrangler deploy --env production --keep-vars",
+		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
 		"docker:build": "bun run build && docker build -t nimbus-server-manual .",
 		"docker:run": "source .env && docker run --name nimbus-server-manual --env-file .env -p $SERVER_PORT:$SERVER_PORT nimbus-server-manual:latest",
 		"docker:up": "bun run build && docker compose up -d",

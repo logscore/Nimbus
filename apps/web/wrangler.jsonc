@@ -20,8 +20,8 @@
 		"local": {
 			"name": "nimbus-local-web",
 			"vars": {
-				"NEXT_PUBLIC_BACKEND_URL": "http://localhost:1284",
-				"NEXT_PUBLIC_FRONTEND_URL": "http://localhost:3000",
+				"NEXT_PUBLIC_BACKEND_URL": "${NEXT_PUBLIC_BACKEND_URL}",
+				"NEXT_PUBLIC_FRONTEND_URL": "${NEXT_PUBLIC_FRONTEND_URL}",
 			},
 		},
 		"production": {
