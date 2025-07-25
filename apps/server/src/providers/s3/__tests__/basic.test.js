@@ -1,6 +1,5 @@
-/* eslint-env node */
 // Quick S3 Provider Test Script
-// Run with: bun test-s3.js
+// Run with: bun apps/server/src/providers/s3/__tests__/basic.test.js
 
 import { S3Provider } from "../s3-provider";
 
@@ -31,7 +30,9 @@ async function testS3Provider() {
 	console.log("📝 Configuration:");
 	console.log(`- Region: ${config.region}`);
 	console.log(`- Bucket: ${config.bucketName}`);
-	console.log(`- Access Key: ${config.accessKeyId.substring(0, 8)}...`);
+	console.log(
+		`- Access Key: ${config.accessKeyId.substring(0, 4)}...${config.accessKeyId.substring(config.accessKeyId.length - 4)}`
+	);
 	console.log("");
 
 	try {
