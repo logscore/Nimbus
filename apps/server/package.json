@@ -22,19 +22,19 @@
 	},
 	"dependencies": {
 		"@googleapis/drive": "^14.1.0",
-		"@hono/zod-validator": "^0.7.1",
+		"@hono/zod-validator": "^0.7.2",
 		"@microsoft/microsoft-graph-client": "^3.0.7",
 		"@nimbus/auth": "workspace:*",
 		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
 		"@nimbus/env": "workspace:*",
 		"@nimbus/shared": "workspace:*",
-		"drizzle-orm": "^0.44.2",
+		"drizzle-orm": "^0.44.3",
 		"google-auth-library": "^10.1.0",
 		"hono": "^4.8.5",
 		"nanoid": "^5.1.5",
 		"pg": "^8.16.3",
-		"zod": "^4.0.5"
+		"zod": "^4.0.9"
 	},
 	"devDependencies": {
 		"@microsoft/microsoft-graph-types": "^2.40.0",
