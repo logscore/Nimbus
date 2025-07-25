@@ -101,7 +101,11 @@ export default function SettingsPage() {
 		const toastErrorMessage = `Failed to set ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
 
 		try {
-			const response = await protectedClient.api.user.$put({
+			if (!protectedClient) {
+				throw new Error("Client not initialized");
+			}
+			const client = protectedClient;
+			const response = await client.api.user.$put({
 				json: {
 					defaultProviderId: provider,
 					defaultAccountId: accountId,
@@ -130,7 +134,11 @@ export default function SettingsPage() {
 		const toastErrorMessage = `Failed to update ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
 
 		try {
-			const response = await protectedClient.api.account.$put({
+			if (!protectedClient) {
+				throw new Error("Client not initialized");
+			}
+			const client = protectedClient;
+			const response = await client.api.account.$put({
 				json: {
 					id: tableAccountId,
 					nickname,
