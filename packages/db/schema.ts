@@ -61,6 +61,11 @@ export const account = pgTable("account",
     scope: text("scope"),
     password: text("password"),
     nickname: text("nickname"),
+    s3AccessKeyId: text("s3_access_key_id"),
+    s3SecretAccessKey: text("s3_secret_access_key"),
+    s3Region: text("s3_region"),
+    s3BucketName: text("s3_bucket_name"),
+    s3Endpoint: text("s3_endpoint"),
     createdAt: timestamp("created_at")
       .$defaultFn(() => /* @__PURE__ */ new Date())
       .notNull(),

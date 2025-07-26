@@ -101,7 +101,8 @@ export default function SettingsPage() {
 		const toastErrorMessage = `Failed to set ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
 
 		try {
-			const response = await protectedClient.api.user.$put({
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const response = await (protectedClient as any).api.user.$put({
 				json: {
 					defaultProviderId: provider,
 					defaultAccountId: accountId,
@@ -130,7 +131,8 @@ export default function SettingsPage() {
 		const toastErrorMessage = `Failed to update ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
 
 		try {
-			const response = await protectedClient.api.account.$put({
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const response = await (protectedClient as any).api.account.$put({
 				json: {
 					id: tableAccountId,
 					nickname,

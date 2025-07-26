@@ -57,6 +57,14 @@ const waitlistRateLimiterConfig = {
 	keyPrefix: "rl:waitlist",
 } as const;
 
+// Account creation rate limiter configuration (for S3/OneDrive/Google Drive)
+const accountCreationRateLimiterConfig = {
+	points: isProduction ? 5 : 50, // 5 attempts in production, 50 in dev
+	duration: 600, // 10 minutes
+	blockDuration: 300, // 5 minutes
+	keyPrefix: "rl:account:creation",
+} as const;
+
 // Create Upstash rate limiter factory
 function createUpstashRateLimiter(config: RateLimiterConfig): RateLimiterFactory<UpstashRateLimit> {
 	return (identifier: string) =>
@@ -107,3 +115,7 @@ export const fileUploadRateLimiter = (user: SessionUser) => createRateLimiter(fi
 
 export const waitlistRateLimiter = (ip: string) => createRateLimiter(waitlistRateLimiterConfig)(ip);
 export type WaitlistRateLimiter = typeof waitlistRateLimiter;
+
+export const accountCreationRateLimiter = (user: SessionUser) =>
+	createRateLimiter(accountCreationRateLimiterConfig)(user.id);
+export type AccountCreationRateLimiter = typeof accountCreationRateLimiter;
