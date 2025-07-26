@@ -11,7 +11,8 @@ export function useAccounts() {
 		try {
 			setIsPending(true);
 			setError(null);
-			const response = await protectedClient.api.account.$get();
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const response = await (protectedClient as any).api.account.$get();
 
 			if (!response.ok) {
 				const data = (await response.json()) as unknown as ApiResponse;
@@ -19,7 +20,8 @@ export function useAccounts() {
 			}
 
 			const accountsData = await response.json();
-			const accountsDataParsed: LimitedAccessAccount[] = accountsData.map(account => ({
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const accountsDataParsed: LimitedAccessAccount[] = accountsData.map((account: any) => ({
 				...account,
 				createdAt: new Date(account.createdAt),
 				updatedAt: new Date(account.updatedAt),
