@@ -5,20 +5,13 @@ import env, { isEdge } from "@nimbus/env/server";
 import { Redis as ValkeyRedis } from "iovalkey";
 
 export { UpstashRateLimit, UpstashRedis, ValkeyRateLimit, ValkeyRedis };
-export type RedisClient = UpstashRedis | ValkeyRedis;
+export type RedisClient = InstanceType<typeof UpstashRedis> | InstanceType<typeof ValkeyRedis>;
 export type RateLimiter = UpstashRateLimit | ValkeyRateLimit;
 
-// Overload signatures
-function redisClientInstance(): Promise<UpstashRedis>;
-function redisClientInstance(): Promise<ValkeyRedis>;
-
-// Implementation
-async function redisClientInstance(): Promise<RedisClient> {
+export async function redisClientInstance(): Promise<RedisClient> {
 	if (isEdge) {
 		if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
-			throw new Error(
-				"Missing environment variables. UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN is not defined"
-			);
+			throw new Error("Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN");
 		}
 		return new UpstashRedis({
 			url: env.UPSTASH_REDIS_REST_URL,
@@ -26,9 +19,7 @@ async function redisClientInstance(): Promise<RedisClient> {
 		});
 	} else {
 		if (!env.VALKEY_HOST || !env.VALKEY_PORT || !env.VALKEY_USERNAME || !env.VALKEY_PASSWORD) {
-			throw new Error(
-				"Missing environment variables. VALKEY_HOST, VALKEY_PORT, VALKEY_USERNAME, or VALKEY_PASSWORD is not defined"
-			);
+			throw new Error("Missing VALKEY_* env vars");
 		}
 		return new ValkeyRedis({
 			port: Number(env.VALKEY_PORT),
@@ -39,6 +30,4 @@ async function redisClientInstance(): Promise<RedisClient> {
 	}
 }
 
-const redisClient = await redisClientInstance();
-
-export default redisClient;
+export const redisClientPromise = redisClientInstance();

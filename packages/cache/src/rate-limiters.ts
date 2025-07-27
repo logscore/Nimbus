@@ -1,6 +1,16 @@
-import redisClient, { type RateLimiter, UpstashRateLimit, ValkeyRateLimit } from "@nimbus/cache";
+import {
+	type RateLimiter,
+	redisClientPromise,
+	UpstashRateLimit,
+	ValkeyRateLimit,
+	UpstashRedis,
+	ValkeyRedis,
+} from "@nimbus/cache";
 import type { SessionUser } from "@nimbus/auth/auth";
 import env, { isEdge } from "@nimbus/env/server";
+
+// Required type for middleware
+export type UserRateLimiter = (user: SessionUser) => Promise<RateLimiter>;
 
 const isProduction = env.NODE_ENV === "production";
 
@@ -11,16 +21,12 @@ interface RateLimiterConfig {
 	keyPrefix: string;
 }
 
-interface RateLimiterFactory<T extends RateLimiter> {
-	(identifier: string): T;
-}
-
-// File operation rate limiters configuration
+// ----- CONFIG -----
 const fileRateLimiters = {
 	default: {
 		points: isProduction ? 100 : 1000,
-		duration: 360, // 6 minutes
-		blockDuration: 180, // 3 minutes
+		duration: 360,
+		blockDuration: 180,
 		keyPrefix: "rl:files",
 	},
 	get: {
@@ -36,74 +42,83 @@ const fileRateLimiters = {
 		keyPrefix: "rl:files:update",
 	},
 	delete: {
-		points: 30, // Same for both environments
+		points: 30,
 		duration: 360,
 		blockDuration: 360,
 		keyPrefix: "rl:files:delete",
 	},
 	upload: {
 		points: isProduction ? 50 : 500,
-		duration: 300, // 5 minutes
-		blockDuration: 240, // 4 minutes
+		duration: 300,
+		blockDuration: 240,
 		keyPrefix: "rl:files:upload",
 	},
 } as const;
 
-// Waitlist rate limiter configuration
 const waitlistRateLimiterConfig = {
 	points: 3,
-	duration: 120, // 2 minutes
-	blockDuration: 60, // 1 minute
+	duration: 120,
+	blockDuration: 60,
 	keyPrefix: "rl:waitlist",
 } as const;
 
-// Create Upstash rate limiter factory
-function createUpstashRateLimiter(config: RateLimiterConfig): RateLimiterFactory<UpstashRateLimit> {
-	return (identifier: string) =>
-		new UpstashRateLimit({
-			redis: redisClient,
-			prefix: `${config.keyPrefix}${identifier}`,
-			limiter: UpstashRateLimit.slidingWindow(config.points, `${Math.ceil(config.duration / 60)} s`),
-			analytics: true,
-		});
+// ----- FACTORIES -----
+
+// Create Upstash rate limiter
+async function createUpstashRateLimiter(config: RateLimiterConfig, identifier: string): Promise<UpstashRateLimit> {
+	const redisClient = await redisClientPromise;
+
+	if (!(redisClient instanceof UpstashRedis)) {
+		throw new Error("redisClient is not an instance of UpstashRedis");
+	}
+
+	return new UpstashRateLimit({
+		redis: redisClient,
+		prefix: `${config.keyPrefix}${identifier}`,
+		limiter: UpstashRateLimit.slidingWindow(config.points, `${Math.ceil(config.duration / 60)} s`),
+		analytics: true,
+	});
 }
 
-// Create Valkey rate limiter factory
-function createValkeyRateLimiter(config: RateLimiterConfig): RateLimiterFactory<ValkeyRateLimit> {
-	return (identifier: string) =>
-		new ValkeyRateLimit({
-			storeClient: redisClient,
-			keyPrefix: `${config.keyPrefix}${identifier}`,
-			points: config.points,
-			duration: config.duration,
-			blockDuration: config.blockDuration,
-			inMemoryBlockOnConsumed: isProduction ? 150 : 1500,
-			inMemoryBlockDuration: 60,
-		});
+// Create Valkey rate limiter
+async function createValkeyRateLimiter(config: RateLimiterConfig, identifier: string): Promise<ValkeyRateLimit> {
+	const redisClient = await redisClientPromise;
+
+	if (!(redisClient instanceof ValkeyRedis)) {
+		throw new Error("redisClient is not an instance of ValkeyRedis");
+	}
+
+	return new ValkeyRateLimit({
+		storeClient: redisClient,
+		keyPrefix: `${config.keyPrefix}${identifier}`,
+		points: config.points,
+		duration: config.duration,
+		blockDuration: config.blockDuration,
+		inMemoryBlockOnConsumed: isProduction ? 150 : 1500,
+		inMemoryBlockDuration: 60,
+	});
 }
 
-function createRateLimiter(config: RateLimiterConfig): RateLimiterFactory<RateLimiter> {
-	return (identifier: string) => {
-		if (isEdge) {
-			return createUpstashRateLimiter(config)(identifier);
-		} else {
-			return createValkeyRateLimiter(config)(identifier);
-		}
-	};
+// Create abstracted rate limiter
+async function createRateLimiter(config: RateLimiterConfig, identifier: string): Promise<RateLimiter> {
+	return isEdge
+		? await createUpstashRateLimiter(config, identifier)
+		: await createValkeyRateLimiter(config, identifier);
 }
 
-// Export the rate limiters
-function userRateLimiter(user: SessionUser): RateLimiter;
-function userRateLimiter(user: SessionUser): RateLimiter {
-	return createRateLimiter(fileRateLimiters.default)(user.id);
-}
-export type UserRateLimiter = typeof userRateLimiter;
+// ----- EXPORTED WRAPPERS (all async) -----
 
-export const fileRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.default)(user.id);
-export const fileGetRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.get)(user.id);
-export const fileUpdateRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.update)(user.id);
-export const fileDeleteRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.delete)(user.id);
-export const fileUploadRateLimiter = (user: SessionUser) => createRateLimiter(fileRateLimiters.upload)(user.id);
+export const fileRateLimiter = async (user: SessionUser) => await createRateLimiter(fileRateLimiters.default, user.id);
 
-export const waitlistRateLimiter = (ip: string) => createRateLimiter(waitlistRateLimiterConfig)(ip);
-export type WaitlistRateLimiter = typeof waitlistRateLimiter;
+export const fileGetRateLimiter = async (user: SessionUser) => await createRateLimiter(fileRateLimiters.get, user.id);
+
+export const fileUpdateRateLimiter = async (user: SessionUser) =>
+	await createRateLimiter(fileRateLimiters.update, user.id);
+
+export const fileDeleteRateLimiter = async (user: SessionUser) =>
+	await createRateLimiter(fileRateLimiters.delete, user.id);
+
+export const fileUploadRateLimiter = async (user: SessionUser) =>
+	await createRateLimiter(fileRateLimiters.upload, user.id);
+
+export const waitlistRateLimiter = async (ip: string) => await createRateLimiter(waitlistRateLimiterConfig, ip);

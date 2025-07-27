@@ -10,24 +10,25 @@ import { webcrypto } from "node:crypto";
 export interface SecurityOptions {
 	rateLimiting?: {
 		enabled: boolean;
-		rateLimiter: (c: Context) => RateLimiter;
+		rateLimiter: (c: Context) => Promise<RateLimiter>;
 	};
 	securityHeaders?: boolean;
 }
 
 export function buildUserSecurityMiddleware(rateLimiter: UserRateLimiter) {
-	return buildSecurityMiddleware(c => rateLimiter(c.var.user));
+	return buildSecurityMiddleware(async c => await rateLimiter(c.var.user));
 }
 
 export function buildWaitlistSecurityMiddleware() {
-	return buildSecurityMiddleware(c =>
-		waitlistRateLimiter(
-			c.req.header("cf-connecting-ip") || c.req.header("x-real-ip") || c.req.header("x-forwarded-for") || "unknown"
-		)
+	return buildSecurityMiddleware(
+		async c =>
+			await waitlistRateLimiter(
+				c.req.header("cf-connecting-ip") || c.req.header("x-real-ip") || c.req.header("x-forwarded-for") || "unknown"
+			)
 	);
 }
 
-function buildSecurityMiddleware(rateLimiter: (c: Context) => RateLimiter) {
+function buildSecurityMiddleware(rateLimiter: (c: Context) => Promise<RateLimiter>) {
 	return securityMiddleware({
 		rateLimiting: {
 			enabled: true,
@@ -47,16 +48,11 @@ function buildSecurityMiddleware(rateLimiter: (c: Context) => RateLimiter) {
  */
 const getClientIp = (c: Context): string => {
 	const xff = c.req.header("x-forwarded-for");
-	// If XFF exists, take the first IP in the list.
 	const firstIpAddress = xff?.split(",")[0];
-	if (firstIpAddress) {
-		return firstIpAddress.trim();
-	}
-	// Fallback to other common headers.
+	if (firstIpAddress) return firstIpAddress.trim();
+
 	const realIp = c.req.header("x-real-ip");
-	if (realIp) {
-		return realIp.trim();
-	}
+	if (realIp) return realIp.trim();
 
 	return `unidentifiable-${webcrypto.randomUUID()}`;
 };
@@ -100,14 +96,9 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 				"Content-Security-Policy",
 				`default-src 'self'; ` +
 					`script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:; ` +
-					// FIXED: CSP is now more restrictive. You MUST add your trusted sources.
-					// Example: `style-src 'self' 'https://fonts.googleapis.com';`
 					`style-src 'self'; ` +
-					// Example: `img-src 'self' data: blob: https://cdn.example.com;`
 					`img-src 'self' data: blob:; ` +
-					// Example: `font-src 'self' https://fonts.gstatic.com;`
 					`font-src 'self' data:; ` +
-					// Example: `connect-src 'self' wss://api.example.com;`
 					`connect-src 'self'; ` +
 					`media-src 'self' data:; ` +
 					`object-src 'none'; ` +
@@ -118,6 +109,7 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 					`block-all-mixed-content;`
 			);
 		}
+
 		// Rate limiting
 		if (rateLimiting.enabled && rateLimiting.rateLimiter) {
 			const user = c.var.user;
@@ -125,9 +117,10 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 			const identifier = user?.id || ip;
 
 			try {
-				const limiter = rateLimiting.rateLimiter(c);
+				const limiter = await rateLimiting.rateLimiter(c);
+
 				if ("limit" in limiter) {
-					// Handle Upstash limit
+					// Handle Upstash
 					const result = await limiter.limit(identifier);
 					if (!result.success) {
 						const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
@@ -142,15 +135,13 @@ export const securityMiddleware = (options: SecurityOptions = {}) => {
 						);
 					}
 				} else {
-					// Handle Valkey limit
+					// Handle Valkey
 					await limiter.consume(identifier);
 				}
 			} catch (error: any) {
 				console.error("Rate limiter error:", error);
 
-				// Handle different types of rate limit errors
 				if (error.remaining === 0 || error.msBeforeNext) {
-					// This is a rate limit exceeded error for Valkey
 					const retryAfter = Math.ceil((error.msBeforeNext || 60000) / 1000);
 					c.header("Retry-After", retryAfter.toString());
 					return c.json(
