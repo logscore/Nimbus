@@ -1,7 +1,6 @@
 import {
 	getFilesSchema,
 	fileIdSchema,
-	fileIdObjectSchema,
 	updateFileSchema,
 	createFileSchema,
 	uploadFileQuerySchema,
