@@ -1,8 +1,4 @@
-import { expect, describe, it, jest, beforeEach, afterEach } from "@jest/globals";
-import { UpstashRedis } from "../src/index";
-import ValkeyRedis from "iovalkey";
-
-// Mock variables
+// ✅ Declare mock values BEFORE jest.mock()
 let mockIsEdge = false;
 let mockEnv = {
 	UPSTASH_REDIS_REST_URL: "https://example.com",
@@ -13,7 +9,7 @@ let mockEnv = {
 	VALKEY_PASSWORD: "pass",
 };
 
-// Mock the env module
+// ✅ Now mock the env module after defining mockIsEdge and mockEnv
 jest.mock("@nimbus/env/server", () => ({
 	__esModule: true,
 	get default() {
@@ -24,14 +20,15 @@ jest.mock("@nimbus/env/server", () => ({
 	},
 }));
 
-describe("redisClientInstance", () => {
-	let redisClientInstance: () => Promise<any>;
+// ✅ Now import everything else
+import { expect, describe, it, jest, beforeEach, afterEach } from "@jest/globals";
+import { UpstashRedis, ValkeyRedis, redisClientInstance } from "../src";
 
-	beforeEach(async () => {
-		// Clear all mocks
+describe("redisClientInstance", () => {
+	beforeEach(() => {
 		jest.clearAllMocks();
 
-		// Reset mock values to defaults
+		// Reset mock values
 		mockIsEdge = false;
 		mockEnv = {
 			UPSTASH_REDIS_REST_URL: "https://example.com",
@@ -41,9 +38,6 @@ describe("redisClientInstance", () => {
 			VALKEY_USERNAME: "admin",
 			VALKEY_PASSWORD: "pass",
 		};
-
-		const module = await import("../src/index");
-		redisClientInstance = module.redisClientInstance;
 	});
 
 	afterEach(() => {
@@ -51,22 +45,14 @@ describe("redisClientInstance", () => {
 	});
 
 	it("should return UpstashRedis instance on Edge", async () => {
-		// Set up edge environment
 		mockIsEdge = true;
-		mockEnv.UPSTASH_REDIS_REST_URL = "https://example.com";
-		mockEnv.UPSTASH_REDIS_REST_TOKEN = "token123";
 
 		const client = await redisClientInstance();
 		expect(client).toBeInstanceOf(UpstashRedis);
 	});
 
 	it("should return ValkeyRedis instance on Server", async () => {
-		// Set up server environment
 		mockIsEdge = false;
-		mockEnv.VALKEY_HOST = "localhost";
-		mockEnv.VALKEY_PORT = "6379";
-		mockEnv.VALKEY_USERNAME = "admin";
-		mockEnv.VALKEY_PASSWORD = "pass";
 
 		const client = await redisClientInstance();
 		expect(client).toBeInstanceOf(ValkeyRedis);
@@ -76,17 +62,12 @@ describe("redisClientInstance", () => {
 		mockIsEdge = true;
 		mockEnv.UPSTASH_REDIS_REST_URL = undefined as any;
 
-		await expect(redisClientInstance()).rejects.toThrow(
-			"Missing environment variables. UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN is not defined"
-		);
+		await expect(redisClientInstance()).rejects.toThrow("Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN");
 	});
 
 	it("should throw error if Valkey env vars are missing", async () => {
 		mockIsEdge = false;
 		mockEnv.VALKEY_HOST = undefined as any;
-
-		await expect(redisClientInstance()).rejects.toThrow(
-			"Missing environment variables. VALKEY_HOST, VALKEY_PORT, VALKEY_USERNAME, or VALKEY_PASSWORD is not defined"
-		);
+		await expect(redisClientInstance()).rejects.toThrow("Missing VALKEY_* env vars");
 	});
 });
