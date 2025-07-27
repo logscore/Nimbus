@@ -10,7 +10,7 @@ import type { SessionUser } from "@nimbus/auth/auth";
 import env, { isEdge } from "@nimbus/env/server";
 
 // Required type for middleware
-export type UserRateLimiter = (user: SessionUser) => RateLimiter;
+export type UserRateLimiter = (user: SessionUser) => Promise<RateLimiter>;
 
 const isProduction = env.NODE_ENV === "production";
 
