@@ -13,6 +13,7 @@
 		"start": "bun run .next/build-start-folder/apps/web/server.js",
 		"cf:build": "opennextjs-cloudflare build",
 		"cf:preview": "opennextjs-cloudflare preview",
+		"cf:deploy:preview": "opennextjs-cloudflare deploy --env preview",
 		"cf:deploy:staging": "opennextjs-cloudflare deploy --env staging",
 		"cf:deploy:production": "opennextjs-cloudflare deploy --env production",
 		"cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",

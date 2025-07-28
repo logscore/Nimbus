@@ -36,6 +36,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env
+.env.preview
 .env.staging
 .env.production
 .env.local
@@ -43,6 +44,7 @@ yarn-error.log*
 
 # cloudflare env
 .dev.vars
+.dev.vars.preview
 .dev.vars.staging
 .dev.vars.production
 

@@ -29,6 +29,12 @@ for dir in $APP_DIRS; do
     echo "  Copying .env.staging to $dir/.dev.vars.staging"
     cp ".env.staging" "$dir/.dev.vars.staging"
   fi
+
+  # Handle .env.preview -> .dev.vars.preview
+  if [ -f ".env.preview" ]; then
+    echo "  Copying .env.preview to $dir/.dev.vars.preview"
+    cp ".env.preview" "$dir/.dev.vars.preview"
+  fi
 done
 
 echo "Environment files copied successfully!"

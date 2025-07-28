@@ -4,7 +4,7 @@ import { parseArgs } from "node:util";
 import { join } from "node:path";
 
 // Supported environments
-type Environment = "staging" | "production";
+type Environment = "preview" | "staging" | "production";
 
 interface Secret {
 	name: string;
@@ -17,7 +17,7 @@ const { values: args } = parseArgs({
 		env: {
 			type: "string",
 			short: "e",
-			default: "staging",
+			default: "preview",
 		},
 		help: {
 			type: "boolean",
@@ -33,14 +33,14 @@ const printHelp = () => {
   Usage: bun run sync-wrangler-secrets.ts [options]
 
   Options:
-    -e, --env <environment>  Environment to sync secrets to (staging or production, default: staging)
+    -e, --env <environment>  Environment to sync secrets to (preview, staging, or production, default: preview)
     -h, --help               Show help
   `);
 };
 
 // Validate environment
 const validateEnvironment = (env: string): env is Environment => {
-	const validEnvs: Environment[] = ["staging", "production"];
+	const validEnvs: Environment[] = ["preview", "staging", "production"];
 	if (!validEnvs.includes(env as Environment)) {
 		console.error(`Error: Invalid environment '${env}'. Must be one of: ${validEnvs.join(", ")}`);
 		return false;
@@ -50,7 +50,14 @@ const validateEnvironment = (env: string): env is Environment => {
 
 // Get environment file
 const getEnvFile = (env: Environment): string => {
-	return env === "production" ? ".dev.vars.production" : ".dev.vars.staging";
+	switch (env) {
+		case "preview":
+			return ".dev.vars.preview";
+		case "staging":
+			return ".dev.vars.staging";
+		case "production":
+			return ".dev.vars.production";
+	}
 };
 
 // Get Wrangler secrets

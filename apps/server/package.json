@@ -13,6 +13,7 @@
 		"build": "bun run check && bun build src/index.ts --target bun --minify --outdir dist",
 		"start": "bun dist/index.js",
 		"cf:dev": "wrangler dev",
+		"cf:deploy:preview": "wrangler deploy --env preview",
 		"cf:deploy:staging": "wrangler deploy --env staging",
 		"cf:deploy:production": "wrangler deploy --env production",
 		"sync-wrangler-secrets": "bun run scripts/sync-wrangler-secrets.ts",
