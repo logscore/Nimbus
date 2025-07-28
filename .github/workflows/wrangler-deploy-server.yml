@@ -1,11 +1,32 @@
-name: Deploy Server (Staging)
+name: Deploy Server
+run-name:
+  Deploy Server to ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name ==
+  'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }} Environment by ${{ github.actor }}
+
 on:
+  create:
   pull_request:
-    branches:
-      - staging
+    branches: [main, staging]
+  # workflow_run:
+  #   workflows: ["format-lint-build"]
+  #   branches: [main, staging]
+  #   types:
+  #     - completed
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "preview"
+        type: choice
+        options: ["production", "staging", "preview"]
 
 env:
+  DEPLOY_ENV:
+    ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' &&
+    'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
+
+  # Common environment variables
   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
   MICROSOFT_CLIENT_ID: ${{ secrets.MICROSOFT_CLIENT_ID }}
@@ -31,24 +52,50 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: staging
     timeout-minutes: 60
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    # Determine environment based on branch or input
+    environment:
+      name:
+        ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' &&
+        'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - name: Deploy Worker
-        id: deploy
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Set up environment variables
+        id: set-env
+        run: |
+          # For PRs, use the PR number to create a unique deployment name
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            DEPLOYMENT_NAME="pr-${{ github.event.pull_request.number }}"
+            echo "DEPLOY_COMMAND=deploy --env $DEPLOY_ENV --name $DEPLOYMENT_NAME" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_COMMAND=deploy --env $DEPLOY_ENV" >> $GITHUB_ENV
+          fi
+
+      - name:
+          Deploy Server Worker to ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment ||
+          github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
+        id: deploy-server-worker
         uses: cloudflare/wrangler-action@v3
         with:
           packageManager: bun
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: "apps/server"
-          command: deploy --env staging
+          command: ${{ env.DEPLOY_COMMAND }}
+          # This is required for wrangler to know which environment to deploy to even though --env ${{ env.DEPLOY_ENV }} is specified in the command
+          environment: ${{ env.DEPLOY_ENV }}
           secrets: |
             GOOGLE_CLIENT_ID
             GOOGLE_CLIENT_SECRET

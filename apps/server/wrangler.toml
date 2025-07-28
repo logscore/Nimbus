@@ -9,8 +9,9 @@ port = 1284
 host = "localhost"
 local_protocol = "http"
 
+[env.preview]
+
 [env.staging]
-name = "nimbus-server-staging"
 routes = [{ pattern = "staging.api.nimbus.storage", custom_domain = true }]
 
 [env.production]
