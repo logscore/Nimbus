@@ -19,7 +19,7 @@ export function buildSecurityMiddleware(ctx: CreateRateLimiterContext) {
 	return securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: c => createRateLimiter(ctx),
+			rateLimiter: _c => createRateLimiter(ctx),
 		},
 		securityHeaders: true,
 	});

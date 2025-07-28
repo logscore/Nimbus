@@ -78,7 +78,7 @@ const handler = {
 };
 
 // For non-edge environments, we'll use the original app with the port
-if (true || process.env.IS_EDGE_RUNTIME !== "true") {
+if (process.env.IS_EDGE_RUNTIME !== "true") {
 	const env = createEnv(process.env);
 	Object.assign(handler, {
 		port: env.SERVER_PORT,

@@ -44,7 +44,7 @@ export const createAuth = (env: CreateEnv, db: DB, redisClient: RedisClient, res
 			maxPasswordLength: 100,
 			resetPasswordTokenExpiresIn: 600, // 10 minutes
 			requireEmailVerification: true,
-			sendResetPassword: async ({ user, token, url }) => {
+			sendResetPassword: async ({ user, token: _token, url }) => {
 				// const frontendResetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
 				await sendMail(emailContext, {
 					to: user.email,
