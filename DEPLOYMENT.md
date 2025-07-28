@@ -30,6 +30,7 @@ cd Nimbus
 
 ```bash
 cp .env.example .env
+
 ```
 
 Nimbus requires the following environment variables to work, some will be pre-filled for local testing:
@@ -45,7 +46,7 @@ Nimbus requires the following environment variables to work, some will be pre-fi
 - `SERVER_PORT`
 - `WEB_PORT`
 - `BACKEND_URL`
-- `FRONTEND_URL`
+- `TRUSTED_ORIGINS`
 - `NEXT_PUBLIC_BACKEND_URL`
 - `NEXT_PUBLIC_FRONTEND_URL`
 - `DATABASE_URL`
@@ -116,19 +117,20 @@ bun wrangler login
 
 ### 2. Configure Worker
 
-The `wrangler.jsonc` is already configured to instantly deploy, however you will need to add certain environment
+The `wrangler.toml` is already configured to instantly deploy, however you will need to add certain environment
 variables for the worker to function fully.
 
 If testing, make sure to add the wrangler.dev url cloudflare provisions for you to the `NEXT_PUBLIC_BACKEND_URL` and
-`NEXT_PUBLIC_FRONTEND_URL` environment variables in both the wrangler.jsonc and .env files.
+`NEXT_PUBLIC_FRONTEND_URL` environment variables in both the wrangler.toml and .env files.
 
 If deploying to production, make sure to use your production url in the `NEXT_PUBLIC_BACKEND_URL` and
-`NEXT_PUBLIC_FRONTEND_URL` environment variables in both the wrangler.jsonc and .env files.
+`NEXT_PUBLIC_FRONTEND_URL` environment variables in both the wrangler.toml and .env files.
 
-1. Add the values outlined in the .dev.vars.example file to the wrangler.jsonc file or to your Worker settings on the
+1. Add the values outlined in the .env.example file to the wrangler.toml file or to your Worker settings on the
    Cloudflare dashboard.
 2. Configure your .env file with your production values.
 3. Run `bun env:sync` to sync your .env file to the web workspace or the frontend build will fail.
+4. Run `cp .env .dev.vars` to copy your .env file to the .dev.vars file for testing it locally before deployment.
 
 > **Note:** The worker front end is build with [opennext](https://opennext.js.org/) and therefore acts exactly as a
 > Nextjs build, so env variables are extracted from the .env file at the root of the workspace (`apps/web` in this
@@ -159,8 +161,8 @@ wrangler secret put API_KEY
 wrangler secret put DATABASE_URL
 ```
 
-> **Note:** `wrangler.jsonc` is not ignored in the `.gitignore`, so if you add environment variables for your
-> deployment, they will be committed to version control. Make sure to remove them before pushing to a public repository.
+> **Note:** `wrangler.toml` is not ignored in the `.gitignore`, so if you add environment variables for your deployment,
+> they will be committed to version control. Make sure to remove them before pushing to a public repository.
 
 ### 6. Enjoy!
 

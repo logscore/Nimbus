@@ -1,0 +1,16 @@
+name = "nimbus-server"
+main = "src/index.ts"
+compatibility_date = "2025-05-18"
+compatibility_flags = ["nodejs_compat"]
+observability = { enabled = true }
+
+[dev]
+port = 1284
+host = "localhost"
+local_protocol = "http"
+
+[env.staging]
+routes = [{ pattern = "staging.api.nimbus.storage", custom_domain = true }]
+
+[env.production]
+routes = [{ pattern = "api.nimbus.storage", custom_domain = true }]

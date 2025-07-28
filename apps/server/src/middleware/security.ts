@@ -1,4 +1,4 @@
-import { waitlistRateLimiter, type UserRateLimiter } from "@nimbus/cache/rate-limiters";
+import { createRateLimiter, type CreateRateLimiterContext } from "@nimbus/cache/rate-limiters";
 import type { RateLimiter } from "@nimbus/cache";
 import { sendError } from "../routes/utils";
 import type { Context, Next } from "hono";
@@ -7,7 +7,7 @@ import { webcrypto } from "node:crypto";
 /**
  * Security middleware options
  */
-export interface SecurityOptions {
+interface SecurityOptions {
 	rateLimiting?: {
 		enabled: boolean;
 		rateLimiter: (c: Context) => RateLimiter;
@@ -15,23 +15,11 @@ export interface SecurityOptions {
 	securityHeaders?: boolean;
 }
 
-export function buildUserSecurityMiddleware(rateLimiter: UserRateLimiter) {
-	return buildSecurityMiddleware(c => rateLimiter(c.var.user));
-}
-
-export function buildWaitlistSecurityMiddleware() {
-	return buildSecurityMiddleware(c =>
-		waitlistRateLimiter(
-			c.req.header("cf-connecting-ip") || c.req.header("x-real-ip") || c.req.header("x-forwarded-for") || "unknown"
-		)
-	);
-}
-
-function buildSecurityMiddleware(rateLimiter: (c: Context) => RateLimiter) {
+export function buildSecurityMiddleware(ctx: CreateRateLimiterContext) {
 	return securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter,
+			rateLimiter: c => createRateLimiter(ctx),
 		},
 		securityHeaders: true,
 	});
@@ -61,7 +49,7 @@ const getClientIp = (c: Context): string => {
 	return `unidentifiable-${webcrypto.randomUUID()}`;
 };
 
-export const securityMiddleware = (options: SecurityOptions = {}) => {
+const securityMiddleware = (options: SecurityOptions = {}) => {
 	const {
 		rateLimiting = {
 			enabled: options.rateLimiting?.enabled ?? true,

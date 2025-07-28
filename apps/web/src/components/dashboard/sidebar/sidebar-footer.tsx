@@ -28,18 +28,17 @@ export default function StorageFooter() {
 		if (data) {
 			setUsedSpace(data.usedSpace);
 			setTotalSpace(data.totalSpace);
-			const percent =
-				Number(data.totalSpace) > 0 ? Math.floor((Number(data.usedSpace) / Number(data.totalSpace)) * 100) : 0;
+			const percent = Number(totalSpace) > 0 ? Math.floor((Number(usedSpace) / Number(totalSpace)) * 100) : 0;
 			setUsagePercent(percent);
 		}
-	}, [data]);
+	}, [data, totalSpace, usedSpace]);
 
 	return (
 		<SidebarFooter className="flex flex-col items-start gap-2 self-stretch p-2 pb-0 transition-all duration-300 ease-linear dark:bg-neutral-800">
 			<SidebarMenu>
 				<SidebarMenuItem>
 					<div className="flex flex-col items-start self-stretch rounded-lg border border-neutral-200 bg-neutral-200 dark:border-0 dark:border-transparent dark:bg-neutral-700">
-						<div className="flex flex-col items-start gap-3 self-stretch rounded-lg bg-white p-3 shadow-sm dark:bg-black">
+						<div className="flex flex-col items-start gap-3 self-stretch rounded-lg bg-white p-3 shadow-sm dark:bg-[#0C0A09]">
 							<div className="flex items-center justify-between self-stretch">
 								<p className="text-sm font-medium text-neutral-800 dark:text-neutral-300">Storage Used</p>
 								{isPending ? (
@@ -50,7 +49,7 @@ export default function StorageFooter() {
 							</div>
 							<Progress value={usagePercent} />
 						</div>
-						<div className="flex min-h-[2rem] items-center justify-between self-stretch px-3 py-1">
+						<div className="flex h-8 items-center justify-between self-stretch px-3">
 							{isPending ? (
 								<div className="h-4 w-32 animate-pulse rounded bg-neutral-300 dark:bg-neutral-500"></div>
 							) : (
@@ -60,10 +59,7 @@ export default function StorageFooter() {
 									{fileSizeText(isError, totalSpace)}
 								</div>
 							)}
-							<Button
-								variant="link"
-								className="ml-2 px-2 text-xs font-medium text-neutral-800 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-							>
+							<Button variant="link" className="ml-2 px-2 text-xs font-medium text-neutral-800 dark:text-neutral-300">
 								Upgrade
 							</Button>
 						</div>
@@ -76,7 +72,10 @@ export default function StorageFooter() {
 					{isMounted && (theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />)}
 					<span>Theme</span>
 				</SidebarMenuButton>
-				<SidebarMenuButton asChild>
+				<SidebarMenuButton
+					asChild
+					className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
+				>
 					<Link href="/dashboard/settings">
 						<Settings className="size-4" />
 						<span>Settings</span>

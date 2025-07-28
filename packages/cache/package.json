@@ -16,7 +16,7 @@
 		"docker:reset": "bun run docker:remove && bun run docker:up"
 	},
 	"dependencies": {
-		"@upstash/ratelimit": "^2.0.5",
+		"@upstash/ratelimit": "^2.0.6",
 		"@upstash/redis": "^1.35.1",
 		"iovalkey": "^0.3.3",
 		"rate-limiter-flexible": "^7.1.1",
@@ -25,6 +25,6 @@
 	},
 	"devDependencies": {
 		"@nimbus/tsconfig": "workspace:*",
-		"@types/bun": "^1.2.18"
+		"@types/bun": "^1.2.19"
 	}
 }

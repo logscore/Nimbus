@@ -1,0 +1,1 @@
+ALTER TABLE "pinned_folder" ADD COLUMN "type" text DEFAULT 'folder' NOT NULL;

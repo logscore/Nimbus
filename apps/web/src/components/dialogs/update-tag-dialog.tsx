@@ -6,6 +6,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useEffect, useState, type ReactNode } from "react";
 import { FieldError } from "@/components/ui/field-error";
 import { updateTagSchema } from "@nimbus/shared";
@@ -19,17 +20,19 @@ function getDescendantIds(tag: Tag): string[] {
 	return tag.children.flatMap(child => [child.id, ...getDescendantIds(child)]);
 }
 
-function renderTagOptions(tags: Tag[], forbiddenIds: string[], level = 0): ReactNode[] {
+function renderTagSelectItems(tags: Tag[], forbiddenIds: string[], level = 0): ReactNode[] {
 	return tags.flatMap(t => {
 		if (forbiddenIds.includes(t.id)) {
 			return [];
 		}
 		return [
-			<option key={t.id} value={t.id}>
-				{"\u00A0".repeat(level * 2)}
-				{t.name}
-			</option>,
-			...(t.children ? renderTagOptions(t.children, forbiddenIds, level + 1) : []),
+			<SelectItem key={t.id} value={t.id}>
+				<span className="flex items-center">
+					{level > 0 && <span className="text-muted-foreground mr-2">{"│\u00A0".repeat(level - 1)}└─</span>}
+					{t.name}
+				</span>
+			</SelectItem>,
+			...(t.children ? renderTagSelectItems(t.children, forbiddenIds, level + 1) : []),
 		];
 	});
 }
@@ -162,15 +165,15 @@ export function UpdateTagDialog({ isOpen, onClose, onUpdate, tags, tag }: Update
 						<Label htmlFor="update-tag-parent" className="text-right">
 							Parent Tag
 						</Label>
-						<select
-							id="update-tag-parent"
-							value={parentId || "none"}
-							onChange={e => setParentId(e.target.value === "none" ? null : e.target.value)}
-							className="col-span-3"
-						>
-							<option value="none">None</option>
-							{renderTagOptions(tags, forbiddenIds)}
-						</select>
+						<Select value={parentId || "none"} onValueChange={value => setParentId(value === "none" ? null : value)}>
+							<SelectTrigger className="col-span-3 w-full" id="update-tag-parent">
+								<SelectValue placeholder="Select a parent tag" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="none">None</SelectItem>
+								{renderTagSelectItems(tags, forbiddenIds)}
+							</SelectContent>
+						</Select>
 					</div>
 				</div>
 				<DialogFooter>

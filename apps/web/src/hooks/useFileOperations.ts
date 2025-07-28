@@ -1,6 +1,7 @@
 import type {
 	CreateFileSchema,
 	DeleteFileSchema,
+	File,
 	GetFileByIdSchema,
 	GetFilesSchema,
 	UpdateFileSchema,
@@ -14,7 +15,7 @@ import { toast } from "sonner";
 export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: GetFilesSchema) {
 	const { clientPromise, providerId, accountId } = useAccountProvider();
 	return useQuery({
-		queryKey: ["files", providerId, accountId, parentId, pageSize, pageToken],
+		queryKey: ["files", providerId, accountId, parentId],
 		queryFn: async () => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await BASE_FILE_CLIENT.$get({
@@ -22,7 +23,7 @@ export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: G
 			});
 			return await response.json();
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		enabled: !!providerId && !!accountId,
 		retry: 2,
 	});
 }
@@ -30,23 +31,23 @@ export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: G
 export function useGetFile({ fileId, returnedValues }: GetFileByIdSchema) {
 	const { clientPromise, providerId, accountId } = useAccountProvider();
 	return useQuery({
-		queryKey: ["file", providerId, accountId, fileId, returnedValues],
+		queryKey: ["file", providerId, accountId, fileId],
 		queryFn: async () => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
-			const response = await BASE_FILE_CLIENT[":id"].$get({
-				param: { fileId },
+			const response = await BASE_FILE_CLIENT[":fileId"].$get({
+				param: { fileId: fileId },
 				query: { returnedValues },
 			});
 			return await response.json();
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		enabled: !!providerId && !!accountId,
 		retry: 2,
 	});
 }
 
 export function useDeleteFile() {
 	const queryClient = useQueryClient();
-	const { clientPromise } = useAccountProvider();
+	const { clientPromise, providerId, accountId } = useAccountProvider();
 	return useMutation({
 		mutationFn: async ({ fileId }: DeleteFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
@@ -55,20 +56,34 @@ export function useDeleteFile() {
 			});
 			return await response.json();
 		},
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["files"] });
+		// Handles optimistic updates
+		onMutate: async deletedFile => {
+			await queryClient.cancelQueries({ queryKey: ["files"] });
+
+			const previousFiles = queryClient.getQueryData<File[]>(["files"]);
+
+			queryClient.setQueryData(["files", providerId, accountId], (old: File[] = []) =>
+				old.filter(file => file.id !== deletedFile.fileId)
+			);
+
+			return { previousFiles };
 		},
-		onError: error => {
-			console.error("Error deleting file:", error);
-			const errorMessage = error.message || "Failed to delete file";
-			toast.error(errorMessage);
+		// Handles rollback on error
+		onError: (_, __, context) => {
+			if (context?.previousFiles) {
+				queryClient.setQueryData(["files", providerId, accountId], context.previousFiles);
+			}
+			toast.error("Failed to delete file");
+		},
+		onSettled: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["files"] });
 		},
 	});
 }
 
 export function useUpdateFile() {
 	const queryClient = useQueryClient();
-	const { clientPromise } = useAccountProvider();
+	const { clientPromise, providerId, accountId } = useAccountProvider();
 	return useMutation({
 		mutationFn: async ({ fileId, name }: UpdateFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
@@ -77,14 +92,27 @@ export function useUpdateFile() {
 			});
 			return await response.json();
 		},
-		onSuccess: async () => {
-			toast.success("File updated successfully");
-			await queryClient.invalidateQueries({ queryKey: ["files"] });
+		// Handles optimistic updates
+		onMutate: async ({ fileId, ...dataToUpdate }) => {
+			await queryClient.cancelQueries({ queryKey: ["files"] });
+
+			const previousFiles = queryClient.getQueryData<File[]>(["files"]);
+
+			queryClient.setQueryData(["files", providerId, accountId], (old: File[] = []) =>
+				old.map(file => (file.id === fileId ? { ...file, ...dataToUpdate } : file))
+			);
+
+			return { previousFiles };
 		},
-		onError: error => {
-			console.error("Error updating file:", error);
-			const errorMessage = error.message || "Failed to update file";
-			toast.error(errorMessage);
+		// Handles rollback on error
+		onError: (_, __, context) => {
+			if (context?.previousFiles) {
+				queryClient.setQueryData(["files", providerId, accountId], context.previousFiles);
+			}
+			toast.error("Failed to update file");
+		},
+		onSettled: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["files"] });
 		},
 	});
 }

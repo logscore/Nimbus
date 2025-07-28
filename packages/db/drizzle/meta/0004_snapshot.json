@@ -1,5 +1,5 @@
 {
-  "id": "5abbe0ef-63ac-40eb-aead-2fdbecdb0714",
+  "id": "d670476e-e995-4e0d-ada9-47cc25510eff",
   "prevId": "7f29aa25-f88d-4acb-a697-2fed6b5c0f3f",
   "version": "7",
   "dialect": "postgresql",
@@ -178,6 +178,75 @@
         "file_tag_user_id_user_id_fk": {
           "name": "file_tag_user_id_user_id_fk",
           "tableFrom": "file_tag",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pinned_folder": {
+      "name": "pinned_folder",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "folder_id": {
+          "name": "folder_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "pinned_folder_user_id_user_id_fk": {
+          "name": "pinned_folder_user_id_user_id_fk",
+          "tableFrom": "pinned_folder",
           "tableTo": "user",
           "columnsFrom": [
             "user_id"

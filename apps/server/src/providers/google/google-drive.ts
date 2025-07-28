@@ -37,10 +37,10 @@ export class GoogleDriveProvider implements Provider {
 		try {
 			const isFolder =
 				metadata.mimeType === "application/vnd.google-apps.folder" ||
-				metadata.mimeType === "application/vnd.microsoft.folder";
+				metadata.mimeType === "application/vnd.microsoft.folder" ||
+				metadata.mimeType === "folder";
 
 			const mimeType = this.mapToGoogleMimeType(metadata.mimeType || DEFAULT_MIME_TYPE);
-
 			const fileMetadata: drive_v3.Schema$File = {
 				name: metadata.name,
 				mimeType,
@@ -440,6 +440,7 @@ export class GoogleDriveProvider implements Provider {
 
 	private mapToGoogleMimeType(mimeType: string): string {
 		const mimeTypeMap: Record<string, string> = {
+			folder: "application/vnd.google-apps.folder",
 			"application/vnd.microsoft.folder": "application/vnd.google-apps.folder",
 			"application/msword": "application/vnd.google-apps.document",
 			"application/vnd.openxmlformats-officedocument.wordprocessingml.document": "application/vnd.google-apps.document",

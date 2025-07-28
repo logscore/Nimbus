@@ -17,6 +17,7 @@ dist
 # next.js
 /.next/
 /out/
+.open-next
 
 # production
 /build
@@ -35,10 +36,14 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env
+.env.staging
 .env.production
 .env.local
 .env*disabled
+
+# cloudflare env
 .dev.vars
+.dev.vars.staging
 .dev.vars.production
 
 # vercel

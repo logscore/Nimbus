@@ -77,7 +77,10 @@ const geistMono = Geist_Mono({
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en" suppressHydrationWarning className="bg-sidebar">
-			<body className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} antialiased`}>
+			<body
+				className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} antialiased`}
+				suppressHydrationWarning
+			>
 				<ReactQueryProvider>
 					<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
 						<div className="relative min-h-screen">

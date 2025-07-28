@@ -13,7 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-export function UploadButton() {
+export function UploadButton({ name }: { name: string }) {
 	const [uploadFileOpen, setUploadFileOpen] = useState(false);
 	const [uploadFolderOpen, setUploadFolderOpen] = useState(false);
 	const [createFolderOpen, setCreateFolderOpen] = useState(false);
@@ -24,9 +24,13 @@ export function UploadButton() {
 		<>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button variant="outline" size="icon" className="cursor-pointer">
+					<Button
+						variant="default"
+						size="lg"
+						className="flex h-8 w-fit cursor-pointer items-center gap-2 rounded-lg bg-neutral-900 font-medium dark:bg-neutral-100"
+					>
 						<Plus className="h-4 w-4" />
-						<span className="sr-only">Open menu</span>
+						{name} <span className="sr-only">Open menu</span>
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">

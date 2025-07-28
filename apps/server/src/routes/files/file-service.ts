@@ -10,7 +10,7 @@ import { getDriveProviderContext } from "../../hono";
 import { TagService } from "../tags/tag-service";
 import type { Readable } from "node:stream";
 
-export interface CreateFileOptions {
+interface CreateFileOptions {
 	name: string;
 	mimeType: string;
 	parentId?: string;
