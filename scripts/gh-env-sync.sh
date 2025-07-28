@@ -5,11 +5,11 @@ set -e
 
 # Function to display help
 show_help() {
-    echo "Usage: $0 --env|-e {staging|production} [--github-env ENV] [--include-disabled]"
+    echo "Usage: $0 --env|-e {preview|staging|production} [--github-env ENV] [--include-disabled]"
     echo "Sync environment variables to GitHub secrets"
     echo ""
     echo "Options:"
-    echo "  -e, --env ENVIRONMENT     Source environment file to sync from (staging or production)"
+    echo "  -e, --env ENVIRONMENT     Source environment file to sync from (preview, staging or production)"
     echo "  -g, --github-env ENV     GitHub environment to sync to (defaults to --env value)"
     echo "  -d, --include-disabled   Include disabled environment variables from .env.${ENV}.disabled"
     echo "  -h, --help               Show this help message and exit"
@@ -57,8 +57,8 @@ if [[ -z "$ENV" ]]; then
     exit 1
 fi
 
-if [[ "$ENV" != "staging" && "$ENV" != "production" ]]; then
-    echo "Error: Environment must be either 'staging' or 'production'"
+if [[ "$ENV" != "preview" && "$ENV" != "staging" && "$ENV" != "production" ]]; then
+    echo "Error: Environment must be either 'preview', 'staging' or 'production'"
     exit 1
 fi
 

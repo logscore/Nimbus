@@ -26,6 +26,7 @@
 		"dev:server": "bun --elide-lines 0 --filter @nimbus/server --env-file .env dev",
 		"dev": "concurrently --names \"WEB,SERVER\" --prefix-colors \"cyan,magenta\" --prefix \"[{name}]\" --kill-others-on-fail \"bun --env-file .env dev:web\" \"bun --env-file .env dev:server\"",
 		"dev:verbose": "bun --elide-lines 0 --filter \"*\" --env-file .env dev",
+		"gh:env:sync:preview": "./scripts/gh-env-sync.sh --env preview",
 		"gh:env:sync:staging": "./scripts/gh-env-sync.sh --env staging",
 		"gh:env:sync:production": "./scripts/gh-env-sync.sh --env production",
 		"db:up": "bun run --cwd=packages/db docker:up",

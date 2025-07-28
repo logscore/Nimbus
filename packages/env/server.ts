@@ -22,11 +22,6 @@ export function createEnv(runtimeEnv: NodeJS.ProcessEnv) {
 
 			// Database
 			DATABASE_URL: z.url(),
-			DATABASE_HOST: z.string(),
-			POSTGRES_PORT: z.string(),
-			POSTGRES_USER: z.string(),
-			POSTGRES_PASSWORD: z.string(),
-			POSTGRES_DB: z.string(),
 
 			// Authentication
 			BETTER_AUTH_SECRET: z.string(),
@@ -39,8 +34,7 @@ export function createEnv(runtimeEnv: NodeJS.ProcessEnv) {
 			MICROSOFT_CLIENT_SECRET: z.string(),
 
 			// Server Configuration
-			SERVER_PORT: z.string(),
-			WEB_PORT: z.string(),
+			BACKEND_URL: z.string(),
 			TRUSTED_ORIGINS: z
 				.string()
 				.transform(val => val.trim())
@@ -65,11 +59,19 @@ export function createEnv(runtimeEnv: NodeJS.ProcessEnv) {
 					if (val === "*") return ["*"];
 					return val.split(",").map(s => s.trim());
 				}),
-			BACKEND_URL: z.string(),
 
 			// Email
 			EMAIL_FROM: z.email(),
 			RESEND_API_KEY: z.string(),
+
+			// For docker
+			SERVER_PORT: z.string(),
+			WEB_PORT: z.string(),
+			DATABASE_HOST: z.string(),
+			POSTGRES_PORT: z.string(),
+			POSTGRES_USER: z.string(),
+			POSTGRES_PASSWORD: z.string(),
+			POSTGRES_DB: z.string(),
 
 			// Optional (because of edge runtime support)
 
