@@ -5,5 +5,8 @@
 	"editor.formatOnSave": true,
 	// https://stackoverflow.com/a/76549788/3571431
 	"eslint.workingDirectories": [{ "mode": "auto" }],
-	"oxc.enable": true
+	"oxc.enable": true,
+	"[toml]": {
+		"editor.defaultFormatter": "tamasfe.even-better-toml"
+	}
 }

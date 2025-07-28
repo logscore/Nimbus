@@ -227,4 +227,4 @@ Follow the [DEPLOYMENT.md](DEPLOYMENT.md) file for instructions on how to deploy
 
 1. Point your **domain** to the server.
 2. Use the domain in Google API keys for callback URLs (e.g., `https://example.com:1284/api/auth/callback/google`).
-3. Update the `.env` file with the domain (e.g., `FRONTEND_URL=https://example.com:3000`).
+3. Update the `.env` file with the domain (e.g., `TRUSTED_ORIGINS=https://example.com:3000`).

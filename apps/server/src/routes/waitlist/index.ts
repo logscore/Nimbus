@@ -1,5 +1,4 @@
 import { emailObjectSchema, type WaitlistCount } from "@nimbus/shared";
-import { buildWaitlistSecurityMiddleware } from "../../middleware";
 import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
 import { createPublicRouter } from "../../hono";
@@ -8,7 +7,7 @@ import { count, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 const waitlistRouter = createPublicRouter()
-	.get("/count", buildWaitlistSecurityMiddleware(), async c => {
+	.get("/count", async c => {
 		try {
 			const result = await c.var.db.select({ count: count() }).from(waitlist);
 			const waitlistCount = result[0]?.count || 0;
@@ -21,7 +20,6 @@ const waitlistRouter = createPublicRouter()
 	})
 	.post(
 		"/join",
-		buildWaitlistSecurityMiddleware(),
 		zValidator("json", emailObjectSchema, (result, c) => {
 			if (!result.success) {
 				return sendError(c, { message: result.error.message, status: 400 });

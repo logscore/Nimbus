@@ -71,7 +71,7 @@ const protectedRouter = createProtectedRouter()
 			return sendUnauthorized(c);
 		}
 		c.set("user", user);
-		return next();
+		await next();
 	})
 	.route(protectedPaths[0], protectedRouters[0])
 	.route(protectedPaths[1], protectedRouters[1])

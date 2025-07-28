@@ -9,12 +9,13 @@
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"dev:hot": "bun --hot src/index.ts",
-		"dev:cf": "bunx --bun wrangler dev -c ./wrangler.jsonc --port $SERVER_PORT",
 		"check": "tsc --noEmit",
-		"build": "bun run check && bun build src/index.ts --target bun --outdir dist",
+		"build": "bun run check && bun build src/index.ts --target bun --minify --outdir dist",
 		"start": "bun dist/index.js",
-		"deploy": "bunx wrangler deploy --env production --keep-vars",
-		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+		"cf:dev": "wrangler dev",
+		"cf:deploy:staging": "wrangler deploy --env staging",
+		"cf:deploy:production": "wrangler deploy --env production",
+		"sync-wrangler-secrets": "bun run scripts/sync-wrangler-secrets.ts",
 		"docker:build": "bun run build && docker build -t nimbus-server-manual .",
 		"docker:run": "source .env && docker run --name nimbus-server-manual --env-file .env -p $SERVER_PORT:$SERVER_PORT nimbus-server-manual:latest",
 		"docker:up": "bun run build && docker compose up -d",
@@ -36,6 +37,7 @@
 		"hono": "^4.8.5",
 		"nanoid": "^5.1.5",
 		"pg": "^8.16.3",
+		"resend": "^4.7.0",
 		"zod": "^4.0.9"
 	},
 	"devDependencies": {

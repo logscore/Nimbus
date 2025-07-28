@@ -1,23 +1,28 @@
-// import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
+import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import { type Account, betterAuth } from "better-auth";
-// import type { Redis as ValkeyRedis } from "iovalkey";
-import env /*, { isEdge }*/ from "@nimbus/env/server";
-// import { providerSchema } from "@nimbus/shared";
+import type { Redis as ValkeyRedis } from "iovalkey";
+import type { CreateEnv } from "@nimbus/env/server";
 import type { RedisClient } from "@nimbus/cache";
+import { providerSchema } from "@nimbus/shared";
 import { sendMail } from "./utils/send-mail";
 import { type DB } from "@nimbus/db";
+import type { Resend } from "resend";
 import { eq } from "drizzle-orm";
 
 // TODO(shared): move constants to shared package. use in validation.
 // TODO(rate-limiting): implement for auth
 
-export const createAuth = (db: DB, redisClient: RedisClient) => {
+export const createAuth = (env: CreateEnv, db: DB, redisClient: RedisClient, resend: Resend) => {
+	const emailContext = {
+		from: env.EMAIL_FROM,
+		resend,
+	};
 	return betterAuth({
 		appName: "Nimbus",
 		baseURL: env.BACKEND_URL,
-		trustedOrigins: [env.FRONTEND_URL, env.BACKEND_URL],
+		trustedOrigins: [...env.TRUSTED_ORIGINS, env.BACKEND_URL],
 
 		// Ensure state is properly handled
 		state: {
@@ -39,24 +44,24 @@ export const createAuth = (db: DB, redisClient: RedisClient) => {
 			maxPasswordLength: 100,
 			resetPasswordTokenExpiresIn: 600, // 10 minutes
 			requireEmailVerification: true,
-			sendResetPassword: async ({ user, token }) => {
-				const frontendResetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
-				await sendMail({
+			sendResetPassword: async ({ user, token, url }) => {
+				// const frontendResetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
+				await sendMail(emailContext, {
 					to: user.email,
 					subject: "Reset your Nimbus password",
-					text: `Click the link to reset your password: ${frontendResetUrl}`,
+					text: `Click the link to reset your password: ${url}`,
 				});
 			},
 		},
 
 		emailVerification: {
 			sendVerificationEmail: async ({ user, url }) => {
-				const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
-				const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
-				await sendMail({
+				// const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
+				// const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
+				await sendMail(emailContext, {
 					to: user.email,
 					subject: "Verify your Nimbus email address",
-					text: `Click the link to verify your email address: ${emailUrl}`,
+					text: `Click the link to verify your email address: ${url}`,
 				});
 			},
 			sendOnSignUp: true,
@@ -93,25 +98,25 @@ export const createAuth = (db: DB, redisClient: RedisClient) => {
 			},
 		},
 
-		// secondaryStorage: {
-		// 	get: async (key: string) => {
-		// 		return await redisClient.get(key);
-		// 	},
-		// 	set: async (key: string, value: string, ttl?: number) => {
-		// 		if (ttl) {
-		// 			if (isEdge) {
-		// 				await (redisClient as UpstashRedis).set(key, value, { ex: ttl });
-		// 			} else {
-		// 				await (redisClient as unknown as ValkeyRedis).set(key, value, "EX", ttl);
-		// 			}
-		// 		} else {
-		// 			await redisClient.set(key, value);
-		// 		}
-		// 	},
-		// 	delete: async (key: string) => {
-		// 		await redisClient.del(key);
-		// 	},
-		// },
+		secondaryStorage: {
+			get: async (key: string) => {
+				return await redisClient.get(key);
+			},
+			set: async (key: string, value: string, ttl?: number) => {
+				if (ttl) {
+					if (env.IS_EDGE_RUNTIME) {
+						await (redisClient as UpstashRedis).set(key, value, { ex: ttl });
+					} else {
+						await (redisClient as ValkeyRedis).set(key, value, "EX", ttl);
+					}
+				} else {
+					await redisClient.set(key, value);
+				}
+			},
+			delete: async (key: string) => {
+				await redisClient.del(key);
+			},
+		},
 
 		// https://www.better-auth.com/docs/reference/options#user
 		user: {
@@ -123,12 +128,10 @@ export const createAuth = (db: DB, redisClient: RedisClient) => {
 					returned: true,
 					required: false,
 					unique: false,
-					// broken with zod v4
-					// validator: {
-					// 	input: providerSchema,
-					// 	output: providerSchema,
-					// },
-					// sortable: true,
+					validator: {
+						input: providerSchema,
+						output: providerSchema,
+					},
 				},
 				defaultAccountId: {
 					type: "string",
@@ -137,23 +140,17 @@ export const createAuth = (db: DB, redisClient: RedisClient) => {
 					returned: true,
 					required: false,
 					unique: false,
-					// TODO: verify that account exists in database
-					// validator: {
-					// 	input: ,
-					// 	output: textSchema,
-					// },
-					// sortable: true,
 				},
 			},
 			changeEmail: {
 				enabled: true,
 				sendChangeEmailVerification: async ({ user, newEmail, url }) => {
-					const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
-					const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
-					await sendMail({
+					// const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
+					// const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
+					await sendMail(emailContext, {
 						to: user.email,
 						subject: "Approve Nimbus email address change",
-						text: `Someone tried to change your email address to: ${newEmail}.\nClick the link to approve your email address change: ${emailUrl}`,
+						text: `Someone tried to change your email address to: ${newEmail}.\nClick the link to approve your email address change: ${url}`,
 					});
 				},
 			},
@@ -161,12 +158,12 @@ export const createAuth = (db: DB, redisClient: RedisClient) => {
 				enabled: true,
 				// TODO(test): make sure this works, add frontend page to handle delete accoun
 				sendDeleteAccountVerification: async ({ user, url }) => {
-					const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
-					const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
-					await sendMail({
+					// const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
+					// const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
+					await sendMail(emailContext, {
 						to: user.email,
 						subject: "Request to delete your Nimbus account",
-						text: `Click the link to delete your account: ${emailUrl}`,
+						text: `Click the link to delete your account: ${url}`,
 					});
 				},
 			},
