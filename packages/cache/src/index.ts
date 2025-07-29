@@ -1,8 +1,8 @@
 import { RateLimiterRedis as ValkeyRateLimit } from "rate-limiter-flexible";
 import { Ratelimit as UpstashRateLimit } from "@upstash/ratelimit";
 import { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
-import type { CreateEnv } from "@nimbus/env/server";
 import { Redis as ValkeyRedis } from "iovalkey";
+import type { Env } from "@nimbus/env/server";
 
 export { UpstashRateLimit, UpstashRedis, ValkeyRateLimit, ValkeyRedis };
 export type RedisClient = UpstashRedis | ValkeyRedis;
@@ -10,11 +10,11 @@ export type RateLimiter = UpstashRateLimit | ValkeyRateLimit;
 export type RedisClientData = { redisClient: RedisClient; closeRedisClient: () => Promise<void> };
 
 // Overload signatures
-export function createRedisClient(env: CreateEnv): Promise<RedisClientData>;
-export function createRedisClient(env: CreateEnv): Promise<RedisClientData>;
+export function createRedisClient(env: Env): RedisClientData;
+export function createRedisClient(env: Env): RedisClientData;
 
 // Implementation
-export async function createRedisClient(env: CreateEnv): Promise<RedisClientData> {
+export function createRedisClient(env: Env): RedisClientData {
 	if (env.IS_EDGE_RUNTIME) {
 		if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
 			throw new Error(

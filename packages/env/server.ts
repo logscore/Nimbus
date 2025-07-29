@@ -98,4 +98,4 @@ export function createEnv(runtimeEnv: NodeJS.ProcessEnv) {
 	return env;
 }
 
-export type CreateEnv = ReturnType<typeof createEnv>;
+export type Env = ReturnType<typeof createEnv>;

@@ -3,9 +3,9 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import { type Account, betterAuth } from "better-auth";
 import type { Redis as ValkeyRedis } from "iovalkey";
-import type { CreateEnv } from "@nimbus/env/server";
 import type { RedisClient } from "@nimbus/cache";
 import { providerSchema } from "@nimbus/shared";
+import type { Env } from "@nimbus/env/server";
 import { sendMail } from "./utils/send-mail";
 import { type DB } from "@nimbus/db";
 import type { Resend } from "resend";
@@ -14,11 +14,12 @@ import { eq } from "drizzle-orm";
 // TODO(shared): move constants to shared package. use in validation.
 // TODO(rate-limiting): implement for auth
 
-export const createAuth = (env: CreateEnv, db: DB, redisClient: RedisClient, resend: Resend) => {
+export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: Resend) => {
 	const emailContext = {
 		from: env.EMAIL_FROM,
 		resend,
 	};
+
 	return betterAuth({
 		appName: "Nimbus",
 		baseURL: env.BACKEND_URL,
@@ -32,9 +33,7 @@ export const createAuth = (env: CreateEnv, db: DB, redisClient: RedisClient, res
 
 		database: drizzleAdapter(db, {
 			provider: "pg",
-			schema: {
-				...schema,
-			},
+			schema,
 		}),
 
 		emailAndPassword: {

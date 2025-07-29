@@ -1,33 +1,14 @@
-import { createRedisClient, type RedisClient } from "@nimbus/cache";
-import { createAuth, type Auth } from "@nimbus/auth/auth";
 import { DRIVE_PROVIDER_HEADERS } from "@nimbus/shared";
 import { contextStorage } from "hono/context-storage";
-import { createEnv } from "@nimbus/env/server";
-import { createDb, type DB } from "@nimbus/db";
 import { createPublicRouter } from "./hono";
+import { ContextManager } from "./context";
 import { cors } from "hono/cors";
-import { Resend } from "resend";
 import routes from "./routes";
-
-// Global variables that are set at runtime in order to support edge functions
-let db: DB | undefined;
-let redisClient: RedisClient | undefined;
-let auth: Auth | undefined;
-let closeDb: (() => Promise<void>) | undefined;
-let closeRedisClient: (() => Promise<void>) | undefined;
 
 const app = createPublicRouter()
 	.use(contextStorage())
 	.use("*", async (c, next) => {
-		// https://developers.cloudflare.com/workers/runtime-apis/nodejs/process/#relationship-to-per-request-env-argument-in-fetch-handlers
-		if (c.env) {
-			Object.entries(c.env).forEach(([key, value]) => {
-				if (typeof value === "string") {
-					process.env[key] = value;
-				}
-			});
-		}
-		const env = createEnv(process.env);
+		const env = ContextManager.getInstance().env;
 		c.set("env", env);
 		await next();
 	})
@@ -41,32 +22,15 @@ const app = createPublicRouter()
 		})
 	)
 	.use("*", async (c, next) => {
-		const env = c.var.env;
-
-		if (!db || !closeDb) {
-			({ db, closeDb } = createDb(env));
-		}
-		if (!redisClient || !closeRedisClient) {
-			({ redisClient, closeRedisClient } = await createRedisClient(env));
-		}
-
-		const resend = new Resend(env.RESEND_API_KEY);
-		if (!auth) {
-			auth = createAuth(env, db, redisClient, resend);
-		}
-
+		const { env, db, redisClient, auth } = await ContextManager.getInstance().createContext();
 		c.set("db", db);
 		c.set("redisClient", redisClient);
 		c.set("auth", auth);
-
 		try {
 			await next();
 		} finally {
 			if (env.IS_EDGE_RUNTIME) {
-				const promises = [];
-				if (closeDb) promises.push(closeDb().catch(console.error));
-				if (closeRedisClient) promises.push(closeRedisClient().catch(console.error));
-				await Promise.all(promises);
+				await ContextManager.getInstance().close();
 			}
 		}
 	})
@@ -84,9 +48,8 @@ const handler = {
 
 // For non-edge environments, we'll use the original app with the port
 if (process.env.IS_EDGE_RUNTIME !== "true") {
-	const env = createEnv(process.env);
 	Object.assign(handler, {
-		port: env.SERVER_PORT,
+		port: process.env.SERVER_PORT,
 		...app,
 	});
 }

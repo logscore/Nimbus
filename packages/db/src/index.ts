@@ -1,11 +1,11 @@
 import { drizzle as drizzleNodePostgres } from "drizzle-orm/node-postgres";
 import { drizzle as drizzleProstgresJS } from "drizzle-orm/postgres-js";
-import type { CreateEnv } from "@nimbus/env/server";
+import type { Env } from "@nimbus/env/server";
 import schema from "@nimbus/db/schema";
 import postgres from "postgres";
 import { Pool } from "pg";
 
-export const createDb = (env: CreateEnv) => {
+export const createDb = (env: Env) => {
 	if (env.IS_EDGE_RUNTIME) {
 		const client = postgres(env.DATABASE_URL, { prepare: false });
 		const db = drizzleProstgresJS(client, { schema });

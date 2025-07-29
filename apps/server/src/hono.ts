@@ -1,13 +1,13 @@
 import type { Provider } from "./providers/interface/provider";
 import type { Auth, SessionUser } from "@nimbus/auth/auth";
-import type { CreateEnv } from "@nimbus/env/server";
 import { getContext } from "hono/context-storage";
 import type { RedisClient } from "@nimbus/cache";
-import { Hono, type Env } from "hono";
+import { Hono, type Env as HonoEnv } from "hono";
+import type { Env } from "@nimbus/env/server";
 import type { DB } from "@nimbus/db";
 
 export interface BaseRouterVars {
-	env: CreateEnv;
+	env: Env;
 }
 
 export interface PublicRouterVars extends BaseRouterVars {
@@ -36,7 +36,7 @@ export interface DriveProviderRouterEnv {
 	Variables: DriveProviderRouterVars;
 }
 
-function createHono<T extends Env>() {
+function createHono<T extends HonoEnv>() {
 	return new Hono<T>();
 }
 
