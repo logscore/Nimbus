@@ -62,7 +62,12 @@ const app = createPublicRouter()
 		try {
 			await next();
 		} finally {
-			await Promise.all([closeDb().catch(console.error), closeRedisClient().catch(console.error)]);
+			if (env.IS_EDGE_RUNTIME) {
+				const promises = [];
+				if (closeDb) promises.push(closeDb().catch(console.error));
+				if (closeRedisClient) promises.push(closeRedisClient().catch(console.error));
+				await Promise.all(promises);
+			}
 		}
 	})
 	.get("/kamehame", c => c.text("HAAAAAAAAAAAAAA"))
