@@ -52,10 +52,13 @@ else
   exit 1
 fi
 
-# 8. Create the branch from the commit
+# 8. Push to origin
+git push
+
+# 9. Create the branch from the commit
 git switch -c "$branch" "$commit_sha"
 
-# 9. Push to origin
+# 10. Push to origin
 git push origin "$branch" --follow-tags
 
 echo ""

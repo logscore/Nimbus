@@ -4,14 +4,19 @@ on:
     types: [ready_for_review]
 
 jobs:
-  deploy:
+  pr-merge-check:
     runs-on: ubuntu-latest
     if: github.event.pull_request.mergeable_state == 'clean' && github.event.pull_request.draft == false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all branches
+        run: git fetch --all
 
       - name: Wait for base PR checks to succeed
-        uses: fountainhead/action-wait-for-check@v1.2.0
+        uses: fountainhead/action-wait-for-check@master
         id: wait-for-base-pr-checks
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -34,7 +39,7 @@ jobs:
           echo "$DEPLOYMENT_NAME" > deployment_name.txt
 
       - name: Upload deployment info
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@master
         with:
           name: deployment-info
           path: deployment_name.txt

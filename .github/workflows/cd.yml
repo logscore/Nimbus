@@ -2,8 +2,11 @@ name: Deploy Server, Migrate Database, and Deploy Web
 run-name: Deploying to ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }} Environment by ${{ github.actor }}
 
 on:
+  pull_request:
+    branches: [main]
+    types: [auto_merge_enabled]
   workflow_run:
-    workflows: ["pr-merge-check"]
+    workflows: ["Ready to Merge"]
     types: [completed]
     branches: [main, staging]
   workflow_dispatch:
@@ -14,9 +17,15 @@ on:
         default: "preview"
         type: choice
         options: ["production", "staging", "preview"]
+      pr_main:
+        description: "Create Pull Request to Main"
+        required: false
+        default: false
+        type: boolean
 
 env:
   WORKFLOW_DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   deploy:
@@ -29,7 +38,7 @@ jobs:
       name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@master
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -46,21 +55,20 @@ jobs:
 
       - name: Download deployment info
         if: ${{ github.event_name == 'workflow_run' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@master
         with:
           name: deployment-info
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Set deployment variables from workflow run
-        if: ${{ github.event_name == 'workflow_run' }}
+      - name: Set deployment variables
         run: |
-          DEPLOYMENT_NAME=$(cat deployment_name.txt)
-          echo "DEPLOY_COMMAND=deploy --env $WORKFLOW_DEPLOY_ENV --name $DEPLOYMENT_NAME" >> $GITHUB_ENV
-
-      - name: Set deployment variables from other events
-        if: ${{ github.event_name != 'workflow_run' }}
-        run: echo "DEPLOY_COMMAND=deploy --env ${{ env.WORKFLOW_DEPLOY_ENV }}" >> $GITHUB_ENV
+          if [ -f "deployment_name.txt" ]; then
+            DEPLOYMENT_NAME=$(cat deployment_name.txt)
+            echo "DEPLOY_COMMAND=deploy --env $WORKFLOW_DEPLOY_ENV --name $DEPLOYMENT_NAME" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_COMMAND=deploy --env $WORKFLOW_DEPLOY_ENV" >> $GITHUB_ENV
+          fi
 
       - name: Deploy Server Worker
         id: deploy-server-worker
@@ -140,16 +148,48 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
           NEXT_PUBLIC_FRONTEND_URL: ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}
-        run: cd apps/web && bun run cf:build && bun run cf:deploy:${{ env.WORKFLOW_DEPLOY_ENV }}
+        run: |
+          cd apps/web
+          bun run cf:build
+          bun run cf:deploy:${{ env.WORKFLOW_DEPLOY_ENV }} | tee web-build.log
+          tail_output=$(tail -n 4 web-build.log)
+          echo "$tail_output"
+          echo "tail_output<<EOF" >> $GITHUB_OUTPUT
+          echo "$tail_output" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Print Web deployment URL
+      - name: Print Web deployment output
         env:
-          WEB_DEPLOYMENT_URL: ${{ steps.deploy-web-worker.outputs.deployment-url }}
-        run: echo $WEB_DEPLOYMENT_URL
+          WEB_DEPLOYMENT_OUTPUT: ${{ steps.deploy-web-worker.outputs.tail_output }}
+        run: echo $WEB_DEPLOYMENT_OUTPUT
+
+      - name: Setup Git
+        if: ${{ github.ref_name == 'staging' }}
+        run: |
+          git config --global user.name "${{ github.actor || 'GitHub Actions' }}"
+          git config --global user.email "${{ github.actor || 'github-actions' }}@users.noreply.github.com"
 
       - name: Create Release
-        if: ${{ github.ref_name == 'main' && env.WORKFLOW_DEPLOY_ENV == 'production' }}
+        if: ${{ github.ref_name == 'staging' }}
         id: create-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./scripts/release.sh
+
+      - name: Create Pull Request to Main
+        if: ${{ github.ref_name == 'staging' }}
+        id: create-pr-to-main
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          title: "Release: ${{ github.sha }}"
+          body: >-
+            Automated release PR from staging branch
+
+            - Deployment URL:
+              ${{ steps.deploy-server-worker.outputs.deployment-url }}
+
+            - Web Deployment Output:
+              ${{ steps.deploy-web-worker.outputs.tail_output }}
+
+            This PR is created automatically after successful staging deployment.
+          labels: release, automated

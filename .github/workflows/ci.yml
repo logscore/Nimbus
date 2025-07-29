@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@master
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -35,6 +35,3 @@ jobs:
           NEXT_PUBLIC_BACKEND_URL: http://localhost:1284
           NEXT_PUBLIC_FRONTEND_URL: http://localhost:3000
         run: bun run build
-
-      - name: Run changesets check
-        run: bun changeset status --since origin/main

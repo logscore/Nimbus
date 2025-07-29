@@ -69,7 +69,7 @@ export class ContextManager {
 		}
 	}
 
-	public async createContext(c?: Context): Promise<PublicRouterVars> {
+	public async createContext(): Promise<PublicRouterVars> {
 		const env = this.env;
 
 		const [db, redisClient] = await Promise.all([this.initializeDatabase(env), this.initializeRedis(env)]);

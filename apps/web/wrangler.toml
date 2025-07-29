@@ -19,7 +19,4 @@ host = "localhost"
 routes = [{ pattern = "staging.nimbus.storage", custom_domain = true }]
 
 [env.production]
-routes = [
-    { pattern = "nimbus.storage", custom_domain = true },
-    { pattern = "www.nimbus.storage", custom_domain = true },
-]
+routes = [{ pattern = "nimbus.storage", custom_domain = true }]

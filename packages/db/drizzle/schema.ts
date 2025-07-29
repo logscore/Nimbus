@@ -1,7 +1,4 @@
-import { pgTable, foreignKey, text, timestamp, unique, integer, boolean, index } from "drizzle-orm/pg-core"
-import { sql } from "drizzle-orm"
-
-
+import { boolean, foreignKey, index, integer, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const tag = pgTable("tag", {
 	id: text().primaryKey().notNull(),
