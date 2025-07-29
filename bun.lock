@@ -24,7 +24,7 @@
     },
     "apps/server": {
       "name": "@nimbus/server",
-      "version": "0.0.3",
+      "version": "0.0.1",
       "dependencies": {
         "@googleapis/drive": "^14.2.0",
         "@hono/zod-validator": "^0.7.2",
@@ -50,7 +50,7 @@
     },
     "apps/web": {
       "name": "@nimbus/web",
-      "version": "0.0.5",
+      "version": "0.0.1",
       "dependencies": {
         "@hookform/resolvers": "^5.2.0",
         "@nimbus/auth": "workspace:*",
@@ -109,7 +109,7 @@
     },
     "packages/auth": {
       "name": "@nimbus/auth",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "dependencies": {
         "@nimbus/cache": "workspace:*",
         "@nimbus/db": "workspace:*",
@@ -141,7 +141,7 @@
     },
     "packages/db": {
       "name": "@nimbus/db",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "dependencies": {
         "@nimbus/env": "workspace:*",
         "drizzle-orm": "^0.44.4",
@@ -155,7 +155,7 @@
     },
     "packages/env": {
       "name": "@nimbus/env",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "dependencies": {
         "@t3-oss/env-core": "^0.13.8",
         "zod": "^4.0.13",
@@ -166,7 +166,7 @@
     },
     "packages/eslint": {
       "name": "@nimbus/eslint",
-      "version": "0.0.4",
+      "version": "0.0.1",
       "dependencies": {
         "@eslint/js": "^9.32.0",
         "eslint-plugin-oxlint": "^1.9.0",
@@ -178,7 +178,7 @@
     },
     "packages/shared": {
       "name": "@nimbus/shared",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "dependencies": {
         "@nimbus/db": "workspace:*",
         "zod": "^4.0.13",
@@ -189,7 +189,7 @@
     },
     "packages/tsconfig": {
       "name": "@nimbus/tsconfig",
-      "version": "0.0.0",
+      "version": "0.0.1",
     },
   },
   "packages": {
