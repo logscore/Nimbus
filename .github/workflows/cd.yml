@@ -94,6 +94,7 @@ jobs:
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
           IS_EDGE_RUNTIME: ${{ secrets.IS_EDGE_RUNTIME }}
 
         uses: cloudflare/wrangler-action@v3
@@ -129,6 +130,7 @@ jobs:
             UPSTASH_REDIS_REST_TOKEN
             EMAIL_FROM
             RESEND_API_KEY
+            NODE_ENV
             IS_EDGE_RUNTIME
 
       - name: Print Server deployment URL
@@ -146,6 +148,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
           NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
           NEXT_PUBLIC_FRONTEND_URL: ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}
         run: |
