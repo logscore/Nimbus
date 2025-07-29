@@ -25,9 +25,6 @@
 		"@nimbus/tsconfig": "workspace:*",
 		"drizzle-kit": "^0.31.4"
 	},
-	"peerDependencies": {
-		"typescript": "^5.8.3"
-	},
 	"dependencies": {
 		"@nimbus/env": "workspace:*",
 		"drizzle-orm": "^0.44.4",

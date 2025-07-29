@@ -1,0 +1,40 @@
+name: Ready to Merge
+on:
+  pull_request:
+    types: [ready_for_review]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.mergeable_state == 'clean' && github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for base PR checks to succeed
+        uses: fountainhead/action-wait-for-check@v1.2.0
+        id: wait-for-base-pr-checks
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # IMPORTANT: If the check you're referencing is provided by another GitHub Actions workflow,
+          # make sure that you reference the name of a Job within that workflow, and not the name the Workflow itself.
+          checkName: ci
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Fail if base PR checks did not succeed
+        if: steps.wait-for-base-pr-checks.outputs.conclusion != 'success'
+        run: exit 1
+
+      - name: Check for Changesets
+        run: bun changeset status --since origin/main
+
+      - name: Set up environment variables
+        id: set-env
+        run: |
+          DEPLOYMENT_NAME="pr-${{ github.event.pull_request.number }}"
+          echo "$DEPLOYMENT_NAME" > deployment_name.txt
+
+      - name: Upload deployment info
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-info
+          path: deployment_name.txt

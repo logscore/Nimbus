@@ -1,4 +1,5 @@
-name: Format, Lint, and Build
+name: CI
+run-name: "Branch: ${{ github.ref_name }}. Event: ${{ github.event_name }}. By: ${{ github.actor }}."
 
 on:
   push:
@@ -7,7 +8,7 @@ on:
     branches: [main, staging]
 
 jobs:
-  format-lint-build:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,3 +35,6 @@ jobs:
           NEXT_PUBLIC_BACKEND_URL: http://localhost:1284
           NEXT_PUBLIC_FRONTEND_URL: http://localhost:3000
         run: bun run build
+
+      - name: Run changesets check
+        run: bun changeset status --since origin/main

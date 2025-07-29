@@ -1,17 +1,11 @@
 name: Deploy Server, Migrate Database, and Deploy Web
-run-name:
-  Deploying to ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name ==
-  'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }} Environment by ${{ github.actor }}
+run-name: Deploying to ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }} Environment by ${{ github.actor }}
 
 on:
-  create:
-  pull_request:
+  workflow_run:
+    workflows: ["pr-merge-check"]
+    types: [completed]
     branches: [main, staging]
-  # workflow_run:
-  #   workflows: ["format-lint-build"]
-  #   branches: [main, staging]
-  #   types:
-  #     - completed
   workflow_dispatch:
     inputs:
       environment:
@@ -22,21 +16,17 @@ on:
         options: ["production", "staging", "preview"]
 
 env:
-  WORKFLOW_DEPLOY_ENV:
-    ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' &&
-    'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
+  WORKFLOW_DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
 
 jobs:
   deploy:
+    if: ${{ (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && !startsWith(github.ref_name, 'release/') }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     # Determine environment based on branch or input
     environment:
-      name:
-        ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' &&
-        'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
+      name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -54,20 +44,25 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: cd packages/db && bun run check
 
-      - name: Set up environment variables
-        id: set-env
-        run: |
-          # For PRs, use the PR number to create a unique deployment name
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            DEPLOYMENT_NAME="pr-${{ github.event.pull_request.number }}"
-            echo "DEPLOY_COMMAND=deploy --env $WORKFLOW_DEPLOY_ENV --name $DEPLOYMENT_NAME" >> $GITHUB_ENV
-          else
-            echo "DEPLOY_COMMAND=deploy --env $WORKFLOW_DEPLOY_ENV" >> $GITHUB_ENV
-          fi
+      - name: Download deployment info
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
 
-      - name:
-          Deploy Server Worker to ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment ||
-          github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
+      - name: Set deployment variables from workflow run
+        if: ${{ github.event_name == 'workflow_run' }}
+        run: |
+          DEPLOYMENT_NAME=$(cat deployment_name.txt)
+          echo "DEPLOY_COMMAND=deploy --env $WORKFLOW_DEPLOY_ENV --name $DEPLOYMENT_NAME" >> $GITHUB_ENV
+
+      - name: Set deployment variables from other events
+        if: ${{ github.event_name != 'workflow_run' }}
+        run: echo "DEPLOY_COMMAND=deploy --env ${{ env.WORKFLOW_DEPLOY_ENV }}" >> $GITHUB_ENV
+
+      - name: Deploy Server Worker
         id: deploy-server-worker
 
         env:
@@ -128,10 +123,10 @@ jobs:
             RESEND_API_KEY
             IS_EDGE_RUNTIME
 
-      - name: print deployment-url
+      - name: Print Server deployment URL
         env:
-          DEPLOYMENT_URL: ${{ steps.deploy-server-worker.outputs.deployment-url }}
-        run: echo $DEPLOYMENT_URL
+          SERVER_DEPLOYMENT_URL: ${{ steps.deploy-server-worker.outputs.deployment-url }}
+        run: echo $SERVER_DEPLOYMENT_URL
 
       - name: Run migrations
         env:
@@ -139,9 +134,22 @@ jobs:
         run: cd packages/db && bun run migrate
 
       - name: Deploy Web Worker
+        id: deploy-web-worker
         env:
-          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
-          NEXT_PUBLIC_FRONTEND_URL: ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+          NEXT_PUBLIC_FRONTEND_URL: ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}
         run: cd apps/web && bun run cf:build && bun run cf:deploy:${{ env.WORKFLOW_DEPLOY_ENV }}
+
+      - name: Print Web deployment URL
+        env:
+          WEB_DEPLOYMENT_URL: ${{ steps.deploy-web-worker.outputs.deployment-url }}
+        run: echo $WEB_DEPLOYMENT_URL
+
+      - name: Create Release
+        if: ${{ github.ref_name == 'main' && env.WORKFLOW_DEPLOY_ENV == 'production' }}
+        id: create-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/release.sh

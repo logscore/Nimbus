@@ -1,6 +1,6 @@
 {
 	"name": "@nimbus/server",
-	"version": "0.0.3",
+	"version": "0.0.0",
 	"type": "module",
 	"private": true,
 	"exports": {
@@ -44,7 +44,6 @@
 	"devDependencies": {
 		"@microsoft/microsoft-graph-types": "^2.40.0",
 		"@nimbus/tsconfig": "workspace:*",
-		"@types/pg": "^8.15.5",
-		"typescript": "^5.8.3"
+		"@types/pg": "^8.15.5"
 	}
 }

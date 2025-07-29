@@ -1,16 +1,14 @@
 {
 	"name": "@nimbus/env",
-	"private": true,
+	"version": "0.0.0",
 	"type": "module",
+	"private": true,
 	"exports": {
 		"./client": "./client.ts",
 		"./server": "./server.ts"
 	},
 	"devDependencies": {
 		"@types/bun": "^1.2.19"
-	},
-	"peerDependencies": {
-		"typescript": "^5.8.3"
 	},
 	"dependencies": {
 		"@t3-oss/env-core": "^0.13.8",

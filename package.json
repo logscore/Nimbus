@@ -1,7 +1,8 @@
 {
 	"name": "nimbus",
-	"version": "0.1.0",
+	"version": "0.0.0",
 	"devDependencies": {
+		"@changesets/cli": "^2.29.5",
 		"@cloudflare/workers-types": "^4.20250726.0",
 		"@nimbus/eslint": "workspace:*",
 		"@nimbus/tsconfig": "workspace:*",
@@ -20,8 +21,9 @@
 	},
 	"private": true,
 	"scripts": {
-		"clean-install": "rm -rf node_modules && bun install --frozen-lockfile",
+		"clean-install": "bun install --force",
 		"knip": "knip-bun --config knip.config.ts",
+		"ch": "changeset",
 		"dev:web": "bun --elide-lines 0 --filter @nimbus/web --env-file .env dev",
 		"dev:server": "bun --elide-lines 0 --filter @nimbus/server --env-file .env dev",
 		"dev": "concurrently --names \"WEB,SERVER\" --prefix-colors \"cyan,magenta\" --prefix \"[{name}]\" --kill-others-on-fail \"bun --env-file .env dev:web\" \"bun --env-file .env dev:server\"",

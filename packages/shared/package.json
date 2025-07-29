@@ -1,8 +1,8 @@
 {
 	"name": "@nimbus/shared",
 	"version": "0.0.0",
-	"private": true,
 	"type": "module",
+	"private": true,
 	"exports": {
 		".": "./src/index.ts"
 	},
@@ -11,7 +11,6 @@
 		"@nimbus/db": "workspace:*"
 	},
 	"devDependencies": {
-		"@nimbus/tsconfig": "workspace:*",
-		"typescript": "^5.8.3"
+		"@nimbus/tsconfig": "workspace:*"
 	}
 }
