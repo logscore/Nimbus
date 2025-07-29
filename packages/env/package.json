@@ -14,7 +14,6 @@
 	},
 	"dependencies": {
 		"@t3-oss/env-core": "^0.13.8",
-		"cloudflare": "^4.5.0",
-		"zod": "^4.0.9"
+		"zod": "^4.0.13"
 	}
 }

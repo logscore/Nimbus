@@ -17,10 +17,9 @@
 	},
 	"dependencies": {
 		"@upstash/ratelimit": "^2.0.6",
-		"@upstash/redis": "^1.35.1",
+		"@upstash/redis": "^1.35.2",
 		"iovalkey": "^0.3.3",
-		"rate-limiter-flexible": "^7.1.1",
-		"@nimbus/auth": "workspace:*",
+		"rate-limiter-flexible": "^7.2.0",
 		"@nimbus/env": "workspace:*"
 	},
 	"devDependencies": {

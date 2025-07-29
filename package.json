@@ -11,12 +11,12 @@
 		"husky": "^9.1.7",
 		"knip": "^5.62.0",
 		"lint-staged": "^16.1.2",
-		"oxlint": "^1.8.0",
+		"oxlint": "^1.9.0",
 		"prettier": "^3.6.2",
 		"prettier-plugin-sort-imports": "^1.8.8",
 		"prettier-plugin-tailwindcss": "^0.6.14",
 		"typescript": "^5.8.3",
-		"wrangler": "^4.26.0"
+		"wrangler": "^4.26.1"
 	},
 	"private": true,
 	"scripts": {

@@ -29,6 +29,7 @@ const config: KnipConfig = {
 				"eslint",
 				"eslint-config-next",
 				"@t3-oss/env-core",
+				"@radix-ui/*",
 			],
 		},
 

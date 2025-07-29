@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1747972049140,
-      "tag": "0000_small_maggott",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1748697523148,
-      "tag": "0001_jazzy_mother_askani",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1748978891119,
-      "tag": "0002_fast_the_enforcers",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1750516326761,
-      "tag": "0003_legal_betty_ross",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1751621484380,
-      "tag": "0004_same_firebrand",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1751657397467,
-      "tag": "0005_broad_mole_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1751658213411,
-      "tag": "0006_luxuriant_texas_twister",
+      "when": 1753788715709,
+      "tag": "0000_premium_loki",
       "breakpoints": true
     }
   ]

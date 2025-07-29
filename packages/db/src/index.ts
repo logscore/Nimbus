@@ -5,10 +5,23 @@ import schema from "@nimbus/db/schema";
 import postgres from "postgres";
 import { Pool } from "pg";
 
-export const createDb = (env: Env) => {
+type DrizzlePostgresInstance<S extends Record<string, unknown>> =
+	| ReturnType<typeof drizzleNodePostgres<S>>
+	| ReturnType<typeof drizzleProstgresJS<S>>;
+
+export type DB = DrizzlePostgresInstance<typeof schema>;
+
+interface DatabaseClientData {
+	db: DB;
+	closeDb: () => Promise<void>;
+}
+
+export function createDb(env: Env): DatabaseClientData {
 	if (env.IS_EDGE_RUNTIME) {
+		// Edge runtime connection
 		const client = postgres(env.DATABASE_URL, { prepare: false });
 		const db = drizzleProstgresJS(client, { schema });
+
 		return {
 			db,
 			closeDb: async () => {
@@ -24,11 +37,8 @@ export const createDb = (env: Env) => {
 		return {
 			db,
 			closeDb: async () => {
-				// If it is not edge, we do not want to close the connection pool
-				// await pool.end();
+				await pool.end();
 			},
 		};
 	}
-};
-
-export type DB = ReturnType<typeof createDb>["db"];
+}

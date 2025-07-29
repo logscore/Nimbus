@@ -44,35 +44,37 @@ export class ContextManager {
 		return this._env;
 	}
 
-	private async initializeDatabase(env: Env): Promise<void> {
+	private async initializeDatabase(env: Env): Promise<DB> {
 		if (!this.db || !this.closeDb) {
 			const { db, closeDb } = createDb(env);
 			this.db = db;
 			this.closeDb = closeDb;
 		}
+		return this.db;
 	}
 
-	private initializeRedis(env: Env): void {
+	private async initializeRedis(env: Env): Promise<RedisClient> {
 		if (!this.redisClient || !this.closeRedisClient) {
 			const { redisClient, closeRedisClient } = createRedisClient(env);
 			this.redisClient = redisClient;
 			this.closeRedisClient = closeRedisClient;
 		}
+		return this.redisClient;
 	}
 
-	private initializeAuth(env: Env): void {
-		if (!this.auth && this.db && this.redisClient) {
+	private initializeAuth(env: Env, db: DB, redisClient: RedisClient): void {
+		if (!this.auth) {
 			this.resend = new Resend(env.RESEND_API_KEY);
-			this.auth = createAuth(env, this.db, this.redisClient, this.resend);
+			this.auth = createAuth(env, db, redisClient, this.resend);
 		}
 	}
 
 	public async createContext(c?: Context): Promise<PublicRouterVars> {
 		const env = this.env;
 
-		await Promise.all([this.initializeDatabase(env), this.initializeRedis(env)]);
+		const [db, redisClient] = await Promise.all([this.initializeDatabase(env), this.initializeRedis(env)]);
 
-		this.initializeAuth(env);
+		this.initializeAuth(env, db, redisClient);
 
 		if (!this.db || !this.redisClient || !this.auth) {
 			throw new Error("Failed to initialize application context");
@@ -80,8 +82,8 @@ export class ContextManager {
 
 		return {
 			env,
-			db: this.db,
-			redisClient: this.redisClient,
+			db,
+			redisClient,
 			auth: this.auth,
 		};
 	}
