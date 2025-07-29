@@ -62,7 +62,6 @@ const app = createPublicRouter()
 		try {
 			await next();
 		} catch (error) {
-			console.error(error);
 			await Promise.all([closeDb().catch(console.error), closeRedisClient().catch(console.error)]);
 		}
 	})
