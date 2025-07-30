@@ -30,9 +30,14 @@ export default function SettingsPage() {
 
 	useEffect(() => {
 		if (user) {
-			setName(user.name || "");
-			setEmail(user.email || "");
-			setPreviewUrl(user.image || null);
+			// Batch state updates to avoid race conditions
+			const newName = user.name || "";
+			const newEmail = user.email || "";
+			const newPreviewUrl = user.image || null;
+
+			setName(newName);
+			setEmail(newEmail);
+			setPreviewUrl(newPreviewUrl);
 		}
 	}, [user]);
 

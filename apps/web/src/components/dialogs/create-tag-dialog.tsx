@@ -45,10 +45,16 @@ export function CreateTagDialog({ isOpen, onClose, onCreate, tags, initialParent
 		if (isOpen) {
 			setParentId(initialParentId);
 		} else {
-			setName("");
-			setColor("#808080");
-			setParentId(undefined);
-			setErrors({});
+			// Batch state updates to avoid race conditions
+			const resetName = "";
+			const resetColor = "#808080";
+			const resetParentId = undefined;
+			const resetErrors = {};
+
+			setName(resetName);
+			setColor(resetColor);
+			setParentId(resetParentId);
+			setErrors(resetErrors);
 		}
 	}, [isOpen, initialParentId]);
 

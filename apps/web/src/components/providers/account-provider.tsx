@@ -98,12 +98,14 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 		const newAccountId = accountIdParam;
 
 		// Only update state if values have actually changed
-		if (newProviderId !== providerId || newAccountId !== accountId) {
+		if (newProviderId !== providerId || newAccountId !== accountId || providerSlugParam !== providerSlug) {
+			// React 18+ automatically batches these state updates to avoid race conditions
+			// But we ensure they happen in the correct order
 			setProviderId(newProviderId);
 			setProviderSlug(providerSlugParam);
 			setAccountId(newAccountId);
 		}
-	}, [providerSlugParam, accountIdParam, providerId, accountId]);
+	}, [providerSlugParam, accountIdParam, providerId, accountId, providerSlug]);
 
 	const value = useMemo(
 		() => ({

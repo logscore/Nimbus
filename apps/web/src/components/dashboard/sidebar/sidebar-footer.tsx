@@ -26,12 +26,17 @@ export default function StorageFooter() {
 
 	useEffect(() => {
 		if (data) {
-			setUsedSpace(data.usedSpace);
-			setTotalSpace(data.totalSpace);
-			const percent = Number(totalSpace) > 0 ? Math.floor((Number(usedSpace) / Number(totalSpace)) * 100) : 0;
+			// Calculate percentage using the new data values to avoid race conditions
+			const newUsedSpace = data.usedSpace;
+			const newTotalSpace = data.totalSpace;
+			const percent = Number(newTotalSpace) > 0 ? Math.floor((Number(newUsedSpace) / Number(newTotalSpace)) * 100) : 0;
+
+			// Batch state updates to avoid race conditions
+			setUsedSpace(newUsedSpace);
+			setTotalSpace(newTotalSpace);
 			setUsagePercent(percent);
 		}
-	}, [data, totalSpace, usedSpace]);
+	}, [data]);
 
 	return (
 		<SidebarFooter className="flex flex-col items-start gap-2 self-stretch p-2 pb-0 transition-all duration-300 ease-linear dark:bg-neutral-800">

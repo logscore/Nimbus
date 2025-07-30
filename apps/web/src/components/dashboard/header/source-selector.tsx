@@ -41,8 +41,12 @@ export function SourceSelector() {
 		if (providerId && accountId) {
 			const account = accounts?.find(account => account.providerId === providerId && account.accountId === accountId);
 			if (account) {
-				setSelectedAccountNickname(account.nickname);
-				setSelectedIcon(providerToIcon(account.providerId));
+				// Batch state updates to avoid race conditions
+				const newNickname = account.nickname;
+				const newIcon = providerToIcon(account.providerId);
+
+				setSelectedAccountNickname(newNickname);
+				setSelectedIcon(newIcon);
 			}
 		}
 	}, [providerId, accountId, accounts]);

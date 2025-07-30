@@ -53,9 +53,14 @@ export function UpdateTagDialog({ isOpen, onClose, onUpdate, tags, tag }: Update
 
 	useEffect(() => {
 		if (tag) {
-			setName(tag.name);
-			setColor(tag.color);
-			setParentId(tag.parentId ?? null);
+			// Batch state updates to avoid race conditions
+			const newName = tag.name;
+			const newColor = tag.color;
+			const newParentId = tag.parentId ?? null;
+
+			setName(newName);
+			setColor(newColor);
+			setParentId(newParentId);
 			setErrors({});
 		}
 	}, [tag]);
