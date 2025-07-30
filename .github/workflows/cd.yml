@@ -11,17 +11,32 @@ on:
     branches: [main, staging]
   workflow_dispatch:
     inputs:
+      deploy_server:
+        description: "Whether to deploy the server"
+        required: false
+        default: true
+        type: boolean
+      deploy_web:
+        description: "Whether to deploy the web application"
+        required: false
+        default: true
+        type: boolean
+      migrate_database:
+        description: "Whether to run database migrations"
+        required: false
+        default: true
+        type: boolean
+      pr_main:
+        description: "Create Pull Request to Main"
+        required: false
+        default: false
+        type: boolean
       environment:
         description: "Environment to deploy to"
         required: true
         default: "preview"
         type: choice
         options: ["production", "staging", "preview"]
-      pr_main:
-        description: "Create Pull Request to Main"
-        required: false
-        default: false
-        type: boolean
 
 env:
   WORKFLOW_DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'preview' }}
@@ -49,6 +64,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Check migrations
+        if: ${{ github.event.inputs.migrate_database != 'false' }}
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: cd packages/db && bun run check
@@ -71,6 +87,7 @@ jobs:
           fi
 
       - name: Deploy Server Worker
+        if: ${{ github.event.inputs.deploy_server != 'false' }}
         id: deploy-server-worker
 
         env:
@@ -139,11 +156,13 @@ jobs:
         run: echo $SERVER_DEPLOYMENT_URL
 
       - name: Run migrations
+        if: ${{ github.event.inputs.migrate_database != 'false' }}
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: cd packages/db && bun run migrate
 
       - name: Deploy Web Worker
+        if: ${{ github.event.inputs.deploy_web != 'false' }}
         id: deploy-web-worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
