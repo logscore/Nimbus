@@ -1,5 +1,12 @@
 # @nimbus/cache
 
+## 0.0.2
+
+### Patch Changes
+
+- Updated dependencies [03bb85d]
+  - @nimbus/env@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes

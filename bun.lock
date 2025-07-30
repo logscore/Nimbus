@@ -24,7 +24,7 @@
     },
     "apps/server": {
       "name": "@nimbus/server",
-      "version": "0.0.2",
+      "version": "0.0.3",
       "dependencies": {
         "@googleapis/drive": "^14.2.0",
         "@hono/zod-validator": "^0.7.2",
@@ -50,7 +50,7 @@
     },
     "apps/web": {
       "name": "@nimbus/web",
-      "version": "0.0.3",
+      "version": "0.0.4",
       "dependencies": {
         "@hookform/resolvers": "^5.2.1",
         "@nimbus/auth": "workspace:*",
@@ -109,7 +109,7 @@
     },
     "packages/auth": {
       "name": "@nimbus/auth",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "dependencies": {
         "@nimbus/cache": "workspace:*",
         "@nimbus/db": "workspace:*",
@@ -126,7 +126,7 @@
     },
     "packages/cache": {
       "name": "@nimbus/cache",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "dependencies": {
         "@nimbus/env": "workspace:*",
         "@upstash/ratelimit": "^2.0.6",
@@ -141,7 +141,7 @@
     },
     "packages/db": {
       "name": "@nimbus/db",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "dependencies": {
         "@nimbus/env": "workspace:*",
         "drizzle-orm": "^0.44.4",
@@ -155,7 +155,7 @@
     },
     "packages/env": {
       "name": "@nimbus/env",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "dependencies": {
         "@t3-oss/env-core": "^0.13.8",
         "zod": "^4.0.13",
@@ -178,7 +178,7 @@
     },
     "packages/shared": {
       "name": "@nimbus/shared",
-      "version": "0.0.2",
+      "version": "0.0.3",
       "dependencies": {
         "@nimbus/db": "workspace:*",
         "zod": "^4.0.13",
