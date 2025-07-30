@@ -127,10 +127,10 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 					returned: true,
 					required: false,
 					unique: false,
-					validator: {
-						input: providerSchema,
-						output: providerSchema,
-					},
+					// validator: {
+					// 	input: providerSchema,
+					// 	output: providerSchema,
+					// },
 				},
 				defaultAccountId: {
 					type: "string",
