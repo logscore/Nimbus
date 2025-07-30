@@ -1,7 +1,7 @@
+import { type Account, type AuthContext, betterAuth } from "better-auth";
 import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
-import { type Account, betterAuth } from "better-auth";
 import type { Redis as ValkeyRedis } from "iovalkey";
 import type { RedisClient } from "@nimbus/cache";
 import { providerSchema } from "@nimbus/shared";
@@ -24,7 +24,13 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 		appName: "Nimbus",
 		baseURL: env.BACKEND_URL,
 		trustedOrigins: [...env.TRUSTED_ORIGINS, env.BACKEND_URL],
-		// onApiError: { errorUrl: env.FRONTEND_URL },
+		onApiError: {
+			// errorUrl: env.FRONTEND_URL,
+			// throwError: true,
+			onError: (error: unknown, ctx: AuthContext) => {
+				console.error("API error", error, ctx);
+			},
+		},
 
 		// Ensure state is properly handled
 		state: {
@@ -100,7 +106,14 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 
 		secondaryStorage: {
 			get: async (key: string) => {
-				return await redisClient.get(key);
+				if (env.IS_EDGE_RUNTIME) {
+					const value = await (redisClient as UpstashRedis).get(key);
+					const string = JSON.stringify(value);
+					return string as string | null;
+				} else {
+					const value = await (redisClient as ValkeyRedis).get(key);
+					return value as string | null;
+				}
 			},
 			set: async (key: string, value: string, ttl?: number) => {
 				if (ttl) {

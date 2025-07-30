@@ -5,7 +5,9 @@ compatibility_flags = ["nodejs_compat"]
 observability = { enabled = true }
 
 [dev]
-port = 1284
+# wrangler dev must be run on port 80 and with sudo because wrangler sets
+# Access-Control-Allow-Origin to http://localhost:1284:1284:3000
+port = 80
 host = "localhost"
 local_protocol = "http"
 

@@ -29,7 +29,9 @@ const app = createPublicRouter()
 		try {
 			await next();
 		} finally {
-			if (env.IS_EDGE_RUNTIME) {
+			// WARNING: make sure to add WRANGLER_DEV to .dev.vars for wrangler dev
+			// for local dev, always keep context open UNLESS wrangler dev, close context
+			if (env.IS_EDGE_RUNTIME && (env.NODE_ENV === "production" || process.env.WRANGLER_DEV === "true")) {
 				await ContextManager.getInstance().close();
 			}
 		}
@@ -41,17 +43,10 @@ export type AppType = typeof app;
 
 // Create a wrapper that handles the environment initialization
 const handler = {
+	port: process.env.SERVER_PORT,
 	async fetch(request: Request, env: any, ctx: any) {
 		return app.fetch(request, env, ctx);
 	},
 };
-
-// For non-edge environments, we'll use the original app with the port
-if (process.env.IS_EDGE_RUNTIME !== "true") {
-	Object.assign(handler, {
-		port: process.env.SERVER_PORT,
-		...app,
-	});
-}
 
 export default handler;

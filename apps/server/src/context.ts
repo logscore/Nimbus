@@ -23,7 +23,7 @@ export class ContextManager {
 	}
 
 	public static getInstance(): ContextManager {
-		if (!ContextManager.instance) {
+		if (!ContextManager.instance || ContextManager.instance.env.IS_EDGE_RUNTIME) {
 			ContextManager.instance = new ContextManager();
 		}
 		return ContextManager.instance;
