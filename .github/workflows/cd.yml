@@ -26,6 +26,11 @@ on:
         required: false
         default: true
         type: boolean
+      create_release:
+        description: "Create Release"
+        required: false
+        default: true
+        type: boolean
       pr_main:
         description: "Create Pull Request to Main"
         required: false
@@ -70,7 +75,7 @@ jobs:
         run: cd packages/db && bun run check
 
       - name: Download deployment info
-        if: ${{ github.event_name == 'workflow_run' }}
+        if: ${{ github.event_name == 'workflow_run' && github.event.inputs.deploy_server != 'false' }}
         uses: actions/download-artifact@master
         with:
           name: deployment-info
@@ -78,6 +83,7 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
 
       - name: Set deployment variables
+        if: ${{ github.event_name == 'workflow_run' && github.event.inputs.deploy_server != 'false' }}
         run: |
           if [ -f "deployment_name.txt" ]; then
             DEPLOYMENT_NAME=$(cat deployment_name.txt)
@@ -151,6 +157,7 @@ jobs:
             IS_EDGE_RUNTIME
 
       - name: Print Server deployment URL
+        if: ${{ github.event.inputs.deploy_server != 'false' }}
         env:
           SERVER_DEPLOYMENT_URL: ${{ steps.deploy-server-worker.outputs.deployment-url }}
         run: echo $SERVER_DEPLOYMENT_URL
@@ -182,23 +189,24 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Print Web deployment output
+        if: ${{ github.event.inputs.deploy_web != 'false' }}
         env:
           WEB_DEPLOYMENT_OUTPUT: ${{ steps.deploy-web-worker.outputs.tail_output }}
         run: echo $WEB_DEPLOYMENT_OUTPUT
 
       - name: Setup Git
-        if: ${{ github.ref_name == 'staging' }}
+        if: ${{ github.ref_name == 'staging' && github.event.inputs.create_release != 'false' }}
         run: |
           git config --global user.name "${{ github.actor || 'GitHub Actions' }}"
           git config --global user.email "${{ github.actor || 'github-actions' }}@users.noreply.github.com"
 
       - name: Create Release
-        if: ${{ github.ref_name == 'staging' }}
+        if: ${{ github.ref_name == 'staging' && github.event.inputs.create_release != 'false' }}
         id: create-release
         run: ./scripts/release.sh
 
       - name: Create Pull Request to Main
-        if: ${{ github.ref_name == 'staging' }}
+        if: ${{ github.ref_name == 'staging' && github.event.inputs.pr_main != 'false' }}
         id: create-pr-to-main
         uses: peter-evans/create-pull-request@v4
         with:
