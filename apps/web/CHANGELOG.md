@@ -1,5 +1,13 @@
 # @nimbus/web
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies [2efcc5a]
+  - @nimbus/auth@0.0.3
+  - @nimbus/server@0.0.4
+
 ## 0.0.4
 
 ### Patch Changes

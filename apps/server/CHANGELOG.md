@@ -1,5 +1,15 @@
 # @nimbus/server
 
+## 0.0.4
+
+### Patch Changes
+
+- 2efcc5a: chore: added better-auth on error handling for production (console.error(error, AuthContext) chore: added
+  upstash vs valkey getter handling (upstash does not resturn string) chore: added wrangler dev, bun dev, and production
+  runtime handling for server chore: context must be re-created (not a singleton) for edge runtime)
+- Updated dependencies [2efcc5a]
+  - @nimbus/auth@0.0.3
+
 ## 0.0.3
 
 ### Patch Changes
