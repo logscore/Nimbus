@@ -189,6 +189,9 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 			crossSubDomainCookies: {
 				enabled: true,
 			},
+			ipAddress: {
+				ipAddressHeaders: env.IS_EDGE_RUNTIME ? ["cf-connecting-ip"] : undefined, // Cloudflare specific header example
+			},
 		},
 
 		hooks: {
