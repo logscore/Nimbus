@@ -6,6 +6,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useEffect, useState, type ReactNode } from "react";
 import { FieldError } from "@/components/ui/field-error";
 import { createTagSchema } from "@nimbus/shared";
@@ -14,13 +15,15 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import type { Tag } from "@nimbus/shared";
 
-function renderTagOptions(tags: Tag[], level = 0): ReactNode[] {
+function renderTagSelectItems(tags: Tag[], level = 0): ReactNode[] {
 	return tags.flatMap(tag => [
-		<option key={tag.id} value={tag.id}>
-			{"\u00A0".repeat(level * 2)}
-			{tag.name}
-		</option>,
-		...(tag.children ? renderTagOptions(tag.children, level + 1) : []),
+		<SelectItem key={tag.id} value={tag.id}>
+			<span className="flex items-center">
+				{level > 0 && <span className="text-muted-foreground mr-2">{"│\u00A0".repeat(level - 1)}└─</span>}
+				{tag.name}
+			</span>
+		</SelectItem>,
+		...(tag.children ? renderTagSelectItems(tag.children, level + 1) : []),
 	]);
 }
 
@@ -42,10 +45,16 @@ export function CreateTagDialog({ isOpen, onClose, onCreate, tags, initialParent
 		if (isOpen) {
 			setParentId(initialParentId);
 		} else {
-			setName("");
-			setColor("#808080");
-			setParentId(undefined);
-			setErrors({});
+			// Batch state updates to avoid race conditions
+			const resetName = "";
+			const resetColor = "#808080";
+			const resetParentId = undefined;
+			const resetErrors = {};
+
+			setName(resetName);
+			setColor(resetColor);
+			setParentId(resetParentId);
+			setErrors(resetErrors);
 		}
 	}, [isOpen, initialParentId]);
 
@@ -138,15 +147,18 @@ export function CreateTagDialog({ isOpen, onClose, onCreate, tags, initialParent
 						<Label htmlFor="new-tag-parent" className="text-right">
 							Parent Tag
 						</Label>
-						<select
-							id="new-tag-parent"
+						<Select
 							value={parentId || "none"}
-							onChange={e => setParentId(e.target.value)}
-							className="col-span-3"
+							onValueChange={value => setParentId(value === "none" ? undefined : value)}
 						>
-							<option value="none">None</option>
-							{renderTagOptions(tags)}
-						</select>
+							<SelectTrigger className="col-span-3" id="new-tag-parent">
+								<SelectValue placeholder="Select a parent tag" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="none">None</SelectItem>
+								{renderTagSelectItems(tags)}
+							</SelectContent>
+						</Select>
 					</div>
 				</div>
 				<DialogFooter>

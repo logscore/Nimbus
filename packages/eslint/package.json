@@ -1,17 +1,17 @@
 {
 	"name": "@nimbus/eslint",
-	"version": "0.0.4",
+	"version": "0.0.1",
 	"type": "module",
 	"private": true,
 	"exports": {
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"@eslint/js": "^9.31.0",
-		"eslint-plugin-oxlint": "^1.6.0",
+		"@eslint/js": "^9.32.0",
+		"eslint-plugin-oxlint": "^1.9.0",
 		"eslint-plugin-sonarjs": "^3.0.4",
-		"eslint-plugin-unicorn": "^59.0.1",
+		"eslint-plugin-unicorn": "^60.0.0",
 		"eslint-plugin-unused-imports": "^4.1.4",
-		"typescript-eslint": "^8.36.0"
+		"typescript-eslint": "^8.38.0"
 	}
 }

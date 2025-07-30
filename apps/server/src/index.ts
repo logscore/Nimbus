@@ -1,36 +1,57 @@
 import { DRIVE_PROVIDER_HEADERS } from "@nimbus/shared";
 import { contextStorage } from "hono/context-storage";
-import { createAuth } from "@nimbus/auth/auth";
 import { createPublicRouter } from "./hono";
-import { createDb } from "@nimbus/db";
-import env from "@nimbus/env/server";
+import { ContextManager } from "./context";
 import { cors } from "hono/cors";
 import routes from "./routes";
 
 const app = createPublicRouter()
+	.use(contextStorage())
+	.use("*", async (c, next) => {
+		const env = ContextManager.getInstance().env;
+		c.set("env", env);
+		await next();
+	})
 	.use(
 		cors({
-			origin: env.FRONTEND_URL,
+			origin: (_origin, c) => c.var.env.TRUSTED_ORIGINS,
 			credentials: true,
 			allowHeaders: ["Content-Type", "Authorization", ...DRIVE_PROVIDER_HEADERS],
 			allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 			maxAge: 43200, // 12 hours
 		})
 	)
-	.use(contextStorage())
 	.use("*", async (c, next) => {
-		const db = createDb(env.DATABASE_URL);
-		const auth = createAuth();
+		const { env, db, redisClient, auth } = await ContextManager.getInstance().createContext();
 		c.set("db", db);
+		c.set("redisClient", redisClient);
 		c.set("auth", auth);
-		await next();
+		try {
+			await next();
+		} finally {
+			if (env.IS_EDGE_RUNTIME) {
+				await ContextManager.getInstance().close();
+			}
+		}
 	})
 	.get("/kamehame", c => c.text("HAAAAAAAAAAAAAA"))
 	.route("/api", routes);
 
 export type AppType = typeof app;
 
-export default {
-	port: env.SERVER_PORT,
-	fetch: app.fetch,
+// Create a wrapper that handles the environment initialization
+const handler = {
+	async fetch(request: Request, env: any, ctx: any) {
+		return app.fetch(request, env, ctx);
+	},
 };
+
+// For non-edge environments, we'll use the original app with the port
+if (process.env.IS_EDGE_RUNTIME !== "true") {
+	Object.assign(handler, {
+		port: process.env.SERVER_PORT,
+		...app,
+	});
+}
+
+export default handler;

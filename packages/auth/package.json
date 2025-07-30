@@ -1,6 +1,6 @@
 {
 	"name": "@nimbus/auth",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"type": "module",
 	"private": true,
 	"module": "index.ts",
@@ -11,17 +11,14 @@
 	"devDependencies": {
 		"@nimbus/tsconfig": "workspace:*"
 	},
-	"peerDependencies": {
-		"typescript": "^5.8.3"
-	},
 	"dependencies": {
 		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
 		"@nimbus/env": "workspace:*",
-		"@upstash/redis": "^1.35.1",
-		"better-auth": "^1.2.12",
-		"drizzle-orm": "^0.44.2",
+		"@upstash/redis": "^1.35.2",
+		"better-auth": "^1.3.4",
+		"drizzle-orm": "^0.44.4",
 		"iovalkey": "^0.3.3",
-		"resend": "^4.6.0"
+		"resend": "^4.7.0"
 	}
 }

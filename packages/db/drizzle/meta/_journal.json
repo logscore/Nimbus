@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1747972049140,
-      "tag": "0000_small_maggott",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1748697523148,
-      "tag": "0001_jazzy_mother_askani",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1748978891119,
-      "tag": "0002_fast_the_enforcers",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1750516326761,
-      "tag": "0003_legal_betty_ross",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1752503557641,
-      "tag": "0004_lush_alice",
+      "when": 1753865094673,
+      "tag": "0000_salty_black_knight",
       "breakpoints": true
     }
   ]

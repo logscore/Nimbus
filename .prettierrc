@@ -17,6 +17,12 @@
 	"overrides": [
 		{
 			"files": ".*.ts"
+		},
+		{
+			"files": ".github/workflows/*.yml",
+			"options": {
+				"printWidth": 9999
+			}
 		}
 	]
 }

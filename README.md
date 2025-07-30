@@ -102,7 +102,8 @@ Follow the instructions on the first step of this [guide](https://www.better-aut
 
 - Go to the <a href="https://portal.azure.com/" target="_blank"><b>Microsoft Azure Portal</b></a>.
 
-- Navigate to <b>Azure Active Directory</b> → <b>App registrations</b> → click <b>New registration</b>.
+- Navigate to <b>Azure Active Directory or Microsoft Entra ID</b> → <b>App registrations</b> → click <b>New
+  registration</b>.
 
 - Enter a name for your app.
 
@@ -227,4 +228,4 @@ Follow the [DEPLOYMENT.md](DEPLOYMENT.md) file for instructions on how to deploy
 
 1. Point your **domain** to the server.
 2. Use the domain in Google API keys for callback URLs (e.g., `https://example.com:1284/api/auth/callback/google`).
-3. Update the `.env` file with the domain (e.g., `FRONTEND_URL=https://example.com:3000`).
+3. Update the `.env` file with the domain (e.g., `TRUSTED_ORIGINS=https://example.com:3000`).

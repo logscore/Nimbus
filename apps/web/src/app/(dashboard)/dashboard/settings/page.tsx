@@ -1,9 +1,8 @@
 "use client";
 
 import { type ApiResponse, type DriveProvider } from "@nimbus/shared";
-import { LoadingStatePage } from "@/components/loading-state-page";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { authClient } from "@nimbus/auth/auth-client";
-import { useEffect, useState } from "react";
 import env from "@nimbus/env/client";
 import { toast } from "sonner";
 
@@ -16,12 +15,11 @@ import { ConnectedAccountsSection } from "@/components/settings/connected-accoun
 import { SecuritySection } from "@/components/settings/security-section";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { SettingsHeader } from "@/components/settings/header";
-import { capitalizeFirstLetter } from "@nimbus/shared";
 
 // TODO(feat): back button in header goes to a callbackUrl
 
 export default function SettingsPage() {
-	const { user, accounts, error, isLoading, refreshUser, refreshAccounts } = useUserInfoProvider();
+	const { user, accounts, refreshUser, refreshAccounts } = useUserInfoProvider();
 	const { defaultAccountId } = useDefaultAccountProvider();
 	const { unlinkAccount } = useUnlinkAccount();
 	const [name, setName] = useState(user?.name || "");
@@ -29,18 +27,22 @@ export default function SettingsPage() {
 	const [isSaving, setIsSaving] = useState(false);
 	const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
 	const [previewUrl, setPreviewUrl] = useState<string | null>(user?.image || null);
-	const [isAddAccountDialogOpen, setIsAddAccountDialogOpen] = useState(false);
 
 	useEffect(() => {
 		if (user) {
-			setName(user.name || "");
-			setEmail(user.email || "");
-			setPreviewUrl(user.image || null);
+			// Batch state updates to avoid race conditions
+			const newName = user.name || "";
+			const newEmail = user.email || "";
+			const newPreviewUrl = user.image || null;
+
+			setName(newName);
+			setEmail(newEmail);
+			setPreviewUrl(newPreviewUrl);
 		}
 	}, [user]);
 
 	// TODO(feat): change profile image
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (file) {
 			setPreviewUrl(URL.createObjectURL(file));
@@ -81,7 +83,7 @@ export default function SettingsPage() {
 	};
 
 	const handleDisconnectAccount = async (provider: DriveProvider, accountId: string) => {
-		const toastErrorMessage = `Failed to disconnect ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
+		const toastErrorMessage = `Failed to disconnect account. Account ID: ${accountId}`;
 
 		try {
 			const response = await unlinkAccount(provider, accountId);
@@ -89,7 +91,7 @@ export default function SettingsPage() {
 				throw new Error(response.error.message || toastErrorMessage);
 			}
 			await refreshAccounts();
-			toast.success(`Disconnected ${capitalizeFirstLetter(provider)} account`);
+			toast.success(`Disconnected account`);
 		} catch (error) {
 			console.error(`Failed to disconnect account`, error);
 			toast.error(toastErrorMessage);
@@ -98,7 +100,7 @@ export default function SettingsPage() {
 
 	const handleSetDefaultAccount = async (provider: DriveProvider, accountId: string) => {
 		setIsSettingDefault(accountId);
-		const toastErrorMessage = `Failed to set ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
+		const toastErrorMessage = `Failed to set default account. Account ID: ${accountId}`;
 
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -113,7 +115,7 @@ export default function SettingsPage() {
 				throw new Error(data.message || toastErrorMessage);
 			}
 			await refreshAccounts();
-			toast.success(`${capitalizeFirstLetter(provider)} account set as default`);
+			toast.success(`Account set as default`);
 		} catch (error) {
 			console.error("Failed to set default account:", error);
 			toast.error(toastErrorMessage);
@@ -128,7 +130,7 @@ export default function SettingsPage() {
 		tableAccountId: string,
 		nickname: string
 	) => {
-		const toastErrorMessage = `Failed to update ${capitalizeFirstLetter(provider)} account. Account ID: ${accountId}`;
+		const toastErrorMessage = `Failed to update account. Account ID: ${accountId}`;
 
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -143,24 +145,16 @@ export default function SettingsPage() {
 				throw new Error(data.message || toastErrorMessage);
 			}
 			await refreshAccounts();
-			toast.success(`${capitalizeFirstLetter(provider)} account updated`);
+			toast.success(`Account updated`);
 		} catch (error) {
 			console.error("Failed to update account:", error);
 			toast.error(toastErrorMessage);
 		}
 	};
 
-	if (isLoading || error) {
-		return <LoadingStatePage error={error} />;
-	}
-
 	return (
 		<div className="flex flex-1 flex-col">
-			<SettingsHeader
-				title="Settings"
-				description="Manage your account settings and preferences"
-				showBackButton={true}
-			/>
+			<SettingsHeader />
 			<div className="container mx-auto flex-1 space-y-6 p-6">
 				<ProfileSection
 					name={name}
@@ -180,8 +174,6 @@ export default function SettingsPage() {
 					onDisconnect={handleDisconnectAccount}
 					onSetDefault={handleSetDefaultAccount}
 					onUpdateAccount={handleUpdateAccount}
-					isAddAccountDialogOpen={isAddAccountDialogOpen}
-					onAddAccountDialogOpenChange={setIsAddAccountDialogOpen}
 				/>
 
 				<SecuritySection />

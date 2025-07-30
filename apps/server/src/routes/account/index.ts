@@ -16,6 +16,8 @@ import { S3Provider } from "../../providers/s3";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
+// TODO(rate-limiting): implement for accounts
+
 const accountRouter = createProtectedRouter()
 	.get("/", async c => {
 		const accounts = await c.var.db.query.account.findMany({

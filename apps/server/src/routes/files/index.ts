@@ -11,14 +11,7 @@ import {
 	uploadFileFormSchema,
 	uploadFileQuerySchema,
 } from "@nimbus/shared";
-import {
-	fileDeleteRateLimiter,
-	fileGetRateLimiter,
-	fileUpdateRateLimiter,
-	fileUploadRateLimiter,
-} from "@nimbus/cache/rate-limiters";
 import { handleUploadError, sendError, sendSuccess } from "../utils";
-import { buildUserSecurityMiddleware } from "../../middleware";
 import { createDriveProviderRouter } from "../../hono";
 import { zValidator } from "@hono/zod-validator";
 import { FileService } from "./file-service";
@@ -28,7 +21,7 @@ const fileService = new FileService();
 const filesRouter = createDriveProviderRouter()
 	// Get files
 	// TODO: Grab fileId from url path, not the params
-	.get("/", buildUserSecurityMiddleware(fileGetRateLimiter), zValidator("query", getFilesSchema), async c => {
+	.get("/", zValidator("query", getFilesSchema), async c => {
 		const queryData = c.req.valid("query");
 		const files = await fileService.listFiles(queryData);
 		if (!files) {
@@ -39,8 +32,7 @@ const filesRouter = createDriveProviderRouter()
 
 	// Get file by ID
 	.get(
-		"/:id",
-		buildUserSecurityMiddleware(fileGetRateLimiter),
+		"/:fileId",
 		zValidator("param", getFileByIdParamSchema),
 		zValidator("query", getFileByIdQuerySchema),
 		async c => {
@@ -56,7 +48,7 @@ const filesRouter = createDriveProviderRouter()
 
 	// Update file
 	// TODO: Note that the validation only works for renaming, this will need to be updated as we support more update features
-	.put("/", buildUserSecurityMiddleware(fileUpdateRateLimiter), zValidator("query", updateFileSchema), async c => {
+	.put("/", zValidator("query", updateFileSchema), async c => {
 		const queryData = c.req.valid("query");
 		const success = await fileService.updateFile(queryData);
 		if (!success) {
@@ -67,7 +59,7 @@ const filesRouter = createDriveProviderRouter()
 
 	// Delete file
 	// TODO: implement delete multiple files/folders
-	.delete("/", buildUserSecurityMiddleware(fileDeleteRateLimiter), zValidator("query", deleteFileSchema), async c => {
+	.delete("/", zValidator("query", deleteFileSchema), async c => {
 		const queryData = c.req.valid("query");
 		const success = await fileService.deleteFile(queryData);
 		if (!success) {
@@ -77,7 +69,7 @@ const filesRouter = createDriveProviderRouter()
 	})
 
 	// Create file/folder
-	.post("/", buildUserSecurityMiddleware(fileUploadRateLimiter), zValidator("query", createFileSchema), async c => {
+	.post("/", zValidator("query", createFileSchema), async c => {
 		const queryData = c.req.valid("query");
 		const success = await fileService.createFile(queryData);
 		if (!success) {
@@ -87,97 +79,86 @@ const filesRouter = createDriveProviderRouter()
 	})
 
 	// Upload file
-	.post(
-		"/upload",
-		buildUserSecurityMiddleware(fileUploadRateLimiter),
-		zValidator("form", uploadFileFormSchema),
-		zValidator("query", uploadFileQuerySchema),
-		async c => {
-			try {
-				const file = c.req.valid("form").file;
-				const parentId = c.req.valid("query").parentId;
+	.post("/upload", zValidator("form", uploadFileFormSchema), zValidator("query", uploadFileQuerySchema), async c => {
+		try {
+			const file = c.req.valid("form").file;
+			const parentId = c.req.valid("query").parentId;
 
-				// Validate file type
-				if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-					return sendError(c, { message: `File type ${file.type} is not allowed`, status: 400 });
-				}
-
-				// Validate file size
-				if (file.size > MAX_FILE_SIZE) {
-					return sendError(c, {
-						message: `File size exceeds maximum allowed size of ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
-						status: 400,
-					});
-				}
-
-				// Convert File to Readable stream for upload
-				const arrayBuffer = await file.arrayBuffer();
-				const fileBuffer = Buffer.from(arrayBuffer);
-				const readableStream = new Readable();
-				readableStream.push(fileBuffer);
-				readableStream.push(null); // Signal end of stream
-
-				// Upload with timeout
-				const UPLOAD_TIMEOUT = 5 * 60 * 1000;
-				const uploadPromise = fileService.createFile(
-					{
-						name: file.name,
-						mimeType: file.type,
-						parentId,
-					},
-					readableStream
-				);
-
-				const uploadedFile = await Promise.race([
-					uploadPromise,
-					new Promise((_, reject) => setTimeout(() => reject(new Error("Upload timed out")), UPLOAD_TIMEOUT)),
-				]);
-
-				if (!uploadedFile) {
-					return sendError(c, { message: "Upload failed: No file was returned from storage provider", status: 500 });
-				}
-
-				return sendSuccess(c, { message: "File uploaded successfully", status: 201 });
-			} catch (error) {
-				const options = handleUploadError(error);
-				return sendError(c, options);
+			// Validate file type
+			if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+				return sendError(c, { message: `File type ${file.type} is not allowed`, status: 400 });
 			}
+
+			// Validate file size
+			if (file.size > MAX_FILE_SIZE) {
+				return sendError(c, {
+					message: `File size exceeds maximum allowed size of ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
+					status: 400,
+				});
+			}
+
+			// Convert File to Readable stream for upload
+			const arrayBuffer = await file.arrayBuffer();
+			const fileBuffer = Buffer.from(arrayBuffer);
+			const readableStream = new Readable();
+			readableStream.push(fileBuffer);
+			readableStream.push(null); // Signal end of stream
+
+			// Upload with timeout
+			const UPLOAD_TIMEOUT = 5 * 60 * 1000;
+			const uploadPromise = fileService.createFile(
+				{
+					name: file.name,
+					mimeType: file.type,
+					parentId,
+				},
+				readableStream
+			);
+
+			const uploadedFile = await Promise.race([
+				uploadPromise,
+				new Promise((_, reject) => setTimeout(() => reject(new Error("Upload timed out")), UPLOAD_TIMEOUT)),
+			]);
+
+			if (!uploadedFile) {
+				return sendError(c, { message: "Upload failed: No file was returned from storage provider", status: 500 });
+			}
+
+			return sendSuccess(c, { message: "File uploaded successfully", status: 201 });
+		} catch (error) {
+			const options = handleUploadError(error);
+			return sendError(c, options);
 		}
-	)
+	})
 
 	// Download file
-	.get(
-		"/download",
-		buildUserSecurityMiddleware(fileGetRateLimiter),
-		zValidator("query", downloadFileSchema),
-		async c => {
-			const fileId = c.req.valid("query").fileId;
-			const exportMimeType = c.req.valid("query").exportMimeType;
-			const acknowledgeAbuse = c.req.valid("query").acknowledgeAbuse;
+	.get("/download", zValidator("query", downloadFileSchema), async c => {
+		const fileId = c.req.valid("query").fileId;
+		const exportMimeType = c.req.valid("query").exportMimeType;
+		const acknowledgeAbuse = c.req.valid("query").acknowledgeAbuse;
 
-			try {
-				const downloadResult = await fileService.downloadFile({
-					fileId,
-					exportMimeType,
-					acknowledgeAbuse,
-				});
+		try {
+			const downloadResult = await fileService.downloadFile({
+				fileId,
+				exportMimeType,
+				acknowledgeAbuse,
+			});
 
-				if (!downloadResult) {
-					return sendError(c, { message: "File not found or could not be downloaded", status: 404 });
-				}
-
-				// Set appropriate headers for file download
-				c.header("Content-Type", downloadResult.mimeType);
-				c.header("Content-Disposition", `attachment; filename="${downloadResult.filename}"`);
-				c.header("Content-Length", downloadResult.size.toString());
-
-				// Return the file data
-				return c.body(downloadResult.data);
-			} catch (error) {
-				const options = handleUploadError(error);
-				return sendError(c, options);
+			if (!downloadResult) {
+				return sendError(c, { message: "File not found or could not be downloaded", status: 404 });
 			}
+
+			// Set appropriate headers for file download
+			c.header("Content-Type", downloadResult.mimeType);
+			c.header("Content-Disposition", `attachment; filename="${downloadResult.filename}"`);
+			c.header("Content-Length", downloadResult.size.toString());
+
+			// Return the file data
+			return c.body(downloadResult.data);
+		} catch (error) {
+			const options = handleUploadError(error);
+			return sendError(c, options);
 		}
-	);
+	});
 
 export default filesRouter;

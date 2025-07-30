@@ -9,6 +9,7 @@ import HeroDark from "@/public/images/hero-dark.png";
 import Header from "@/components/home/header";
 import { type Variants } from "motion/react";
 import Image from "next/image";
+import Footer from "./footer";
 
 const transitionVariants: { item: Variants } = {
 	item: {
@@ -150,6 +151,7 @@ export default function Hero() {
 					/>
 				</div>
 			</AnimatedGroup>
+			<Footer />
 		</div>
 	);
 }

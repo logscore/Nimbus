@@ -2,10 +2,10 @@ import { createDriveProviderRouter, createProtectedRouter, createPublicRouter } 
 import { GoogleDriveProvider } from "../providers/google/google-drive";
 import { OneDriveProvider } from "../providers/microsoft/one-drive";
 import type { Provider } from "../providers/interface/provider";
+import { sendForbidden, sendUnauthorized } from "./utils";
 import { driveProviderSchema } from "@nimbus/shared";
 import { decrypt } from "../utils/encryption";
 import { S3Provider } from "../providers/s3";
-import { sendUnauthorized } from "./utils";
 import waitlistRoutes from "./waitlist";
 import accountRouter from "./account";
 import drivesRoutes from "./drives";
@@ -23,7 +23,7 @@ const driveProviderRouter = createDriveProviderRouter()
 		const accountIdHeader = c.req.header("X-Account-Id");
 		const parsedProviderId = driveProviderSchema.safeParse(providerIdHeader);
 		if (!parsedProviderId.success || !accountIdHeader) {
-			return sendUnauthorized(c, "Invalid provider or account information");
+			return sendForbidden(c, "Invalid provider or account information");
 		}
 
 		const account = await c.var.db.query.account.findFirst({
@@ -34,17 +34,19 @@ const driveProviderRouter = createDriveProviderRouter()
 					eq(table.accountId, accountIdHeader)
 				),
 		});
+
 		if (!account || !account.providerId || !account.accountId) {
-			return sendUnauthorized(c);
+			return sendForbidden(c);
 		}
 
 		const parsedProviderName = driveProviderSchema.safeParse(account.providerId);
 		if (!parsedProviderName.success) {
-			return sendUnauthorized(c, "Invalid provider");
+			return sendForbidden(c, "Invalid provider");
 		}
 
 		let provider: Provider;
 
+		// Handle S3 provider separately (no access token needed)
 		if (parsedProviderName.data === "s3") {
 			if (!account.s3AccessKeyId || !account.s3SecretAccessKey || !account.s3Region || !account.s3BucketName) {
 				return sendUnauthorized(c, "Missing S3 credentials");
@@ -57,28 +59,42 @@ const driveProviderRouter = createDriveProviderRouter()
 				bucketName: account.s3BucketName,
 				endpoint: account.s3Endpoint || undefined,
 			});
+			c.set("provider", provider);
 		} else {
+			// Handle OAuth providers (Google, Microsoft)
 			if (!account.accessToken) {
-				return sendUnauthorized(c, "Missing access token");
+				return sendForbidden(c);
 			}
 
-			const { accessToken } = await c.var.auth.api.getAccessToken({
-				body: {
-					providerId: account.providerId,
-					accountId: account.id,
-					userId: account.userId,
-				},
-				headers: c.req.raw.headers,
-			});
-			if (!accessToken) {
-				return sendUnauthorized(c);
-			}
+			try {
+				const { accessToken } = await c.var.auth.api.getAccessToken({
+					body: {
+						providerId: account.providerId,
+						accountId: account.id,
+						userId: account.userId,
+					},
+					headers: c.req.raw.headers,
+				});
 
-			provider =
-				parsedProviderName.data === "google" ? new GoogleDriveProvider(accessToken) : new OneDriveProvider(accessToken);
+				if (!accessToken) {
+					return sendUnauthorized(c, "Access token not available. Please re-authenticate.");
+				}
+
+				provider =
+					parsedProviderName.data === "google"
+						? new GoogleDriveProvider(accessToken)
+						: new OneDriveProvider(accessToken);
+				c.set("provider", provider);
+			} catch (error) {
+				// @ts-ignore
+				if (error?.body?.code === "FAILED_TO_GET_A_VALID_ACCESS_TOKEN") {
+					return sendUnauthorized(c, "Authentication expired. Please sign in again.");
+				}
+				throw error;
+			}
 		}
-		c.set("provider", provider);
-		return next();
+
+		await next();
 	})
 	.route(driveProviderPaths[0], driveProviderRouters[0])
 	.route(driveProviderPaths[1], driveProviderRouters[1])
@@ -91,10 +107,10 @@ const protectedRouter = createProtectedRouter()
 		const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
 		const user = session?.user;
 		if (!user) {
-			return sendUnauthorized(c);
+			return sendForbidden(c);
 		}
 		c.set("user", user);
-		return next();
+		await next();
 	})
 	.route(protectedPaths[0], protectedRouters[0])
 	.route(protectedPaths[1], protectedRouters[1])

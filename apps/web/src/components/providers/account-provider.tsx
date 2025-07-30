@@ -6,7 +6,7 @@ import {
 	providerToSlug,
 	slugToProvider,
 } from "@nimbus/shared";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createProtectedClient, type DriveProviderClient } from "@/utils/client";
 import { useParams, usePathname, useRouter } from "next/navigation";
 
@@ -44,7 +44,32 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 	);
 	const [accountId, setAccountId] = useState<string | null>(accountIdParam);
 
-	const clientPromise = useMemo(() => createClient(providerId, accountId), [providerId, accountId]);
+	// Use ref to cache the client promise and only recreate when parameters change
+	const clientCacheRef = useRef<{
+		providerId: string | null;
+		accountId: string | null;
+		clientPromise: Promise<DriveProviderClient>;
+	} | null>(null);
+
+	const clientPromise = useMemo(() => {
+		// Check if we have a cached client for the same parameters
+		if (
+			clientCacheRef.current &&
+			clientCacheRef.current.providerId === providerId &&
+			clientCacheRef.current.accountId === accountId
+		) {
+			return clientCacheRef.current.clientPromise;
+		}
+
+		const newClientPromise = createClient(providerId, accountId);
+		clientCacheRef.current = {
+			providerId,
+			accountId,
+			clientPromise: newClientPromise,
+		};
+
+		return newClientPromise;
+	}, [providerId, accountId]);
 
 	const navigateToProvider = useCallback(
 		(newProviderSlug: string, newAccountId: string) => {
@@ -63,9 +88,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 				throw new Error("Invalid provider ID");
 			}
 			navigateToProvider(newProviderSlug, newAccountId);
-			setProviderId(newProviderId);
-			setProviderSlug(newProviderSlug);
-			setAccountId(newAccountId);
 		},
 		[navigateToProvider]
 	);
@@ -76,12 +98,14 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 		const newAccountId = accountIdParam;
 
 		// Only update state if values have actually changed
-		if (newProviderId !== providerId || newAccountId !== accountId) {
+		if (newProviderId !== providerId || newAccountId !== accountId || providerSlugParam !== providerSlug) {
+			// React 18+ automatically batches these state updates to avoid race conditions
+			// But we ensure they happen in the correct order
 			setProviderId(newProviderId);
 			setProviderSlug(providerSlugParam);
 			setAccountId(newAccountId);
 		}
-	}, [providerSlugParam, accountIdParam, providerId, accountId]);
+	}, [providerSlugParam, accountIdParam, providerId, accountId, providerSlug]);
 
 	const value = useMemo(
 		() => ({

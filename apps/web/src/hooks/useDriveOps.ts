@@ -1,15 +1,105 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { CreatePinnedFile, DriveInfo, PinnedFile } from "@nimbus/shared";
 import { useAccountProvider } from "@/components/providers/account-provider";
-import { useQuery } from "@tanstack/react-query";
-import type { DriveInfo } from "@nimbus/shared";
+import { handleUnauthorizedError } from "@/utils/client";
 
 export const useDriveInfo = () => {
 	const { clientPromise, providerId, accountId } = useAccountProvider();
+
 	return useQuery<DriveInfo>({
 		queryKey: ["driveInfo", providerId, accountId],
 		queryFn: async () => {
 			const client = await clientPromise;
-			const response = await client.api.drives.about.$get();
-			return (await response.json()) as DriveInfo;
+			const response = await handleUnauthorizedError(
+				() => client.api.drives.about.$get(),
+				"Failed to fetch drive info"
+			);
+
+			const data = await response.json();
+			return data;
+		},
+		enabled: !!providerId && !!accountId,
+	});
+};
+
+const PINNED_FILES_QUERY_KEY = "pinnedFiles";
+
+export const usePinnedFiles = () => {
+	const { clientPromise, providerId, accountId } = useAccountProvider();
+
+	return useQuery<PinnedFile[]>({
+		queryKey: [PINNED_FILES_QUERY_KEY],
+		queryFn: async () => {
+			const client = await clientPromise;
+			const response = await handleUnauthorizedError(
+				() => client.api.drives.pinned.$get(),
+				"Failed to fetch pinned files"
+			);
+
+			const data = await response.json();
+			// Convert the raw data to match the PinnedFile type
+			return data.map(file => ({
+				...file,
+				createdAt: new Date(file.createdAt),
+				updatedAt: new Date(file.updatedAt),
+			}));
+		},
+		enabled: !!providerId && !!accountId,
+	});
+};
+
+export const usePinFile = () => {
+	const { clientPromise, accountId } = useAccountProvider();
+
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (data: Omit<CreatePinnedFile, "accountId">) => {
+			const client = await clientPromise;
+			// wait till clientPromise is resolved
+			if (!accountId) return false;
+
+			const response = await handleUnauthorizedError(
+				() =>
+					client.api.drives.pinned.$post({
+						query: {
+							...data,
+							accountId,
+						},
+					}),
+				"Failed to pin file"
+			);
+
+			const res = await response.json();
+			return res.success;
+		},
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: [PINNED_FILES_QUERY_KEY] });
+		},
+	});
+};
+
+export const useUnpinFile = () => {
+	const { clientPromise } = useAccountProvider();
+
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (id: string) => {
+			const client = await clientPromise;
+			const response = await handleUnauthorizedError(
+				() =>
+					client.api.drives.pinned[":id"].$delete({
+						param: {
+							id,
+						},
+					}),
+				"Failed to unpin file"
+			);
+
+			const res = await response.json();
+			return res.success;
+		},
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: [PINNED_FILES_QUERY_KEY] });
 		},
 	});
 };

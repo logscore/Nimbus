@@ -13,10 +13,10 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import z from "zod";
 
-const formSchema = emailObjectSchema;
-
 // this is a copy of Analogs waitlist component with some changes
 // https://github.com/analogdotnow/Analog/blob/main/apps/web/src/components/sections/home/waitlist-form.tsx
+
+const formSchema = emailObjectSchema;
 type FormSchema = z.infer<typeof formSchema>;
 
 // API functions for Hono backend

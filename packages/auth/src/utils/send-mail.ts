@@ -1,17 +1,25 @@
-import env from "@nimbus/env/server";
-import { Resend } from "resend";
+import type { Resend } from "resend";
 
-const resend = new Resend(env.RESEND_API_KEY);
+interface EmailContext {
+	resend: Resend;
+	from: string;
+}
 
-export async function sendMail({ to, subject, text }: { to: string; subject: string; text: string }) {
+interface SendMailOptions {
+	to: string;
+	subject: string;
+	text: string;
+}
+
+export async function sendMail(ctx: EmailContext, { to, subject, text }: SendMailOptions) {
 	try {
-		const from = env.EMAIL_FROM;
+		const from = ctx.from;
 
 		if (!from) {
 			console.error("Missing environment variables");
 		}
 
-		const { data, error } = await resend.emails.send({
+		const { data, error } = await ctx.resend.emails.send({
 			from,
 			to,
 			subject,
