@@ -7,7 +7,8 @@ import type { ReactNode } from "react";
 
 export default function LegalLayout({ children }: { children: ReactNode }) {
 	return (
-		<div className="bg-background min-h-screen">
+		// <div className="bg-background min-h-screen">
+		<div className="font-manrope flex w-full flex-1 flex-col items-center justify-center gap-12 overflow-hidden px-4 py-20 md:gap-12">
 			<Header />
 			{children}
 			<Footer />
