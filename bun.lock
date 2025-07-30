@@ -24,7 +24,7 @@
     },
     "apps/server": {
       "name": "@nimbus/server",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "dependencies": {
         "@googleapis/drive": "^14.2.0",
         "@hono/zod-validator": "^0.7.2",
@@ -50,7 +50,7 @@
     },
     "apps/web": {
       "name": "@nimbus/web",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "dependencies": {
         "@hookform/resolvers": "^5.2.0",
         "@nimbus/auth": "workspace:*",
@@ -178,7 +178,7 @@
     },
     "packages/shared": {
       "name": "@nimbus/shared",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "dependencies": {
         "@nimbus/db": "workspace:*",
         "zod": "^4.0.13",

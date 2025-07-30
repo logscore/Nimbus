@@ -1,5 +1,12 @@
 # @nimbus/server
 
+## 0.0.2
+
+### Patch Changes
+
+- Updated dependencies [1c1f4a3]
+  - @nimbus/shared@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes
