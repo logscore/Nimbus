@@ -6,19 +6,31 @@ const defaultTimestamp = (name: string) => timestamp(name)
 
 // Auth schema
 export const user = pgTable("user", {
-  // references account.accountId and account.providerId. Is set via better-auth database hook after account creation
-  id: text().primaryKey().notNull(),
-  name: text().notNull(),
-  email: text().notNull(),
-  emailVerified: boolean("email_verified").notNull(),
-  image: text(),
-  defaultAccountId: text("default_account_id"),
-  defaultProviderId: text("default_provider_id"),
-  createdAt: defaultTimestamp("created_at"),
-  updatedAt: defaultTimestamp("updated_at"),
-}, (table) => [
-  unique("user_email_unique").on(table.email),
-]);
+	id: text("id").primaryKey(),
+	name: text("name").notNull(),
+	email: text("email").notNull().unique(),
+	emailVerified: boolean("email_verified")
+		.$defaultFn(() => false)
+		.notNull(),
+	image: text("image"),
+	createdAt: timestamp("created_at")
+		.$defaultFn(() => /* @__PURE__ */ new Date())
+		.notNull(),
+	updatedAt: timestamp("updated_at")
+		.$defaultFn(() => /* @__PURE__ */ new Date())
+		.notNull(),
+	defaultProviderId: text("default_provider_id"),
+	defaultAccountId: text("default_account_id"),
+});
+
+export const verification = pgTable("verification", {
+	id: text("id").primaryKey(),
+	identifier: text("identifier").notNull(),
+	value: text("value").notNull(),
+	expiresAt: timestamp("expires_at").notNull(),
+	createdAt: timestamp("created_at").$defaultFn(() => /* @__PURE__ */ new Date()),
+	updatedAt: timestamp("updated_at").$defaultFn(() => /* @__PURE__ */ new Date()),
+});
 
 export const session = pgTable("session", {
   id: text().primaryKey().notNull(),
@@ -61,15 +73,6 @@ export const account = pgTable("account", {
   		name: "account_user_id_user_id_fk"
   	}).onDelete("cascade"),
 ]);
-
-export const verification = pgTable("verification", {
-  id: text().primaryKey().notNull(),
-  identifier: text().notNull(),
-  value: text("value").notNull(),
-  expiresAt: timestamp("expires_at", { mode: 'string' }).notNull(),
-  createdAt: defaultTimestamp("created_at"),
-  updatedAt: defaultTimestamp("updated_at"),
-});
 
 // Tags schema
 export const tag = pgTable("tag", {

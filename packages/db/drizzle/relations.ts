@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { account, fileTag, pinnedFile, session, tag, user } from "./schema";
+import { tag, fileTag, user, account, session, pinnedFile } from "./schema";
 
 export const fileTagRelations = relations(fileTag, ({one}) => ({
 	tag: one(tag, {

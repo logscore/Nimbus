@@ -22,7 +22,7 @@
 		"docker:reset": "bun run docker:remove && bun run docker:up"
 	},
 	"dependencies": {
-		"@hookform/resolvers": "^5.2.0",
+		"@hookform/resolvers": "^5.2.1",
 		"@nimbus/auth": "workspace:*",
 		"@nimbus/env": "workspace:*",
 		"@nimbus/server": "workspace:*",
@@ -52,8 +52,8 @@
 		"clsx": "^2.1.1",
 		"date-fns": "^4.1.0",
 		"hono": "^4.8.10",
-		"lucide-react": "^0.533.0",
-		"motion": "^12.23.11",
+		"lucide-react": "^0.534.0",
+		"motion": "^12.23.12",
 		"next": "15.3",
 		"next-themes": "^0.4.6",
 		"react": "^19.1.1",
@@ -65,7 +65,7 @@
 		"tailwind-merge": "^3.3.1",
 		"tailwindcss": "^4.1.11",
 		"tw-animate-css": "^1.3.6",
-		"zod": "^4.0.13"
+		"zod": "^4.0.14"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.1",

@@ -39,7 +39,7 @@
 		"nanoid": "^5.1.5",
 		"pg": "^8.16.3",
 		"resend": "^4.7.0",
-		"zod": "^4.0.13"
+		"zod": "^4.0.14"
 	},
 	"devDependencies": {
 		"@microsoft/microsoft-graph-types": "^2.40.0",

@@ -1,4 +1,7 @@
-import { boolean, foreignKey, index, integer, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { pgTable, foreignKey, text, timestamp, index, integer, unique, boolean } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
+
+
 
 export const fileTag = pgTable("file_tag", {
 	id: text().primaryKey().notNull(),
@@ -71,8 +74,8 @@ export const verification = pgTable("verification", {
 	id: text().primaryKey().notNull(),
 	identifier: text().notNull(),
 	expiresAt: timestamp("expires_at", { mode: 'string' }).notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }),
+	updatedAt: timestamp("updated_at", { mode: 'string' }),
 	value: text().notNull(),
 });
 

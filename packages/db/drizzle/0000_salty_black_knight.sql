@@ -48,8 +48,8 @@ CREATE TABLE "verification" (
 	"id" text PRIMARY KEY NOT NULL,
 	"identifier" text NOT NULL,
 	"expires_at" timestamp NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL,
+	"created_at" timestamp,
+	"updated_at" timestamp,
 	"value" text NOT NULL
 );
 --> statement-breakpoint
