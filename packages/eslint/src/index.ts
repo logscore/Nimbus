@@ -4,6 +4,7 @@ import eslintPluginSonarjs from "eslint-plugin-sonarjs";
 import oxlintPlugin from "eslint-plugin-oxlint";
 import tseslint from "typescript-eslint";
 import eslint from "@eslint/js";
+import globals from "globals";
 
 const tsconfigRootDir = process.cwd();
 
@@ -49,8 +50,28 @@ export function buildEslintConfig() {
 	// Oxlint configuration
 	const oxlintConfig = oxlintPlugin.configs["flat/all"];
 
+	// Test files configuration
+	const testConfig = {
+		files: ["**/__tests__/**/*.js", "**/*.test.js", "**/*.test.ts"],
+		languageOptions: {
+			globals: {
+				...globals.node,
+			},
+		},
+		rules: {
+			"@typescript-eslint/no-floating-promises": "off" as const,
+		},
+	};
+
 	// Combine all configurations
-	const eslintConfig = tseslint.config(baseConfig, commonConfig, typescriptConfig, javascriptConfig, oxlintConfig);
+	const eslintConfig = tseslint.config(
+		baseConfig,
+		commonConfig,
+		typescriptConfig,
+		javascriptConfig,
+		testConfig,
+		oxlintConfig
+	);
 
 	return eslintConfig;
 }

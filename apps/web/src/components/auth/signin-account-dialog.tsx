@@ -5,6 +5,9 @@ import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
 import { useGoogleAuth, useMicrosoftAuth } from "@/hooks/useAuth";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import type { DriveProvider } from "@nimbus/shared";
+import { S3AccountForm } from "./s3-account-form";
+import { Button } from "@/components/ui/button";
+import { Cloud, ArrowLeft } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -15,13 +18,17 @@ type SigninAccountDialogProps = {
 	onAccountAdded: () => void;
 };
 
+type ViewMode = "select" | "s3-form";
+
 export function SigninAccountDialog({ open, onOpenChange, onAccountAdded }: SigninAccountDialogProps) {
 	const isMounted = useIsMounted();
 	const pathname = usePathname();
 	const [callbackURL, setCallbackURL] = useState<string>("");
+	const [viewMode, setViewMode] = useState<ViewMode>("select");
 	const [isLoading, setIsLoading] = useState<Record<DriveProvider, boolean>>({
 		google: false,
 		microsoft: false,
+		s3: false,
 	});
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
@@ -32,6 +39,13 @@ export function SigninAccountDialog({ open, onOpenChange, onAccountAdded }: Sign
 			setCallbackURL(callbackURL);
 		}
 	}, [isMounted, pathname]);
+
+	// Reset view mode when dialog closes
+	useEffect(() => {
+		if (!open) {
+			setViewMode("select");
+		}
+	}, [open]);
 
 	const handleSocialAuth = async (provider: DriveProvider) => {
 		try {
@@ -52,33 +66,72 @@ export function SigninAccountDialog({ open, onOpenChange, onAccountAdded }: Sign
 		}
 	};
 
+	const handleS3Success = () => {
+		onAccountAdded();
+		onOpenChange(false);
+	};
+
+	const handleS3Cancel = () => {
+		setViewMode("select");
+	};
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[425px]">
+			<DialogContent className="sm:max-w-[500px]">
 				<DialogHeader>
-					<DialogTitle>Sign in with an account</DialogTitle>
-					<DialogDescription>Connect a social account to sign in with it later.</DialogDescription>
+					{viewMode === "s3-form" && (
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => setViewMode("select")}
+							className="absolute top-6 left-6 h-8 w-8 p-0"
+						>
+							<ArrowLeft className="h-4 w-4" />
+						</Button>
+					)}
+					<DialogTitle>{viewMode === "select" ? "Sign in with an account" : "Add S3 Account"}</DialogTitle>
+					<DialogDescription>
+						{viewMode === "select"
+							? "Connect a social account to sign in with it later."
+							: "Enter your S3 credentials to connect your bucket."}
+					</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex flex-col gap-4 py-4">
-					<SocialAuthButton
-						provider="google"
-						action="signin"
-						onClick={() => handleSocialAuth("google")}
-						disabled={isLoading.google}
-					>
-						{isLoading.google && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-					</SocialAuthButton>
+				{viewMode === "select" ? (
+					<div className="flex flex-col gap-4 py-4">
+						<SocialAuthButton
+							provider="google"
+							action="signin"
+							onClick={() => handleSocialAuth("google")}
+							disabled={isLoading.google}
+						>
+							{isLoading.google && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+						</SocialAuthButton>
 
-					<SocialAuthButton
-						provider="microsoft"
-						action="signin"
-						onClick={() => handleSocialAuth("microsoft")}
-						disabled={isLoading.microsoft}
-					>
-						{isLoading.microsoft && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-					</SocialAuthButton>
-				</div>
+						<SocialAuthButton
+							provider="microsoft"
+							action="signin"
+							onClick={() => handleSocialAuth("microsoft")}
+							disabled={isLoading.microsoft}
+						>
+							{isLoading.microsoft && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+						</SocialAuthButton>
+
+						<Button
+							variant="outline"
+							onClick={() => setViewMode("s3-form")}
+							disabled={isLoading.s3}
+							className="flex items-center gap-2"
+						>
+							<Cloud className="h-4 w-4" />
+							Amazon S3 / S3-Compatible
+						</Button>
+					</div>
+				) : (
+					<div className="py-4">
+						<S3AccountForm onSuccess={handleS3Success} onCancel={handleS3Cancel} />
+					</div>
+				)}
 			</DialogContent>
 		</Dialog>
 	);
