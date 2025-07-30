@@ -1,5 +1,11 @@
 # @nimbus/web
 
+## 0.0.3
+
+### Patch Changes
+
+- 83b4c87: fixed legal pages and footer. mostly CSS.
+
 ## 0.0.2
 
 ### Patch Changes
