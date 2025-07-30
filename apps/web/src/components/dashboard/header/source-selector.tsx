@@ -14,9 +14,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronsUpDown, Plus } from "lucide-react";
 import GoogleDriveIcon from "@/public/googledrive";
 import { Button } from "@/components/ui/button";
-import { NimbusLogo } from "@/components/icons";
 import OneDriveIcon from "@/public/onedrive";
 import { useEffect, useState } from "react";
+import { Logo } from "@/components/icons";
 
 export function providerToIcon(providerId: string) {
 	switch (providerId) {
@@ -25,7 +25,7 @@ export function providerToIcon(providerId: string) {
 		case "microsoft":
 			return <OneDriveIcon className="h-5 w-5" />;
 		default:
-			return <NimbusLogo className="h-5 w-5 text-black" />;
+			return <Logo className="h-5 w-5 text-black" />;
 	}
 }
 
@@ -34,7 +34,7 @@ export function SourceSelector() {
 	const { providerId, accountId, setDriveProviderById } = useAccountProvider();
 	const [isAddAccountDialogOpen, setIsAddAccountDialogOpen] = useState(false);
 	const [selectedAccountNickname, setSelectedAccountNickname] = useState<string | null>(null);
-	const [selectedIcon, setSelectedIcon] = useState(<NimbusLogo className="h-5 w-5 text-black" />);
+	const [selectedIcon, setSelectedIcon] = useState(<Logo className="h-5 w-5 text-black" />);
 
 	useEffect(() => {
 		if (providerId && accountId) {

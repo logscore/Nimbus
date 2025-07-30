@@ -1,7 +1,7 @@
-export { PdfIcon } from "./pdf-icon";
+export { Logo } from "./brand/logo";
 export { Discord } from "./discord";
+export { GitHub } from "./github";
 export { Google } from "./google";
 export { Microsoft } from "./microsoft";
+export { PdfIcon } from "./pdf-icon";
 export { XPlatform } from "./x";
-export { GitHub } from "./github";
-export { NimbusLogo } from "./brand/logo";
