@@ -24,6 +24,7 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 		appName: "Nimbus",
 		baseURL: env.BACKEND_URL,
 		trustedOrigins: [...env.TRUSTED_ORIGINS, env.BACKEND_URL],
+		// onApiError: { errorUrl: env.FRONTEND_URL },
 
 		// Ensure state is properly handled
 		state: {

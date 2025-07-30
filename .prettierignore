@@ -19,7 +19,6 @@
 cloudflare-env.d.ts
 
 # Generated files
-schema.ts
 drizzle/
 
 # Cache directories
