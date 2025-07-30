@@ -1,4 +1,4 @@
-import { boolean, foreignKey, index, integer, jsonb, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { boolean, foreignKey, index, integer, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 const defaultTimestamp = (name: string) => timestamp(name)
     .$defaultFn(() => /* @__PURE__ */ new Date())
@@ -65,7 +65,7 @@ export const account = pgTable("account", {
 export const verification = pgTable("verification", {
   id: text().primaryKey().notNull(),
   identifier: text().notNull(),
-  value: jsonb().notNull(),
+  value: text("value").notNull(),
   expiresAt: timestamp("expires_at", { mode: 'string' }).notNull(),
   createdAt: defaultTimestamp("created_at"),
   updatedAt: defaultTimestamp("updated_at"),
