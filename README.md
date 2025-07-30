@@ -102,7 +102,8 @@ Follow the instructions on the first step of this [guide](https://www.better-aut
 
 - Go to the <a href="https://portal.azure.com/" target="_blank"><b>Microsoft Azure Portal</b></a>.
 
-- Navigate to <b>Azure Active Directory</b> → <b>App registrations</b> → click <b>New registration</b>.
+- Navigate to <b>Azure Active Directory or Microsoft Entra ID</b> → <b>App registrations</b> → click <b>New
+  registration</b>.
 
 - Enter a name for your app.
 
