@@ -4,7 +4,7 @@ run-name: Deploying to ${{ github.event_name == 'workflow_dispatch' && github.ev
 on:
   pull_request:
     branches: [main]
-    types: [auto_merge_enabled]
+    types: [closed]
   workflow_run:
     workflows: ["Ready to Merge"]
     types: [completed]
@@ -175,6 +175,7 @@ jobs:
           bun run cf:build
           bun run cf:deploy:${{ env.WORKFLOW_DEPLOY_ENV }} | tee web-build.log
           tail_output=$(tail -n 4 web-build.log)
+          rm web-build.log
           echo "$tail_output"
           echo "tail_output<<EOF" >> $GITHUB_OUTPUT
           echo "$tail_output" >> $GITHUB_OUTPUT
