@@ -10,6 +10,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAccountProvider } from "@/components/providers/account-provider";
 import type { DriveProviderClient } from "@/utils/client";
+import { handleUnauthorizedError } from "@/utils/client";
 import { toast } from "sonner";
 
 export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: GetFilesSchema) {
@@ -18,9 +19,13 @@ export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: G
 		queryKey: ["files", providerId, accountId, parentId],
 		queryFn: async () => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
-			const response = await BASE_FILE_CLIENT.$get({
-				query: { parentId, pageSize: pageSize.toString(), pageToken, returnedValues },
-			});
+			const response = await handleUnauthorizedError(
+				() =>
+					BASE_FILE_CLIENT.$get({
+						query: { parentId, pageSize: pageSize.toString(), pageToken, returnedValues },
+					}),
+				"Failed to fetch files"
+			);
 			return await response.json();
 		},
 		enabled: !!providerId && !!accountId,
@@ -34,10 +39,14 @@ export function useGetFile({ fileId, returnedValues }: GetFileByIdSchema) {
 		queryKey: ["file", providerId, accountId, fileId],
 		queryFn: async () => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
-			const response = await BASE_FILE_CLIENT[":fileId"].$get({
-				param: { fileId: fileId },
-				query: { returnedValues },
-			});
+			const response = await handleUnauthorizedError(
+				() =>
+					BASE_FILE_CLIENT[":fileId"].$get({
+						param: { fileId: fileId },
+						query: { returnedValues },
+					}),
+				"Failed to fetch file"
+			);
 			return await response.json();
 		},
 		enabled: !!providerId && !!accountId,
@@ -51,9 +60,13 @@ export function useDeleteFile() {
 	return useMutation({
 		mutationFn: async ({ fileId }: DeleteFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
-			const response = await BASE_FILE_CLIENT.$delete({
-				query: { fileId },
-			});
+			const response = await handleUnauthorizedError(
+				() =>
+					BASE_FILE_CLIENT.$delete({
+						query: { fileId },
+					}),
+				"Failed to delete file"
+			);
 			return await response.json();
 		},
 		// Handles optimistic updates
@@ -87,9 +100,13 @@ export function useUpdateFile() {
 	return useMutation({
 		mutationFn: async ({ fileId, name }: UpdateFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
-			const response = await BASE_FILE_CLIENT.$put({
-				query: { fileId, name },
-			});
+			const response = await handleUnauthorizedError(
+				() =>
+					BASE_FILE_CLIENT.$put({
+						query: { fileId, name },
+					}),
+				"Failed to update file"
+			);
 			return await response.json();
 		},
 		// Handles optimistic updates
@@ -123,13 +140,17 @@ export function useCreateFolder() {
 	return useMutation({
 		mutationFn: async ({ name, mimeType, parent }: CreateFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
-			const response = await BASE_FILE_CLIENT.$post({
-				query: {
-					name,
-					mimeType,
-					parent,
-				},
-			});
+			const response = await handleUnauthorizedError(
+				() =>
+					BASE_FILE_CLIENT.$post({
+						query: {
+							name,
+							mimeType,
+							parent,
+						},
+					}),
+				"Failed to create folder"
+			);
 			return await response.json();
 		},
 		onSuccess: async () => {
@@ -151,20 +172,24 @@ export function useUploadFile() {
 		// mutationFn: async ({ file, parentId, onProgress }: UploadFileParams) => {
 		mutationFn: async ({ file, parentId }: UploadFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
-			const response = await BASE_FILE_CLIENT.upload.$post({
-				form: {
-					file,
-				},
-				query: {
-					parentId,
-				},
-				// onUploadProgress: progressEvent => {
-				// 	if (onProgress && progressEvent.total) {
-				// 		const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-				// 		onProgress(percentCompleted);
-				// 	}
-				// },
-			});
+			const response = await handleUnauthorizedError(
+				() =>
+					BASE_FILE_CLIENT.upload.$post({
+						form: {
+							file,
+						},
+						query: {
+							parentId,
+						},
+						// onUploadProgress: progressEvent => {
+						// 	if (onProgress && progressEvent.total) {
+						// 		const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+						// 		onProgress(percentCompleted);
+						// 	}
+						// },
+					}),
+				"Failed to upload file"
+			);
 
 			return await response.json();
 		},
@@ -197,12 +222,16 @@ export function useDownloadFile() {
 			onProgress?: (progress: number) => void;
 		}) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
-			const response = await BASE_FILE_CLIENT.download.$get({
-				query: {
-					fileId,
-					exportMimeType,
-				},
-			});
+			const response = await handleUnauthorizedError(
+				() =>
+					BASE_FILE_CLIENT.download.$get({
+						query: {
+							fileId,
+							exportMimeType,
+						},
+					}),
+				"Failed to download file"
+			);
 
 			if (!response.ok) {
 				const errorData = (await response.json().catch(() => ({}))) as { message?: string };

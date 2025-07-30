@@ -13,6 +13,10 @@ interface SuccessResponseOptions<T> {
 	status?: ContentfulStatusCode;
 }
 
+export function sendForbidden(c: Context, message?: string) {
+	return sendError(c, { message: message || "Forbidden", status: 403 });
+}
+
 export function sendUnauthorized(c: Context, message?: string) {
 	return sendError(c, { message: message || "Unauthorized", status: 401 });
 }

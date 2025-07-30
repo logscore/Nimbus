@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useAccountProvider } from "@/components/providers/account-provider";
-import { AddAccountDialog } from "@/components/settings/add-account-dialog";
+import { useAuth } from "@/components/providers/auth-context";
 import type { LimitedAccessAccount } from "@nimbus/shared";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import OneDriveIcon from "@/public/onedrive";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/icons";
+import { cn } from "@/lib/utils";
 
 export function providerToIcon(providerId: string) {
 	switch (providerId) {
@@ -32,7 +33,7 @@ export function providerToIcon(providerId: string) {
 export function SourceSelector() {
 	const { accounts, isLoading } = useUserInfoProvider();
 	const { providerId, accountId, setDriveProviderById } = useAccountProvider();
-	const [isAddAccountDialogOpen, setIsAddAccountDialogOpen] = useState(false);
+	const { openSignIn } = useAuth();
 	const [selectedAccountNickname, setSelectedAccountNickname] = useState<string | null>(null);
 	const [selectedIcon, setSelectedIcon] = useState(<Logo className="h-5 w-5 text-black" />);
 
@@ -70,7 +71,9 @@ export function SourceSelector() {
 					>
 						<div className="flex items-center gap-2">
 							{selectedIcon}
-							<span className="truncate capitalize">{selectedAccountNickname || providerId || "Select a source"}</span>
+							<span className={cn("truncate", !selectedAccountNickname ? "capitalize" : "")}>
+								{selectedAccountNickname || providerId || "Select a source"}
+							</span>
 						</div>
 						<ChevronsUpDown className="h-4 w-4 opacity-50" />
 					</Button>
@@ -103,22 +106,12 @@ export function SourceSelector() {
 						</div>
 					</ScrollArea>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem
-						onClick={() => setIsAddAccountDialogOpen(true)}
-						className="flex cursor-pointer items-center gap-2 font-medium"
-					>
+					<DropdownMenuItem onClick={openSignIn} className="flex cursor-pointer items-center gap-2 font-medium">
 						<Plus className="h-4 w-4" />
 						<span>Add source</span>
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
-			<AddAccountDialog
-				open={isAddAccountDialogOpen}
-				onOpenChange={setIsAddAccountDialogOpen}
-				onAccountAdded={() => {
-					// Refresh accounts list or update UI as needed
-				}}
-			/>
 		</>
 	);
 }

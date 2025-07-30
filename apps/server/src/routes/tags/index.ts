@@ -22,45 +22,27 @@ const tagsRouter = createDriveProviderRouter()
 	// Get all tags for the authenticated user
 	.get("/", async c => {
 		const user = c.var.user;
-		try {
-			const tags = await tagService.getUserTags(user.id);
-			return sendSuccess(c, { data: tags });
-		} catch (error) {
-			if (error instanceof Error) {
-				return sendError(c, error);
-			}
-		}
+		const tags = await tagService.getUserTags(user.id);
+		return sendSuccess(c, { data: tags });
 	})
 
 	// Get a specific tag by tag id (and the authenticated user id)
 	.get("/:id", zValidator("param", getTagByIdSchema), async c => {
 		const user = c.var.user;
 		const paramData = c.req.valid("param");
-		try {
-			const tag = await tagService.getTagById(paramData.id, user.id);
-			if (!tag) {
-				return sendError(c, { message: "Tag not found", status: 404 });
-			}
-			return sendSuccess(c, { data: tag });
-		} catch (error) {
-			if (error instanceof Error) {
-				return sendError(c, error);
-			}
+		const tag = await tagService.getTagById(paramData.id, user.id);
+		if (!tag) {
+			return sendError(c, { message: "Tag not found", status: 404 });
 		}
+		return sendSuccess(c, { data: tag });
 	})
 
 	// Create a new tag
 	.post("/", zValidator("json", createTagSchema), async c => {
 		const user = c.var.user;
 		const data = c.req.valid("json");
-		try {
-			const newTag = await tagService.createTag(user.id, data.name, data.color, data.parentId);
-			return sendSuccess(c, { data: newTag });
-		} catch (error) {
-			if (error instanceof Error) {
-				return sendError(c, error);
-			}
-		}
+		const newTag = await tagService.createTag(user.id, data.name, data.color, data.parentId);
+		return sendSuccess(c, { data: newTag });
 	})
 
 	// Update an existing tag
@@ -68,28 +50,25 @@ const tagsRouter = createDriveProviderRouter()
 		const user = c.var.user;
 		const paramData = c.req.valid("param");
 		const bodyData = c.req.valid("json");
-		try {
-			const updatedTag = await tagService.updateTag(paramData.id, user.id, bodyData);
-			return sendSuccess(c, { data: updatedTag });
-		} catch (error) {
-			if (error instanceof Error) {
-				return sendError(c, error);
-			}
-		}
+		const updatedTag = await tagService.updateTag(paramData.id, user.id, bodyData);
+		return sendSuccess(c, { data: updatedTag });
+	})
+
+	// Update an existing tag
+	.put("/:id", zValidator("param", updateTagParamSchema), zValidator("json", updateTagJsonSchema), async c => {
+		const user = c.var.user;
+		const paramData = c.req.valid("param");
+		const bodyData = c.req.valid("json");
+		const updatedTag = await tagService.updateTag(paramData.id, user.id, bodyData);
+		return sendSuccess(c, { data: updatedTag });
 	})
 
 	// Delete a tag
 	.delete("/:id", zValidator("param", deleteTagSchema), async c => {
 		const user = c.var.user;
 		const paramData = c.req.valid("param");
-		try {
-			await tagService.deleteTag(paramData.id, user.id);
-			return sendSuccess(c, { message: "Tag deleted successfully", status: 200 });
-		} catch (error) {
-			if (error instanceof Error) {
-				return sendError(c, error);
-			}
-		}
+		await tagService.deleteTag(paramData.id, user.id);
+		return sendSuccess(c, { message: "Tag deleted successfully" });
 	})
 
 	// Add tags to a file
@@ -101,14 +80,8 @@ const tagsRouter = createDriveProviderRouter()
 			const user = c.var.user;
 			const fileId = c.req.valid("param").fileId;
 			const tagIds = c.req.valid("json").tagIds;
-			try {
-				const fileTags = await tagService.addTagsToFile(fileId, tagIds, user.id);
-				return sendSuccess(c, { data: fileTags });
-			} catch (error) {
-				if (error instanceof Error) {
-					return sendError(c, error);
-				}
-			}
+			const fileTags = await tagService.addTagsToFile(fileId, tagIds, user.id);
+			return sendSuccess(c, { data: fileTags });
 		}
 	)
 
@@ -121,14 +94,8 @@ const tagsRouter = createDriveProviderRouter()
 			const user = c.var.user;
 			const fileId = c.req.valid("param").fileId;
 			const tagIds = c.req.valid("json").tagIds;
-			try {
-				await tagService.removeTagsFromFile(fileId, tagIds, user.id);
-				return sendSuccess(c, { message: "Tags removed from file successfully", status: 200 });
-			} catch (error) {
-				if (error instanceof Error) {
-					return sendError(c, error);
-				}
-			}
+			await tagService.removeTagsFromFile(fileId, tagIds, user.id);
+			return sendSuccess(c, { message: "Tags removed from file successfully" });
 		}
 	)
 
@@ -136,14 +103,8 @@ const tagsRouter = createDriveProviderRouter()
 	.get("/files/:fileId", zValidator("param", getFileByIdParamSchema), async c => {
 		const user = c.var.user;
 		const fileId = c.req.valid("param").fileId;
-		try {
-			const tags = await tagService.getFileTags(fileId, user.id);
-			return sendSuccess(c, { data: tags });
-		} catch (error) {
-			if (error instanceof Error) {
-				return sendError(c, error);
-			}
-		}
+		const tags = await tagService.getFileTags(fileId, user.id);
+		return sendSuccess(c, { data: tags });
 	});
 
 export default tagsRouter;

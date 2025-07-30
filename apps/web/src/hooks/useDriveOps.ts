@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CreatePinnedFile, DriveInfo, PinnedFile } from "@nimbus/shared";
 import { useAccountProvider } from "@/components/providers/account-provider";
+import { handleUnauthorizedError } from "@/utils/client";
 
 export const useDriveInfo = () => {
 	const { clientPromise, providerId, accountId } = useAccountProvider();
@@ -9,11 +10,10 @@ export const useDriveInfo = () => {
 		queryKey: ["driveInfo", providerId, accountId],
 		queryFn: async () => {
 			const client = await clientPromise;
-			const response = await client.api.drives.about.$get();
-
-			if (!response.ok) {
-				throw new Error("Failed to fetch drive info");
-			}
+			const response = await handleUnauthorizedError(
+				() => client.api.drives.about.$get(),
+				"Failed to fetch drive info"
+			);
 
 			const data = await response.json();
 			return data;
@@ -31,10 +31,11 @@ export const usePinnedFiles = () => {
 		queryKey: [PINNED_FILES_QUERY_KEY],
 		queryFn: async () => {
 			const client = await clientPromise;
-			const response = await client.api.drives.pinned.$get();
-			if (!response.ok) {
-				throw new Error("Failed to fetch pinned files");
-			}
+			const response = await handleUnauthorizedError(
+				() => client.api.drives.pinned.$get(),
+				"Failed to fetch pinned files"
+			);
+
 			const data = await response.json();
 			// Convert the raw data to match the PinnedFile type
 			return data.map(file => ({
@@ -56,12 +57,17 @@ export const usePinFile = () => {
 			const client = await clientPromise;
 			// wait till clientPromise is resolved
 			if (!accountId) return false;
-			const response = await client.api.drives.pinned.$post({
-				query: {
-					...data,
-					accountId,
-				},
-			});
+
+			const response = await handleUnauthorizedError(
+				() =>
+					client.api.drives.pinned.$post({
+						query: {
+							...data,
+							accountId,
+						},
+					}),
+				"Failed to pin file"
+			);
 
 			const res = await response.json();
 			return res.success;
@@ -79,11 +85,15 @@ export const useUnpinFile = () => {
 	return useMutation({
 		mutationFn: async (id: string) => {
 			const client = await clientPromise;
-			const response = await client.api.drives.pinned[":id"].$delete({
-				param: {
-					id,
-				},
-			});
+			const response = await handleUnauthorizedError(
+				() =>
+					client.api.drives.pinned[":id"].$delete({
+						param: {
+							id,
+						},
+					}),
+				"Failed to unpin file"
+			);
 
 			const res = await response.json();
 			return res.success;

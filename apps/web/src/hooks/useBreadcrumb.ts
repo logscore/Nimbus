@@ -2,6 +2,7 @@
 
 import { useAccountProvider } from "@/components/providers/account-provider";
 import type { DriveProviderClient } from "@/utils/client";
+import { handleUnauthorizedError } from "@/utils/client";
 import { useQuery } from "@tanstack/react-query";
 
 interface BreadcrumbItem {
@@ -18,14 +19,18 @@ export function useBreadcrumbPath(fileId?: string) {
 			if (!fileId) return [];
 
 			const breadcrumbs: BreadcrumbItem[] = [];
-			let currentId: string | undefined = fileId;
+			let currentId = fileId;
 
 			while (currentId !== "root") {
 				const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
-				const response = await BASE_FILE_CLIENT[":fileId"].$get({
-					param: { fileId: currentId },
-					query: { returnedValues: ["id", "name", "parents"] },
-				});
+				const response = await handleUnauthorizedError(
+					() =>
+						BASE_FILE_CLIENT[":fileId"].$get({
+							param: { fileId: currentId },
+							query: { returnedValues: ["id", "name", "parents"] },
+						}),
+					"Failed to fetch file"
+				);
 
 				const file = await response.json();
 
@@ -35,6 +40,7 @@ export function useBreadcrumbPath(fileId?: string) {
 						name: file.name,
 					});
 				}
+
 				currentId = file.parentId;
 			}
 

@@ -3,6 +3,7 @@ import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAccountProvider } from "@/components/providers/account-provider";
 import type { DriveProviderClient } from "@/utils/client";
+import { handleUnauthorizedError } from "@/utils/client";
 import type { File, Tag } from "@nimbus/shared";
 import { toast } from "sonner";
 
@@ -330,31 +331,39 @@ async function getBaseTagClient(clientPromise: Promise<DriveProviderClient>) {
 
 async function getTags(clientPromise: Promise<DriveProviderClient>): Promise<Tag[]> {
 	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
-	const response = await BASE_TAG_CLIENT.$get();
-	return (await response.json()) as Tag[];
+	const response = await handleUnauthorizedError(() => BASE_TAG_CLIENT.$get(), "Failed to fetch tags");
+	return await response.json();
 }
 
 async function createTag(data: CreateTagSchema, clientPromise: Promise<DriveProviderClient>): Promise<Tag> {
 	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
-	const response = await BASE_TAG_CLIENT.$post({ json: data });
-	return (await response.json()) as Tag;
+	const response = await handleUnauthorizedError(() => BASE_TAG_CLIENT.$post({ json: data }), "Failed to create tag");
+	return await response.json();
 }
 
 async function updateTag(data: UpdateTagSchema, clientPromise: Promise<DriveProviderClient>): Promise<Tag> {
 	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
 	const { id, ...updateData } = data;
-	const response = await BASE_TAG_CLIENT[":id"].$put({
-		param: { id },
-		json: updateData,
-	});
-	return (await response.json()) as Tag;
+	const response = await handleUnauthorizedError(
+		() =>
+			BASE_TAG_CLIENT[":id"].$put({
+				param: { id },
+				json: updateData,
+			}),
+		"Failed to update tag"
+	);
+	return await response.json();
 }
 
 async function deleteTag(id: string, clientPromise: Promise<DriveProviderClient>): Promise<void> {
 	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
-	await BASE_TAG_CLIENT[":id"].$delete({
-		param: { id },
-	});
+	await handleUnauthorizedError(
+		() =>
+			BASE_TAG_CLIENT[":id"].$delete({
+				param: { id },
+			}),
+		"Failed to delete tag"
+	);
 }
 
 async function addTagsToFile(
@@ -362,10 +371,14 @@ async function addTagsToFile(
 	clientPromise: Promise<DriveProviderClient>
 ): Promise<void> {
 	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
-	await BASE_TAG_CLIENT.files[":fileId"].$post({
-		param: { fileId: variables.fileId },
-		json: { tagIds: variables.tagIds },
-	});
+	await handleUnauthorizedError(
+		() =>
+			BASE_TAG_CLIENT.files[":fileId"].$post({
+				param: { fileId: variables.fileId },
+				json: { tagIds: variables.tagIds },
+			}),
+		"Failed to add tags to file"
+	);
 }
 
 async function removeTagsFromFile(
@@ -377,8 +390,12 @@ async function removeTagsFromFile(
 	clientPromise: Promise<DriveProviderClient>
 ): Promise<void> {
 	const BASE_TAG_CLIENT = await getBaseTagClient(clientPromise);
-	await BASE_TAG_CLIENT.files[":fileId"].$delete({
-		param: { fileId: variables.fileId },
-		json: { tagIds: variables.tagIds },
-	});
+	await handleUnauthorizedError(
+		() =>
+			BASE_TAG_CLIENT.files[":fileId"].$delete({
+				param: { fileId: variables.fileId },
+				json: { tagIds: variables.tagIds },
+			}),
+		"Failed to remove tags from file"
+	);
 }

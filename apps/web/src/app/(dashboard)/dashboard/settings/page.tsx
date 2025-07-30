@@ -27,7 +27,6 @@ export default function SettingsPage() {
 	const [isSaving, setIsSaving] = useState(false);
 	const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
 	const [previewUrl, setPreviewUrl] = useState<string | null>(user?.image || null);
-	const [isAddAccountDialogOpen, setIsAddAccountDialogOpen] = useState(false);
 
 	useEffect(() => {
 		if (user) {
@@ -168,8 +167,6 @@ export default function SettingsPage() {
 					onDisconnect={handleDisconnectAccount}
 					onSetDefault={handleSetDefaultAccount}
 					onUpdateAccount={handleUpdateAccount}
-					isAddAccountDialogOpen={isAddAccountDialogOpen}
-					onAddAccountDialogOpenChange={setIsAddAccountDialogOpen}
 				/>
 
 				<SecuritySection />

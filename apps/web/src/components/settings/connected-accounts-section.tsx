@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AddAccountDialog } from "@/components/settings/add-account-dialog";
 import { AlertCircle, Check, Edit, Loader2, Plus, X } from "lucide-react";
 import { nicknameSchema, type DriveProvider } from "@nimbus/shared";
+import { useAuth } from "@/components/providers/auth-context";
 import type { LimitedAccessAccount } from "@nimbus/shared";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,6 @@ interface ConnectedAccountsSectionProps {
 		tableAccountId: string,
 		nickname: string
 	) => Promise<void>;
-	isAddAccountDialogOpen: boolean;
-	onAddAccountDialogOpenChange: (open: boolean) => void;
 }
 
 interface EditingState {
@@ -129,9 +127,8 @@ export function ConnectedAccountsSection({
 	onDisconnect,
 	onSetDefault,
 	onUpdateAccount,
-	isAddAccountDialogOpen,
-	onAddAccountDialogOpenChange,
 }: ConnectedAccountsSectionProps) {
+	const { openSignIn } = useAuth();
 	const [editing, setEditing] = useState<EditingState | null>(null);
 	const [validationError, setValidationError] = useState<string | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
@@ -309,18 +306,10 @@ export function ConnectedAccountsSection({
 				</Table>
 			</CardContent>
 			<CardFooter className="flex justify-between">
-				<Button variant="outline" onClick={() => onAddAccountDialogOpenChange(true)}>
+				<Button variant="outline" onClick={openSignIn}>
 					<Plus className="mr-2 h-4 w-4" />
 					Add Account
 				</Button>
-
-				<AddAccountDialog
-					open={isAddAccountDialogOpen}
-					onOpenChange={onAddAccountDialogOpenChange}
-					onAccountAdded={() => {
-						// Toast will be handled by the parent
-					}}
-				/>
 			</CardFooter>
 		</Card>
 	);

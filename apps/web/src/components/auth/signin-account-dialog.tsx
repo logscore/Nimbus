@@ -9,13 +9,13 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
-type AddAccountDialogProps = {
+type SigninAccountDialogProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onAccountAdded: () => void;
 };
 
-export function AddAccountDialog({ open, onOpenChange, onAccountAdded }: AddAccountDialogProps) {
+export function SigninAccountDialog({ open, onOpenChange, onAccountAdded }: SigninAccountDialogProps) {
 	const isMounted = useIsMounted();
 	const pathname = usePathname();
 	const [callbackURL, setCallbackURL] = useState<string>("");
@@ -56,7 +56,7 @@ export function AddAccountDialog({ open, onOpenChange, onAccountAdded }: AddAcco
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-[425px]">
 				<DialogHeader>
-					<DialogTitle>Add an account</DialogTitle>
+					<DialogTitle>Sign in with an account</DialogTitle>
 					<DialogDescription>Connect a social account to sign in with it later.</DialogDescription>
 				</DialogHeader>
 

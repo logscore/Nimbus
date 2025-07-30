@@ -2,6 +2,7 @@
 
 import { ReactQueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { AppProviders } from "@/components/providers/app-providers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { siteConfig } from "@/utils/site-config";
 import OGImage from "@/public/images/og.png";
@@ -82,12 +83,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 				suppressHydrationWarning
 			>
 				<ReactQueryProvider>
-					<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-						<div className="relative min-h-screen">
-							<main className="flex flex-1 justify-center">{children}</main>
-							<Toaster position="top-center" richColors theme="system" />
-						</div>
-					</ThemeProvider>
+					<AppProviders>
+						<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+							<div className="relative min-h-screen">
+								<main className="flex flex-1 justify-center">{children}</main>
+								<Toaster position="top-center" richColors theme="system" />
+							</div>
+						</ThemeProvider>
+					</AppProviders>
 				</ReactQueryProvider>
 			</body>
 		</html>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from "@/components/ui/breadcrumb";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBreadcrumbPath } from "@/hooks/useBreadcrumb";
 import { SourceSelector } from "./source-selector";
