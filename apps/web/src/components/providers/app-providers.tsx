@@ -15,11 +15,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 	return (
 		<>
 			{children}
-			<SigninAccountDialog
-				open={showSignIn}
-				onOpenChange={open => (open ? openSignIn() : closeSignIn())}
-				onAccountAdded={() => window.location.reload()}
-			/>
+			<SigninAccountDialog open={showSignIn} onOpenChange={open => (open ? openSignIn() : closeSignIn())} />
 		</>
 	);
 }

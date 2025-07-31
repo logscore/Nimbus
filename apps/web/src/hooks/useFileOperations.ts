@@ -256,7 +256,7 @@ export function useDownloadFile() {
 
 			if (response.body && total > 0) {
 				const reader = response.body.getReader();
-				const chunks: Uint8Array[] = [];
+				const chunks: BlobPart[] = [];
 
 				while (true) {
 					const { done, value } = await reader.read();

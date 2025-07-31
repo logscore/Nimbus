@@ -12,10 +12,9 @@ import { Loader2 } from "lucide-react";
 type SigninAccountDialogProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onAccountAdded: () => void;
 };
 
-export function SigninAccountDialog({ open, onOpenChange, onAccountAdded }: SigninAccountDialogProps) {
+export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogProps) {
 	const isMounted = useIsMounted();
 	const pathname = usePathname();
 	const [callbackURL, setCallbackURL] = useState<string>("");
@@ -43,7 +42,6 @@ export function SigninAccountDialog({ open, onOpenChange, onAccountAdded }: Sign
 				await signInWithMicrosoftProvider({ callbackURL });
 			}
 
-			onAccountAdded();
 			onOpenChange(false);
 		} catch (error) {
 			console.error(`Error signing in with ${provider}:`, error);
