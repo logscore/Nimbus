@@ -9,8 +9,9 @@ set -euo pipefail
 bun run changeset version
 
 # 2 Update lockfile and amend commit
-bun update --lockfile-only
+bun update
 git add bun.lock*
+git restore .
 message="$(git log -1 --pretty=%B)$(echo -e '\nchore: updating dependencies via bun update --lockfile-only')"
 git commit --amend -m "$message"
 
