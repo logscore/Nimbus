@@ -1,5 +1,19 @@
 # @nimbus/server
 
+## 0.0.5
+
+### Patch Changes
+
+- 45caeab: chore: add WRANGLER_DEV to .env.example chore: configure t3 env to switch NODE_ENV to production when
+  WRANGLER_DEV is "true" chore: update auth.ts to throw on error chore: update server.ts to load env from hono context
+  chore: update server.ts to include Cloudflare namespace types: Env, ExecutionContext
+- Updated dependencies [45caeab]
+  - @nimbus/auth@0.0.4
+  - @nimbus/env@0.0.3
+  - @nimbus/cache@0.0.3
+  - @nimbus/db@0.0.3
+  - @nimbus/shared@0.0.4
+
 ## 0.0.4
 
 ### Patch Changes

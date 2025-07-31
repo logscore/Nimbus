@@ -1,5 +1,11 @@
 # @nimbus/shared
 
+## 0.0.4
+
+### Patch Changes
+
+- @nimbus/db@0.0.3
+
 ## 0.0.3
 
 ### Patch Changes
