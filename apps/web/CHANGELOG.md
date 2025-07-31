@@ -1,5 +1,12 @@
 # @nimbus/web
 
+## 0.0.8
+
+### Patch Changes
+
+- f5ea8ad: fix: type error web build chore: update deps wrangler cloudflare fix: remove onAccountAdded since it doesn't
+  work as expected. needed to remove window reload since returning to the page is handled by OAuth callback
+
 ## 0.0.7
 
 ### Patch Changes

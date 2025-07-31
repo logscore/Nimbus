@@ -50,7 +50,7 @@
     },
     "apps/web": {
       "name": "@nimbus/web",
-      "version": "0.0.7",
+      "version": "0.0.8",
       "dependencies": {
         "@hookform/resolvers": "^5.2.1",
         "@nimbus/auth": "workspace:*",
