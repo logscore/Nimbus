@@ -22,7 +22,8 @@ const app = createPublicRouter()
 		})
 	)
 	.use("*", async (c, next) => {
-		const { env, db, redisClient, auth } = await ContextManager.getInstance().createContext();
+		const env = c.var.env;
+		const { db, redisClient, auth } = await ContextManager.getInstance().createContext();
 		c.set("db", db);
 		c.set("redisClient", redisClient);
 		c.set("auth", auth);
@@ -31,7 +32,7 @@ const app = createPublicRouter()
 		} finally {
 			// WARNING: make sure to add WRANGLER_DEV to .dev.vars for wrangler dev
 			// for local dev, always keep context open UNLESS wrangler dev, close context
-			if (env.IS_EDGE_RUNTIME && (env.NODE_ENV === "production" || process.env.WRANGLER_DEV === "true")) {
+			if (env.IS_EDGE_RUNTIME && (env.NODE_ENV === "production" || env.WRANGLER_DEV)) {
 				await ContextManager.getInstance().close();
 			}
 		}
@@ -41,10 +42,9 @@ const app = createPublicRouter()
 
 export type AppType = typeof app;
 
-// Create a wrapper that handles the environment initialization
 const handler = {
 	port: process.env.SERVER_PORT,
-	async fetch(request: Request, env: any, ctx: any) {
+	async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
 		return app.fetch(request, env, ctx);
 	},
 };

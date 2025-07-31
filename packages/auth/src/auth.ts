@@ -26,7 +26,7 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 		trustedOrigins: [...env.TRUSTED_ORIGINS, env.BACKEND_URL],
 		onApiError: {
 			// errorUrl: env.FRONTEND_URL,
-			// throwError: true,
+			throwError: true,
 			onError: (error: unknown, ctx: AuthContext) => {
 				console.error("API error", error, ctx);
 			},
@@ -105,14 +105,15 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 		},
 
 		secondaryStorage: {
+			// better-auth expects a JSON string
 			get: async (key: string) => {
 				if (env.IS_EDGE_RUNTIME) {
 					const value = await (redisClient as UpstashRedis).get(key);
 					const string = JSON.stringify(value);
-					return string as string | null;
+					return string;
 				} else {
 					const value = await (redisClient as ValkeyRedis).get(key);
-					return value as string | null;
+					return value;
 				}
 			},
 			set: async (key: string, value: string, ttl?: number) => {

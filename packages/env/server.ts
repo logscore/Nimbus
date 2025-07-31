@@ -11,10 +11,18 @@ export function createEnv(runtimeEnv: NodeJS.ProcessEnv) {
 			// Required
 
 			// Node environment
-			NODE_ENV: z.enum(["development", "production", "test"]),
+			NODE_ENV: z
+				.enum(["development", "production", "test"])
+				.transform(val => (runtimeEnv.WRANGLER_DEV === "true" ? "production" : val)),
 
 			// Edge environment
 			IS_EDGE_RUNTIME: z
+				.literal("true")
+				.or(z.literal("false"))
+				.transform(val => val === "true")
+				.default(false),
+
+			WRANGLER_DEV: z
 				.literal("true")
 				.or(z.literal("false"))
 				.transform(val => val === "true")
