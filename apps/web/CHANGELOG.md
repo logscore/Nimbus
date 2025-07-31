@@ -1,5 +1,11 @@
 # @nimbus/web
 
+## 0.0.7
+
+### Patch Changes
+
+- b9d0d3f: feat: removed middleware.ts and create client side routing.
+
 ## 0.0.6
 
 ### Patch Changes
