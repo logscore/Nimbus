@@ -3,7 +3,7 @@ import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
 import { createPublicRouter } from "../../hono";
 import { waitlist } from "@nimbus/db/schema";
-import { count, eq } from "drizzle-orm";
+import { count } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 const waitlistRouter = createPublicRouter()
@@ -29,12 +29,9 @@ const waitlistRouter = createPublicRouter()
 			try {
 				const email = c.req.valid("json").email;
 
-				const existing = await c.var.db
-					.select()
-					.from(waitlist)
-					.where(eq(waitlist.email, email.toLowerCase().trim()))
-					.limit(1)
-					.then(rows => rows[0]);
+				const existing = await c.var.db.query.waitlist.findFirst({
+					where: (table, { eq }) => eq(table.email, email.toLowerCase().trim()),
+				});
 
 				if (existing) {
 					return sendError(c, { message: "This email is already on the waitlist", status: 400 });

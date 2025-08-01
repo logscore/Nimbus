@@ -16,7 +16,10 @@ export class TagService {
 	// Get all tags for a user with file counts
 	async getUserTags(userId: string): Promise<Tag[]> {
 		// Get all tags for the user
-		const userTags = await this.c.var.db.select().from(tag).where(eq(tag.userId, userId)).orderBy(tag.name);
+		const userTags = await this.c.var.db.query.tag.findMany({
+			where: (table, { eq }) => eq(table.userId, userId),
+			orderBy: (table, { asc }) => asc(table.name),
+		});
 
 		// Get file counts for each tag
 		const tagsWithCounts = await Promise.all(
@@ -42,21 +45,16 @@ export class TagService {
 
 	// Get a specific tag by ID
 	async getTagById(tagId: string, userId: string): Promise<Tag | null> {
-		const tagRecord = await this.c.var.db
-			.select()
-			.from(tag)
-			.where(and(eq(tag.id, tagId), eq(tag.userId, userId)))
-			.limit(1);
+		const record = await this.c.var.db.query.tag.findFirst({
+			where: (table, { and, eq }) => and(eq(table.id, tagId), eq(table.userId, userId)),
+		});
 
-		if (!tagRecord.length) return null;
+		if (!record) return null;
 
 		const fileCount = await this.c.var.db
 			.select({ count: count() })
 			.from(fileTag)
 			.where(and(eq(fileTag.tagId, tagId), eq(fileTag.userId, userId)));
-
-		const record = tagRecord[0];
-		if (!record) return null;
 
 		return {
 			id: record.id,
@@ -85,9 +83,11 @@ export class TagService {
 			? and(eq(tag.name, name), eq(tag.userId, userId), eq(tag.parentId, parentId))
 			: and(eq(tag.name, name), eq(tag.userId, userId), isNull(tag.parentId));
 
-		const existingTag = await this.c.var.db.select().from(tag).where(existingTagQuery).limit(1);
+		const existingTag = await this.c.var.db.query.tag.findFirst({
+			where: existingTagQuery,
+		});
 
-		if (existingTag.length > 0) {
+		if (existingTag) {
 			throw new Error("Tag with this name already exists");
 		}
 
@@ -140,9 +140,11 @@ export class TagService {
 				? and(eq(tag.name, updates.name), eq(tag.userId, userId), eq(tag.parentId, newParentId))
 				: and(eq(tag.name, updates.name), eq(tag.userId, userId), isNull(tag.parentId));
 
-			const nameConflict = await this.c.var.db.select().from(tag).where(nameConflictQuery).limit(1);
+			const nameConflict = await this.c.var.db.query.tag.findFirst({
+				where: nameConflictQuery,
+			});
 
-			if (nameConflict.length > 0) {
+			if (nameConflict) {
 				throw new Error("Tag with this name already exists");
 			}
 		}
@@ -191,10 +193,10 @@ export class TagService {
 		}
 
 		// Check for existing associations
-		const existingAssociations = await this.c.var.db
-			.select()
-			.from(fileTag)
-			.where(and(eq(fileTag.fileId, fileId), inArray(fileTag.tagId, tagIds), eq(fileTag.userId, userId)));
+		const existingAssociations = await this.c.var.db.query.fileTag.findMany({
+			where: (table, { and, eq, inArray }) =>
+				and(eq(table.fileId, fileId), inArray(table.tagId, tagIds), eq(table.userId, userId)),
+		});
 
 		const existingTagIds = existingAssociations.map(assoc => assoc.tagId);
 		const newTagIds = tagIds.filter(tagId => !existingTagIds.includes(tagId));
@@ -239,21 +241,17 @@ export class TagService {
 
 	// Get all tags for a specific file
 	async getFileTags(fileId: string, userId: string): Promise<Tag[]> {
-		const fileTagAssociations = await this.c.var.db
-			.select({
-				tagId: fileTag.tagId,
-			})
-			.from(fileTag)
-			.where(and(eq(fileTag.fileId, fileId), eq(fileTag.userId, userId)));
+		const fileTagAssociations = await this.c.var.db.query.fileTag.findMany({
+			where: (table, { and, eq }) => and(eq(table.fileId, fileId), eq(table.userId, userId)),
+		});
 
 		const tagIds = fileTagAssociations.map(assoc => assoc.tagId);
 
 		if (tagIds.length === 0) return [];
 
-		const tags = await this.c.var.db
-			.select()
-			.from(tag)
-			.where(and(inArray(tag.id, tagIds), eq(tag.userId, userId)));
+		const tags = await this.c.var.db.query.tag.findMany({
+			where: (table, { and, inArray, eq }) => and(inArray(table.id, tagIds), eq(table.userId, userId)),
+		});
 
 		return tags.map(tagRecord => ({
 			...tagRecord,
@@ -265,10 +263,9 @@ export class TagService {
 
 	// Get all child tag IDs recursively
 	private async getAllChildTagIds(parentId: string, userId: string): Promise<string[]> {
-		const childTags = await this.c.var.db
-			.select({ id: tag.id })
-			.from(tag)
-			.where(and(eq(tag.parentId, parentId), eq(tag.userId, userId)));
+		const childTags = await this.c.var.db.query.tag.findMany({
+			where: (table, { and, eq }) => and(eq(table.parentId, parentId), eq(table.userId, userId)),
+		});
 
 		const childIds = childTags.map(tag => tag.id);
 		const grandChildIds = await Promise.all(childIds.map(childId => this.getAllChildTagIds(childId, userId)));

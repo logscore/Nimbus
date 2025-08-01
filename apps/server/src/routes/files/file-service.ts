@@ -43,12 +43,17 @@ export class FileService {
 			return null;
 		}
 
-		// Add tags to files
+		// Add tags to files, handling any tag retrieval failures
 		const filesWithTags = await Promise.all(
 			res.items.map(async item => {
 				if (!item.id) return { ...item, tags: [] };
-				const tags = await this.tagService.getFileTags(item.id, user.id);
-				return { ...item, tags };
+				try {
+					const tags = await this.tagService.getFileTags(item.id, user.id);
+					return { ...item, tags };
+				} catch (error) {
+					console.error(`Failed to get tags for file ${item.id}:`, error);
+					return { ...item, tags: [] };
+				}
 			})
 		);
 
