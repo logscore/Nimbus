@@ -1,5 +1,9 @@
-// Quick S3 Provider Test Script
-// Run with: bun apps/server/src/providers/s3/__tests__/basic.test.js
+/**
+ * S3 Provider Integration Test
+ * Validates S3Provider functionality with real AWS S3 service.
+ *
+ * Usage: bun apps/server/src/providers/s3/__tests__/basic.test.js
+ */
 
 import { S3Provider } from "../s3-provider";
 

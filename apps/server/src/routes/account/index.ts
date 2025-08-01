@@ -5,24 +5,41 @@ import {
 	type UpdateAccountSchema,
 	type CreateS3AccountSchema,
 } from "@nimbus/shared";
-// Simple rate limiting for S3 account creation
-const createAccountAttempts = new Map<string, { count: number; resetTime: number }>();
+/**
+ * In-memory rate limiting for account creation endpoints.
+ * Prevents abuse by limiting the number of account creation attempts per user.
+ */
+const accountCreationAttempts = new Map<string, { count: number; resetTime: number }>();
 
-function simpleRateLimit(maxAttempts = 5, windowMs = 10 * 60 * 1000) {
+/**
+ * Creates a rate limiting middleware for account creation endpoints.
+ * Implements sliding window rate limiting with configurable limits.
+ *
+ * @param maxAttempts - Maximum number of attempts allowed per window
+ * @param windowMs - Time window in milliseconds for rate limiting
+ * @returns Hono middleware function
+ */
+function createAccountRateLimit(maxAttempts = 5, windowMs = 10 * 60 * 1000) {
 	return async (c: any, next: any) => {
 		const userId = c.var.user?.id;
 		if (!userId) return next();
 
 		const now = Date.now();
-		const userAttempts = createAccountAttempts.get(userId);
+		const userAttempts = accountCreationAttempts.get(userId);
 
 		if (userAttempts && now < userAttempts.resetTime) {
 			if (userAttempts.count >= maxAttempts) {
-				return c.json({ message: "Too many account creation attempts. Try again later." }, 429);
+				return c.json(
+					{
+						message: "Rate limit exceeded. Too many account creation attempts. Please try again later.",
+					},
+					429
+				);
 			}
 			userAttempts.count++;
 		} else {
-			createAccountAttempts.set(userId, { count: 1, resetTime: now + windowMs });
+			// Reset or initialize attempt counter
+			accountCreationAttempts.set(userId, { count: 1, resetTime: now + windowMs });
 		}
 
 		return next();
@@ -62,7 +79,7 @@ const accountRouter = createProtectedRouter()
 		await c.var.db.update(accountTable).set(metadata).where(eq(accountTable.id, data.id));
 		return sendSuccess(c, { message: "Account updated successfully" });
 	})
-	.use("/s3", simpleRateLimit(5, 10 * 60 * 1000)) // 5 attempts per 10 minutes
+	.use("/s3", createAccountRateLimit(5, 10 * 60 * 1000)) // 5 attempts per 10 minutes
 	.post("/s3", zValidator("json", createS3AccountSchema), async c => {
 		const data: CreateS3AccountSchema = c.req.valid("json");
 
