@@ -32,7 +32,7 @@ export function SocialAuthButton({
 		<Button
 			variant="outline"
 			type="button"
-			className="w-full cursor-pointer justify-between shadow-lg shadow-blue-600/10 transition-all duration-300 hover:shadow-blue-600/20"
+			className="w-full cursor-pointer justify-between truncate shadow-md shadow-blue-600/20 transition-all duration-300 hover:shadow-sm hover:shadow-blue-600/20 dark:shadow-lg"
 			{...props}
 		>
 			<IconComponent />
