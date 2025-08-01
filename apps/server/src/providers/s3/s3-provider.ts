@@ -487,7 +487,8 @@ export class S3Provider implements Provider {
 	}
 
 	private buildKey(parentId: string, name: string): string {
-		if (!parentId || parentId === "root") {
+		// Handle root directory - treat "root", "/", or empty string as bucket root
+		if (!parentId || parentId === "root" || parentId === "/") {
 			return name;
 		}
 		const prefix = parentId.endsWith("/") ? parentId : `${parentId}/`;
