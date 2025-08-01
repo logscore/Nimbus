@@ -3,9 +3,9 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
 import { useGoogleAuth, useMicrosoftAuth } from "@/hooks/useAuth";
+import { S3AccountForm } from "../settings/s3-account-form";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import type { DriveProvider } from "@nimbus/shared";
-import { S3AccountForm } from "./s3-account-form";
 import { Button } from "@/components/ui/button";
 import { Cloud, ArrowLeft } from "lucide-react";
 import { usePathname } from "next/navigation";

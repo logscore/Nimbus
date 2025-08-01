@@ -3,7 +3,7 @@
 import { createS3AccountSchema, type CreateS3AccountSchema, AWS_REGIONS } from "@nimbus/shared";
 import { FieldError } from "@/components/ui/field-error";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Select } from "@/components/ui/select";
+// Using HTML select for simplicity
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -83,14 +83,19 @@ export function S3AccountForm({ onSuccess, onCancel }: S3AccountFormProps) {
 
 			<div className="space-y-2">
 				<Label htmlFor="region">Region</Label>
-				<Select id="region" {...register("region")} disabled={isLoading}>
+				<select
+					id="region"
+					{...register("region")}
+					disabled={isLoading}
+					className="border-input placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+				>
 					<option value="">Select a region</option>
 					{AWS_REGIONS.map(region => (
 						<option key={region.value} value={region.value}>
 							{region.label}
 						</option>
 					))}
-				</Select>
+				</select>
 				<FieldError error={errors.region?.message} />
 			</div>
 
