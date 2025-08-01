@@ -1,5 +1,12 @@
 # @nimbus/server
 
+## 0.0.6
+
+### Patch Changes
+
+- 030752f: fix: 5.8.3 is preferred Typescript version rn fix: added error handling to filesWithTags. improved query
+  consitency
+
 ## 0.0.5
 
 ### Patch Changes

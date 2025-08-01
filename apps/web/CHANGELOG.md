@@ -1,5 +1,12 @@
 # @nimbus/web
 
+## 0.0.9
+
+### Patch Changes
+
+- Updated dependencies [030752f]
+  - @nimbus/server@0.0.6
+
 ## 0.0.8
 
 ### Patch Changes
