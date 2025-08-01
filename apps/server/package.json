@@ -10,7 +10,7 @@
 		"dev": "bun --watch src/index.ts",
 		"dev:hot": "bun --hot src/index.ts",
 		"check": "tsc --noEmit",
-		"build": "bun run check && bun build src/index.ts --target bun --outdir dist",
+		"build": "bun run check && bun build src/index.ts --target bun --minify --outdir dist",
 		"start": "bun dist/index.js",
 		"cf:dev": "sudo wrangler dev",
 		"cf:deploy:preview": "wrangler deploy --env preview",
