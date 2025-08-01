@@ -62,18 +62,18 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 					disabled={isLoading}
 				/>
 
-				<div className="text-muted-foreground text-center text-sm">OR</div>
+				<div className="text-muted-foreground text-center font-mono text-sm font-semibold tracking-wider">OR</div>
 
 				<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-					<div className="space-y-2">
-						<Label htmlFor="email" className="text-muted-foreground text-sm font-semibold">
+					<div className="space-y-1">
+						<Label htmlFor="email" className="dark:text-muted-foreground text-sm font-semibold">
 							Email
 						</Label>
 						<Input
 							id="email"
 							type="email"
 							placeholder="example@0.email"
-							className="shadow-md"
+							className=""
 							{...register("email")}
 							aria-invalid={!!errors.email}
 							autoComplete="email"
@@ -81,8 +81,8 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 						<FieldError error={errors.email?.message} />
 					</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="password" className="text-muted-foreground text-sm font-semibold">
+					<div className="space-y-1">
+						<Label htmlFor="password" className="dark:text-muted-foreground text-sm font-semibold">
 							Password
 						</Label>
 						<PasswordInput
@@ -96,14 +96,18 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 						<FieldError error={errors.password?.message} />
 					</div>
 
-					<div className="flex items-center justify-between">
-						<div className="flex items-center space-x-2">
+					<div className="mt-1 flex items-center justify-between">
+						<div className="flex flex-1 items-center space-x-2">
 							<Checkbox
 								id="remember"
 								{...register("remember")}
 								onCheckedChange={checked => setValue("remember", !!checked)}
+								defaultChecked={true}
 							/>
-							<Label htmlFor="remember" className="text-muted-foreground cursor-pointer text-sm">
+							<Label
+								htmlFor="remember"
+								className="text-muted-foreground line-clamp-1 cursor-pointer overflow-hidden text-sm"
+							>
 								Remember me
 							</Label>
 						</div>

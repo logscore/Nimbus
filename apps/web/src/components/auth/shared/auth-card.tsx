@@ -35,7 +35,7 @@ export function AuthCard({ title, description, navigationType, children, classNa
 					</div>
 				</CardHeader>
 
-				<CardContent className="px-6">{children}</CardContent>
+				<CardContent className="px-5">{children}</CardContent>
 
 				<CardFooter className="px-6 py-4">
 					<p className="w-full text-center text-sm text-neutral-600">
