@@ -1,13 +1,13 @@
 "use client";
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createS3AccountSchema, type CreateS3AccountSchema, AWS_REGIONS } from "@nimbus/shared";
 import { FieldError } from "@/components/ui/field-error";
 import { zodResolver } from "@hookform/resolvers/zod";
-// Using HTML select for simplicity
+import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
@@ -23,6 +23,7 @@ export function S3AccountForm({ onSuccess, onCancel }: S3AccountFormProps) {
 	const {
 		register,
 		handleSubmit,
+		control,
 		formState: { errors },
 	} = useForm<CreateS3AccountSchema>({
 		resolver: zodResolver(createS3AccountSchema),
@@ -83,19 +84,24 @@ export function S3AccountForm({ onSuccess, onCancel }: S3AccountFormProps) {
 
 			<div className="space-y-2">
 				<Label htmlFor="region">Region</Label>
-				<select
-					id="region"
-					{...register("region")}
-					disabled={isLoading}
-					className="border-input placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-				>
-					<option value="">Select a region</option>
-					{AWS_REGIONS.map(region => (
-						<option key={region.value} value={region.value}>
-							{region.label}
-						</option>
-					))}
-				</select>
+				<Controller
+					name="region"
+					control={control}
+					render={({ field }) => (
+						<Select disabled={isLoading} onValueChange={field.onChange} value={field.value}>
+							<SelectTrigger>
+								<SelectValue placeholder="Select a region" />
+							</SelectTrigger>
+							<SelectContent>
+								{AWS_REGIONS.map(region => (
+									<SelectItem key={region.value} value={region.value}>
+										{region.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					)}
+				/>
 				<FieldError error={errors.region?.message} />
 			</div>
 

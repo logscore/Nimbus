@@ -5,9 +5,29 @@ import {
 	type UpdateAccountSchema,
 	type CreateS3AccountSchema,
 } from "@nimbus/shared";
-// TODO: Re-enable rate limiting when middleware is properly configured
-// import { accountCreationRateLimiter } from "@nimbus/cache/rate-limiters";
-// import { buildSecurityMiddleware } from "../../middleware/security";
+// Simple rate limiting for S3 account creation
+const createAccountAttempts = new Map<string, { count: number; resetTime: number }>();
+
+function simpleRateLimit(maxAttempts = 5, windowMs = 10 * 60 * 1000) {
+	return async (c: any, next: any) => {
+		const userId = c.var.user?.id;
+		if (!userId) return next();
+
+		const now = Date.now();
+		const userAttempts = createAccountAttempts.get(userId);
+
+		if (userAttempts && now < userAttempts.resetTime) {
+			if (userAttempts.count >= maxAttempts) {
+				return c.json({ message: "Too many account creation attempts. Try again later." }, 429);
+			}
+			userAttempts.count++;
+		} else {
+			createAccountAttempts.set(userId, { count: 1, resetTime: now + windowMs });
+		}
+
+		return next();
+	};
+}
 import { account as accountTable } from "@nimbus/db/schema";
 import { createProtectedRouter } from "../../hono";
 import { sendSuccess, sendError } from "../utils";
@@ -42,8 +62,7 @@ const accountRouter = createProtectedRouter()
 		await c.var.db.update(accountTable).set(metadata).where(eq(accountTable.id, data.id));
 		return sendSuccess(c, { message: "Account updated successfully" });
 	})
-	// TODO: Re-enable rate limiting middleware
-	// .use("/s3", buildSecurityMiddleware(...))
+	.use("/s3", simpleRateLimit(5, 10 * 60 * 1000)) // 5 attempts per 10 minutes
 	.post("/s3", zValidator("json", createS3AccountSchema), async c => {
 		const data: CreateS3AccountSchema = c.req.valid("json");
 
