@@ -48,7 +48,14 @@ export const account = pgTable(
 		refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
 		scope: text("scope"),
 		password: text("password"),
+		// Additional field for nickname
 		nickname: text("nickname"),
+		// S3 Provider fields
+		s3AccessKeyId: text("s3_access_key_id"),
+		s3SecretAccessKey: text("s3_secret_access_key"),
+		s3Region: text("s3_region"),
+		s3BucketName: text("s3_bucket_name"),
+		s3Endpoint: text("s3_endpoint"),
 		createdAt: defaultTimestamp("created_at"),
 		updatedAt: defaultTimestamp("updated_at"),
 	},

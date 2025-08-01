@@ -4,7 +4,6 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import type { Redis as ValkeyRedis } from "iovalkey";
 import type { RedisClient } from "@nimbus/cache";
-import { providerSchema } from "@nimbus/shared";
 import type { Env } from "@nimbus/env/server";
 import { sendMail } from "./utils/send-mail";
 import { type DB } from "@nimbus/db";
@@ -142,10 +141,10 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 					returned: true,
 					required: false,
 					unique: false,
-					validator: {
-						input: providerSchema,
-						output: providerSchema,
-					},
+					// validator: {
+					// 	input: providerSchema,
+					// 	output: providerSchema,
+					// },
 				},
 				defaultAccountId: {
 					type: "string",
