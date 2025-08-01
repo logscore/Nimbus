@@ -15,9 +15,9 @@ jobs:
       - name: Fetch all branches
         run: git fetch --all
 
-      - name: Wait for base PR checks to succeed
+      - name: Wait for CI checks to succeed
         uses: fountainhead/action-wait-for-check@master
-        id: wait-for-base-pr-checks
+        id: wait-for-ci-checks
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # IMPORTANT: If the check you're referencing is provided by another GitHub Actions workflow,
@@ -25,8 +25,8 @@ jobs:
           checkName: ci
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Fail if base PR checks did not succeed
-        if: steps.wait-for-base-pr-checks.outputs.conclusion != 'success'
+      - name: Fail if CI checks did not succeed
+        if: steps.wait-for-ci-checks.outputs.conclusion != 'success'
         run: exit 1
 
       - name: Check for Changesets
