@@ -106,6 +106,7 @@ const securityMiddleware = (options: SecurityOptions = {}) => {
 					`block-all-mixed-content;`
 			);
 		}
+
 		// Rate limiting
 		if (rateLimiting.enabled && rateLimiting.rateLimiter) {
 			const user = c.var.user;

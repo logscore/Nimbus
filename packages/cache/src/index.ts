@@ -9,10 +9,6 @@ export type RedisClient = UpstashRedis | ValkeyRedis;
 export type RateLimiter = UpstashRateLimit | ValkeyRateLimit;
 export type RedisClientData = { redisClient: RedisClient; closeRedisClient: () => Promise<void> };
 
-// Overload signatures
-export function createRedisClient(env: Env): RedisClientData;
-export function createRedisClient(env: Env): RedisClientData;
-
 // Implementation
 export function createRedisClient(env: Env): RedisClientData {
 	if (env.IS_EDGE_RUNTIME) {
@@ -26,7 +22,7 @@ export function createRedisClient(env: Env): RedisClientData {
 			token: env.UPSTASH_REDIS_REST_TOKEN,
 		});
 		return {
-			redisClient: redisClient,
+			redisClient,
 			closeRedisClient: async () => {},
 		};
 	} else {
