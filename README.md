@@ -21,10 +21,10 @@ bun i
 
 We use Docker to run a PostgreSQL database and Valkey for local development. Follow these steps to set it up:
 
-1. Copy .env.development.example to .env
+1. Copy .env.example to .env
 
 ```bash
-cp .env.development.example .env
+cp .env.example .env
 ```
 
 Copy .env to child directories

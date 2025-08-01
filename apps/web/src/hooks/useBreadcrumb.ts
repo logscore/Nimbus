@@ -46,7 +46,6 @@ export function useBreadcrumbPath(fileId?: string) {
 
 			return breadcrumbs;
 		},
-		enabled: !!fileId, // Only run the query if fileId exists
 		placeholderData: prevData => prevData,
 	});
 }
