@@ -256,7 +256,6 @@ export class S3Provider implements Provider {
 			});
 
 			const response = await this.s3.send(command);
-			console.dir({ response }, { depth: null });
 			const items: File[] = [];
 
 			if (response.CommonPrefixes) {
