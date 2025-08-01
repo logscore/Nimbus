@@ -3,6 +3,7 @@ import { access, constants, copyFile, readFile } from "node:fs/promises";
 import { getRootEnvFiles } from "./utils/glob-patterns";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { basename } from "node:path";
 import { glob } from "glob";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,7 +49,7 @@ async function main() {
 			return;
 		}
 
-		console.log(`🔍 Found .env files: ${envFiles.map(f => f.split("/").pop()).join(", ")}`);
+		console.log(`🔍 Found .env files: ${envFiles.map(f => basename(f)).join(", ")}`);
 
 		// Process each workspace pattern
 		for (const workspacePattern of packageJson.workspaces) {
@@ -73,7 +74,7 @@ async function main() {
 
 				// Copy each .env* file to the workspace
 				for (const envFile of envFiles) {
-					const fileName = envFile.split("/").pop()!;
+					const fileName = basename(envFile);
 					const destPath = join(workspaceDir, fileName);
 
 					if (isDryRun) {
