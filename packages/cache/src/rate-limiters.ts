@@ -1,8 +1,11 @@
 import { type RateLimiter, type RedisClient, UpstashRateLimit, ValkeyRateLimit } from "@nimbus/cache";
 import { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
-import type { SessionUser } from "@nimbus/auth";
 import { Redis as ValkeyRedis } from "iovalkey";
-import { isProduction } from "@nimbus/env";
+
+// Note: SessionUser type and isProduction not properly exported from packages
+// TODO: Fix imports when types are properly exported
+type SessionUser = { id: string };
+const isProduction = process.env.NODE_ENV === "production";
 
 interface RateLimiterConfig {
 	points: number;

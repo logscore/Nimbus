@@ -5,8 +5,9 @@ import {
 	type UpdateAccountSchema,
 	type CreateS3AccountSchema,
 } from "@nimbus/shared";
-import { accountCreationRateLimiter } from "@nimbus/cache/rate-limiters";
-import { buildUserSecurityMiddleware } from "../../middleware/security";
+// TODO: Re-enable rate limiting when middleware is properly configured
+// import { accountCreationRateLimiter } from "@nimbus/cache/rate-limiters";
+// import { buildSecurityMiddleware } from "../../middleware/security";
 import { account as accountTable } from "@nimbus/db/schema";
 import { createProtectedRouter } from "../../hono";
 import { sendSuccess, sendError } from "../utils";
@@ -41,7 +42,8 @@ const accountRouter = createProtectedRouter()
 		await c.var.db.update(accountTable).set(metadata).where(eq(accountTable.id, data.id));
 		return sendSuccess(c, { message: "Account updated successfully" });
 	})
-	.use("/s3", buildUserSecurityMiddleware(accountCreationRateLimiter))
+	// TODO: Re-enable rate limiting middleware
+	// .use("/s3", buildSecurityMiddleware(...))
 	.post("/s3", zValidator("json", createS3AccountSchema), async c => {
 		const data: CreateS3AccountSchema = c.req.valid("json");
 
