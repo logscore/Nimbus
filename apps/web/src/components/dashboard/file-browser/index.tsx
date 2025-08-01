@@ -79,12 +79,61 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 	const searchParams = useSearchParams();
 	const [sorting, setSorting] = useState<SortingState>([]);
 
+	const [filteredFiles, setFilteredFiles] = useState<File[]>([]);
+	const searchType = searchParams.get("type");
+
 	const safeFiles = useMemo(() => {
 		if (isLoading || !files || !Array.isArray(files)) {
 			return [];
 		}
-		return files;
-	}, [files, isLoading]);
+
+		let result = [...files];
+
+		// Apply type filter if specified
+		if (searchType) {
+			result = result.filter(file => {
+				const mimeType = file.mimeType?.toLowerCase() ?? "";
+				const fileName = file.name?.toLowerCase() ?? "";
+
+				switch (searchType) {
+					case "folder":
+						return mimeType === "application/vnd.google-apps.folder" || mimeType === "folder";
+					case "document":
+						return (
+							// Google Docs
+							mimeType.includes("application/vnd.google-apps.document") ||
+							mimeType.includes("application/vnd.google-apps.spreadsheet") ||
+							mimeType.includes("application/vnd.google-apps.presentation") ||
+							// Microsoft Office
+							mimeType.includes("officedocument") ||
+							mimeType.includes("msword") ||
+							// PDFs
+							mimeType.includes("pdf") ||
+							// Text files
+							mimeType.includes("text/") ||
+							// Common document extensions
+							/\.(doc|docx|xls|xlsx|ppt|pptx|pdf|txt|rtf|odt|ods|odp)$/i.test(fileName)
+						);
+					case "media":
+						return (
+							// Images
+							mimeType.includes("image/") ||
+							// Videos
+							mimeType.includes("video/") ||
+							// Audio
+							mimeType.includes("audio/") ||
+							// Common media extensions
+							/\.(jpg|jpeg|png|gif|bmp|webp|mp4|webm|mov|mp3|wav|ogg)$/i.test(fileName)
+						);
+					default:
+						return true;
+				}
+			});
+		}
+
+		setFilteredFiles(result);
+		return result;
+	}, [files, isLoading, searchType]);
 
 	const handleRowDoubleClick = (file: File): void => {
 		const fileType = file.mimeType.includes("folder") || file.mimeType === "folder" ? "folder" : "file";
@@ -223,8 +272,9 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 		[refetch, tags]
 	);
 
+	// <<<<<<< HEAD
 	const table = useReactTable({
-		data: safeFiles,
+		data: searchType ? filteredFiles : safeFiles,
 		columns,
 		state: {
 			sorting,
@@ -233,6 +283,77 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 	});
+	// =======
+	// // Local state for optimistic updates
+	// const [localFiles, setLocalFiles] = useState<_File[]>([]);
+	// const [originalFiles, setOriginalFiles] = useState<_File[]>([]);
+
+	// // Update local state when server data changes
+	// useEffect(() => {
+	// 	if (data) {
+	// 		let filteredFiles = [...data];
+
+	// 		if (type) {
+	// 			filteredFiles = data.filter((file: _File) => {
+	// 				const mimeType = file.mimeType?.toLowerCase() ?? "";
+	// 				const fileName = file.name?.toLowerCase() ?? "";
+
+	// 				switch (type) {
+	// 					case "folder":
+	// 						return mimeType === "application/vnd.google-apps.folder" || mimeType === "folder";
+	// 					case "document":
+	// 						return (
+	// 							// Google Docs
+	// 							mimeType.includes("application/vnd.google-apps.document") ||
+	// 							mimeType.includes("application/vnd.google-apps.spreadsheet") ||
+	// 							mimeType.includes("application/vnd.google-apps.presentation") ||
+	// 							// Microsoft Office
+	// 							mimeType.includes("officedocument") ||
+	// 							mimeType.includes("msword") ||
+	// 							// PDFs
+	// 							mimeType.includes("pdf") ||
+	// 							// Text files
+	// 							mimeType.includes("text/") ||
+	// 							// Common document extensions
+	// 							/\.(doc|docx|xls|xlsx|ppt|pptx|pdf|txt|rtf|odt|ods|odp)$/i.test(fileName)
+	// 						);
+	// 					case "media":
+	// 						return (
+	// 							// Images
+	// 							mimeType.includes("image/") ||
+	// 							// Videos
+	// 							mimeType.includes("video/") ||
+	// 							// Audio
+	// 							mimeType.includes("audio/") ||
+	// 							// Common media extensions
+	// 							/\.(jpg|jpeg|png|gif|bmp|webp|mp4|webm|mov|mp3|wav|ogg)$/i.test(fileName)
+	// 						);
+	// 					default:
+	// 						return true;
+	// 				}
+	// 			});
+	// 		}
+
+	// 		setLocalFiles(filteredFiles);
+	// 		setOriginalFiles(data);
+	// 	}
+	// }, [data, type]);
+
+	// // Optimistic delete handler
+	// const handleOptimisticDelete = (fileId: string) => {
+	// 	setLocalFiles(prev => prev.filter(file => file.id !== fileId));
+	// };
+
+	// // Optimistic rename handler
+	// const handleOptimisticRename = (fileId: string, newName: string) => {
+	// 	setLocalFiles(prev => prev.map(file => (file.id === fileId ? { ...file, name: newName } : file)));
+	// };
+
+	// // Rollback handler for errors
+	// const handleRollback = () => {
+	// 	setLocalFiles(originalFiles);
+	// };
+	// >>>>>>> 2701b21e7ec8ce9d8d0dd3dc407f7040bf5ad2e6
 
 	return (
 		<div className="flex flex-1 flex-col justify-end">
