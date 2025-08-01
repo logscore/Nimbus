@@ -161,7 +161,7 @@ export class S3Provider implements Provider {
 				await this.s3.send(
 					new CopyObjectCommand({
 						Bucket: this.bucketName,
-						CopySource: `${this.bucketName}/${id}`,
+						CopySource: encodeURIComponent(`${this.bucketName}/${id}`),
 						Key: newKey,
 						...(metadata.description && {
 							Metadata: { description: metadata.description },
@@ -184,7 +184,7 @@ export class S3Provider implements Provider {
 			await this.s3.send(
 				new CopyObjectCommand({
 					Bucket: this.bucketName,
-					CopySource: `${this.bucketName}/${id}`,
+					CopySource: encodeURIComponent(`${this.bucketName}/${id}`),
 					Key: id,
 					Metadata: {
 						...(metadata.description && { description: metadata.description }),
@@ -358,7 +358,7 @@ export class S3Provider implements Provider {
 			await this.s3.send(
 				new CopyObjectCommand({
 					Bucket: this.bucketName,
-					CopySource: `${this.bucketName}/${sourceId}`,
+					CopySource: encodeURIComponent(`${this.bucketName}/${sourceId}`),
 					Key: targetKey,
 				})
 			);
