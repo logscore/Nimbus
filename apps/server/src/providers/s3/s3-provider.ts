@@ -237,7 +237,13 @@ export class S3Provider implements Provider {
 
 	async listChildren(parentId = "", options: ListFilesOptions = {}): Promise<ListFilesResult> {
 		try {
-			const prefix = parentId ? (parentId.endsWith("/") ? parentId : `${parentId}/`) : "";
+			// Handle root directory - treat "root", "/", or empty string as bucket root
+			const normalizedParentId = !parentId || parentId === "root" || parentId === "/" ? "" : parentId;
+			const prefix = normalizedParentId
+				? normalizedParentId.endsWith("/")
+					? normalizedParentId
+					: `${normalizedParentId}/`
+				: "";
 			const delimiter = "/";
 
 			const command = new ListObjectsV2Command({
