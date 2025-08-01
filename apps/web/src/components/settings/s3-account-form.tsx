@@ -4,10 +4,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AWS_REGIONS, createS3AccountSchema, type CreateS3AccountSchema } from "@nimbus/shared";
 import { FieldError } from "@/components/ui/field-error";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
@@ -24,8 +24,8 @@ export function S3AccountForm({ onSuccess, onCancel }: S3AccountFormProps) {
 		register,
 		handleSubmit,
 		setValue,
-		watch,
 		formState: { errors },
+		control,
 	} = useForm<CreateS3AccountSchema>({
 		resolver: zodResolver(createS3AccountSchema),
 		defaultValues: {
@@ -97,18 +97,24 @@ export function S3AccountForm({ onSuccess, onCancel }: S3AccountFormProps) {
 
 			<div className="space-y-2">
 				<Label htmlFor="region">Region</Label>
-				<Select onValueChange={value => setValue("region", value)} value={watch("region") || ""} disabled={isLoading}>
-					<SelectTrigger id="region" className="w-full">
-						<SelectValue placeholder="Select a region" />
-					</SelectTrigger>
-					<SelectContent>
-						{AWS_REGIONS.map(region => (
-							<SelectItem key={region.value} value={region.value}>
-								{region.label}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
+				<Controller
+					name="region"
+					control={control}
+					render={({ field }) => (
+						<Select disabled={isLoading} onValueChange={field.onChange} value={field.value}>
+							<SelectTrigger>
+								<SelectValue placeholder="Select a region" />
+							</SelectTrigger>
+							<SelectContent>
+								{AWS_REGIONS.map(region => (
+									<SelectItem key={region.value} value={region.value}>
+										{region.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					)}
+				/>
 				<FieldError error={errors.region?.message} />
 			</div>
 
