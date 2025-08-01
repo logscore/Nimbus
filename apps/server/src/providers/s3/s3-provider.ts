@@ -238,7 +238,13 @@ export class S3Provider implements Provider {
 
 	async listChildren(parentId = "", options: ListFilesOptions = {}): Promise<ListFilesResult> {
 		try {
-			const prefix = parentId ? (parentId.endsWith("/") ? parentId : `${parentId}/`) : "";
+			// Handle root directory - treat "root", "/", or empty string as bucket root
+			const normalizedParentId = !parentId || parentId === "root" || parentId === "/" ? "" : parentId;
+			const prefix = normalizedParentId
+				? normalizedParentId.endsWith("/")
+					? normalizedParentId
+					: `${normalizedParentId}/`
+				: "";
 			const delimiter = "/";
 
 			const command = new ListObjectsV2Command({
@@ -483,7 +489,8 @@ export class S3Provider implements Provider {
 	}
 
 	private buildKey(parentId: string, name: string): string {
-		if (!parentId || parentId === "root") {
+		// Handle root directory - treat "root", "/", or empty string as bucket root
+		if (!parentId || parentId === "root" || parentId === "/") {
 			return name;
 		}
 		const prefix = parentId.endsWith("/") ? parentId : `${parentId}/`;
