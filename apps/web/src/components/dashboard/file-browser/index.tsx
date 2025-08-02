@@ -4,6 +4,7 @@ import {
 	Archive,
 	ChevronDown,
 	ChevronUp,
+	CloudUpload,
 	Code,
 	FileIcon,
 	FileSpreadsheet,
@@ -24,18 +25,23 @@ import {
 	type SortingState,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ALLOWED_MIME_TYPES, formatFileSize } from "@nimbus/shared";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState, type JSX } from "react";
 import { UploadButton } from "@/components/upload-button";
+import { useUploadFile } from "@/hooks/useFileOperations";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { AnimatePresence, motion } from "motion/react";
+import { Logo, PdfIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { formatFileSize } from "@nimbus/shared";
-import { PdfIcon } from "@/components/icons";
+import { useDropzone } from "react-dropzone";
 import { FileActions } from "./file-actions";
 import type { File } from "@nimbus/shared";
 import { useTags } from "@/hooks/useTags";
 import { FileTags } from "./file-tags";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 // Utility function for date formatting
 const formatDate = (dateString: string | null): string => {
@@ -355,8 +361,88 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 	// };
 	// >>>>>>> 2701b21e7ec8ce9d8d0dd3dc407f7040bf5ad2e6
 
+	const [isUploading, setIsUploading] = useState(false);
+
+	const { mutate: uploadFile, isPending } = useUploadFile();
+
+	const parentId = searchParams.get("folderId") ?? "root";
+
+	const {
+		getRootProps,
+		getInputProps,
+		isDragActive,
+		acceptedFiles,
+		fileRejections,
+		isDragAccept,
+		isDragReject,
+		isFileDialogActive,
+	} = useDropzone({
+		// accept: { "image/png": [".png"], "text/html": [".html", ".htm"] }, // TODO: Find the list of accepted MIME types and extensions
+		multiple: true,
+		noClick: true,
+		noKeyboard: true,
+		noDragEventsBubbling: true,
+		maxFiles: 2,
+		maxSize: 1024 * 1 * 1024 * 5, // 5MB
+		onDragEnter: event => {
+			console.log("onDragEnter");
+		},
+		onDragLeave: event => {
+			console.log("onDragLeave");
+		},
+
+		onDragOver: event => {
+			console.log("onDragOver");
+		},
+		onDrop: (acceptedFiles, fileRejections, event) => {
+			console.log(acceptedFiles);
+		},
+		onDropAccepted: files => {
+			files.forEach((file, index) => {
+				toast.loading(`Uploading ${index + 1} of ${files.length}`);
+				uploadFile(
+					{
+						file,
+						parentId,
+					},
+					{
+						onSuccess: () => {
+							setIsUploading(false);
+							toast.success(`Successfully uploaded ${files.length} ${files.length === 1 ? "file" : "files"}`);
+						},
+						onError: error => {
+							console.error("Upload error:", error);
+							setIsUploading(false);
+							toast.error(error.message ?? "Failed to upload file");
+						},
+					}
+				);
+			});
+		},
+		onDropRejected: (fileRejections, error) => {
+			fileRejections.forEach(fileRejection => {
+				toast.error(fileRejection.errors.map(error => error.message).join(", "));
+			});
+		},
+		onError: error => {
+			toast.error(error.message ?? "Failed to upload file");
+		},
+		onFileDialogCancel: () => {
+			console.log("onFileDialogCancel");
+			// The onFileDialogCancel() cb is unstable in most browsers, meaning, there's a good chance of it being triggered even though you have selected files
+		},
+		onFileDialogOpen: () => {
+			console.log("onFileDialogOpen");
+		},
+		validator: file => {
+			console.log(file);
+			// Returns (FileError | Array.<FileError> | null)
+			return null;
+		},
+	});
+
 	return (
-		<div className="flex flex-1 flex-col justify-end">
+		<div className="relative flex flex-1 flex-col justify-end">
 			<ScrollArea className="h-[740px] w-full px-2">
 				<Table>
 					<TableHeader className="hover:bg-transparent">
@@ -439,6 +525,29 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 					)}
 				</Table>
 			</ScrollArea>
+			<div
+				{...getRootProps({
+					className: cn(
+						"absolute inset-0 z-[100000000] flex flex-1 items-center justify-center rounded-xl transition-colors",
+						isDragActive && "border-3 border-blue-500 bg-blue-500/20"
+					),
+				})}
+			>
+				<input id="file-upload-handle" type="file" className="hidden" {...getInputProps()} />
+				<AnimatePresence>
+					{isDragActive && (
+						<motion.div
+							initial={{ opacity: 0, scale: 0.8, y: 20, filter: "blur(10px)" }}
+							animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+							exit={{ opacity: 0, scale: 0.8, y: 20, filter: "blur(10px)" }}
+							className="flex flex-col items-center justify-center gap-2 p-2"
+						>
+							<CloudUpload className="size-24" />
+							<p className="text-sm font-semibold">Drop files here to upload</p>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</div>
 		</div>
 	);
 }
