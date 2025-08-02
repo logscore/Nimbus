@@ -22,15 +22,18 @@ import {
 	getCoreRowModel,
 	getSortedRowModel,
 	useReactTable,
+	type Row,
 	type SortingState,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ALLOWED_MIME_TYPES, formatFileSize } from "@nimbus/shared";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import React, { useMemo, useState, type JSX } from "react";
 import { UploadButton } from "@/components/upload-button";
 import { useUploadFile } from "@/hooks/useFileOperations";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import DragNDropUploader from "./drag-n-drop-uploader";
 import { AnimatePresence, motion } from "motion/react";
 import { Logo, PdfIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -361,196 +364,147 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 	// };
 	// >>>>>>> 2701b21e7ec8ce9d8d0dd3dc407f7040bf5ad2e6
 
-	const [isUploading, setIsUploading] = useState(false);
-
-	const { mutate: uploadFile, isPending } = useUploadFile();
-
-	const parentId = searchParams.get("folderId") ?? "root";
-
-	const {
-		getRootProps,
-		getInputProps,
-		isDragActive,
-		acceptedFiles,
-		fileRejections,
-		isDragAccept,
-		isDragReject,
-		isFileDialogActive,
-	} = useDropzone({
-		// accept: { "image/png": [".png"], "text/html": [".html", ".htm"] }, // TODO: Find the list of accepted MIME types and extensions
-		multiple: true,
-		noClick: true,
-		noKeyboard: true,
-		noDragEventsBubbling: true,
-		maxFiles: 2,
-		maxSize: 1024 * 1 * 1024 * 5, // 5MB
-		onDragEnter: event => {
-			console.log("onDragEnter");
-		},
-		onDragLeave: event => {
-			console.log("onDragLeave");
-		},
-
-		onDragOver: event => {
-			console.log("onDragOver");
-		},
-		onDrop: (acceptedFiles, fileRejections, event) => {
-			console.log(acceptedFiles);
-		},
-		onDropAccepted: files => {
-			files.forEach((file, index) => {
-				toast.loading(`Uploading ${index + 1} of ${files.length}`);
-				uploadFile(
-					{
-						file,
-						parentId,
-					},
-					{
-						onSuccess: () => {
-							setIsUploading(false);
-							toast.success(`Successfully uploaded ${files.length} ${files.length === 1 ? "file" : "files"}`);
-						},
-						onError: error => {
-							console.error("Upload error:", error);
-							setIsUploading(false);
-							toast.error(error.message ?? "Failed to upload file");
-						},
-					}
-				);
-			});
-		},
-		onDropRejected: (fileRejections, error) => {
-			fileRejections.forEach(fileRejection => {
-				toast.error(fileRejection.errors.map(error => error.message).join(", "));
-			});
-		},
-		onError: error => {
-			toast.error(error.message ?? "Failed to upload file");
-		},
-		onFileDialogCancel: () => {
-			console.log("onFileDialogCancel");
-			// The onFileDialogCancel() cb is unstable in most browsers, meaning, there's a good chance of it being triggered even though you have selected files
-		},
-		onFileDialogOpen: () => {
-			console.log("onFileDialogOpen");
-		},
-		validator: file => {
-			console.log(file);
-			// Returns (FileError | Array.<FileError> | null)
-			return null;
-		},
-	});
-
 	return (
-		<div className="relative flex flex-1 flex-col justify-end">
-			<ScrollArea className="h-[740px] w-full px-2">
-				<Table>
-					<TableHeader className="hover:bg-transparent">
-						{table.getHeaderGroups().map(headerGroup => (
-							<TableRow key={headerGroup.id} className="h-6 hover:bg-transparent">
-								{headerGroup.headers.map(header => (
-									<TableHead
-										key={header.id}
-										className="whitespace-nowrap"
-										style={{
-											width:
-												header.id === "tags" || header.id === "size" || header.id === "modifiedTime"
-													? `${header.getSize()}px`
-													: undefined,
-										}}
-									>
-										{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-									</TableHead>
-								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					{error ? (
-						<TableBody>
-							<TableRow className="hover:bg-transparent">
-								<TableCell colSpan={columns.length} className="h-[600px]">
-									<div className="flex h-full flex-col items-center justify-center gap-3">
-										<h3>An error occured when getting your files. Please try again</h3>
-										<Button variant="outline" onClick={refetch}>
-											Try again
-										</Button>
-									</div>
-								</TableCell>
-							</TableRow>
-						</TableBody>
-					) : isLoading ? (
-						<TableBody>
-							<TableRow className="hover:bg-transparent">
-								<TableCell colSpan={columns.length} className="h-[600px]">
-									<div className="flex h-full flex-col items-center justify-center gap-2">
-										<Loader2 className="h-6 w-6 animate-spin" />
-										<p>Loading files</p>
-									</div>
-								</TableCell>
-							</TableRow>
-						</TableBody>
-					) : table.getRowModel().rows.length === 0 ? (
-						<TableBody>
-							<TableRow className="hover:bg-transparent">
-								<TableCell colSpan={columns.length} className="h-[600px]">
-									<div className="flex h-full flex-col items-center justify-center gap-2">
-										<p>No files found. Lets add one!</p>
-										<UploadButton name="Add File" />
-									</div>
-								</TableCell>
-							</TableRow>
-						</TableBody>
-					) : (
-						<TableBody>
-							{table.getRowModel().rows.map(row => (
-								<TableRow
-									key={row.id}
-									className="h-8 hover:bg-transparent"
-									onDoubleClick={() => handleRowDoubleClick(row.original)}
-								>
-									{row.getVisibleCells().map(cell => (
-										<TableCell
-											key={cell.id}
-											className="h-10 py-0 whitespace-nowrap"
+		<div className="relative flex flex-1 flex-col justify-start">
+			<DragNDropUploader>
+				<ScrollArea className="h-[740px] w-full px-2">
+					<Table>
+						<TableHeader className="hover:bg-transparent">
+							{table.getHeaderGroups().map(headerGroup => (
+								<TableRow key={headerGroup.id} className="h-6 hover:bg-transparent">
+									{headerGroup.headers.map(header => (
+										<TableHead
+											key={header.id}
+											className="whitespace-nowrap"
 											style={{
-												width: cell.column.id === "tags" || cell.column.id === "actions" ? "50px" : undefined,
+												width:
+													header.id === "tags" || header.id === "size" || header.id === "modifiedTime"
+														? `${header.getSize()}px`
+														: undefined,
 											}}
 										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
+											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+										</TableHead>
 									))}
 								</TableRow>
 							))}
-						</TableBody>
-					)}
-				</Table>
-			</ScrollArea>
-			<div
-				{...getRootProps({
-					className: cn(
-						"absolute inset-0 z-[100000000] flex flex-1 items-center justify-center rounded-xl transition-colors",
-						isDragActive && "border-3 border-blue-500 bg-blue-500/20"
-					),
-				})}
-			>
-				<input id="file-upload-handle" type="file" className="hidden" {...getInputProps()} />
-				<AnimatePresence>
-					{isDragActive && (
-						<motion.div
-							initial={{ opacity: 0, scale: 0.8, y: 20, filter: "blur(10px)" }}
-							animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-							exit={{ opacity: 0, scale: 0.8, y: 20, filter: "blur(10px)" }}
-							className="flex flex-col items-center justify-center gap-2 p-2"
-						>
-							<CloudUpload className="size-24" />
-							<p className="text-sm font-semibold">Drop files here to upload</p>
-						</motion.div>
-					)}
-				</AnimatePresence>
-			</div>
+						</TableHeader>
+						{error ? (
+							<TableBody>
+								<TableRow className="hover:bg-transparent">
+									<TableCell colSpan={columns.length} className="h-[600px]">
+										<div className="flex h-full flex-col items-center justify-center gap-3">
+											<h3>An error occured when getting your files. Please try again</h3>
+											<Button variant="outline" onClick={refetch}>
+												Try again
+											</Button>
+										</div>
+									</TableCell>
+								</TableRow>
+							</TableBody>
+						) : isLoading ? (
+							<TableBody>
+								<TableRow className="hover:bg-transparent">
+									<TableCell colSpan={columns.length} className="h-[600px]">
+										<div className="flex h-full flex-col items-center justify-center gap-2">
+											<Loader2 className="h-6 w-6 animate-spin" />
+											<p>Loading files</p>
+										</div>
+									</TableCell>
+								</TableRow>
+							</TableBody>
+						) : table.getRowModel().rows.length === 0 ? (
+							<TableBody>
+								<TableRow className="hover:bg-transparent">
+									<TableCell colSpan={columns.length} className="h-[600px]">
+										<div className="flex h-full flex-col items-center justify-center gap-2">
+											<p>No files found. Lets add one!</p>
+											<UploadButton name="Add File" />
+										</div>
+									</TableCell>
+								</TableRow>
+							</TableBody>
+						) : (
+							<TableBody>
+								{table.getRowModel().rows.map(row => (
+									<DroppableTableRow key={row.id} row={row} handleRowDoubleClick={handleRowDoubleClick} />
+								))}
+							</TableBody>
+						)}
+					</Table>
+				</ScrollArea>
+			</DragNDropUploader>
 		</div>
 	);
 }
+
+function DroppableTableRow({
+	row,
+	handleRowDoubleClick,
+}: {
+	row: Row<File>;
+	handleRowDoubleClick: (file: File) => void;
+}) {
+	const { isOver, setNodeRef: droppableRef } = useDroppable({
+		id: `droppable-${row.id}`,
+		data: row.original,
+	});
+
+	const {
+		attributes,
+		listeners,
+		setNodeRef: draggableRef,
+		transform,
+		isDragging,
+	} = useDraggable({
+		id: `draggable-${row.id}`,
+		data: row.original,
+	});
+
+	const style = {
+		...(transform && {
+			transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+			transition: "transform 0.1s ease",
+		}),
+	};
+
+	const isFolder = row.original.type === "folder";
+
+	return (
+		<TableRow
+			className={cn(
+				"mb-2 h-8 rounded-md transition-all hover:bg-transparent",
+				(isOver || transform) && "rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500"
+			)}
+			onDoubleClick={() => handleRowDoubleClick(row.original)}
+			ref={node => {
+				if (isFolder) {
+					droppableRef(node);
+				}
+				draggableRef(node);
+			}}
+			style={style}
+			{...listeners}
+			{...attributes}
+		>
+			{row.getVisibleCells().map(cell => (
+				<TableCell
+					key={cell.id}
+					className="h-10 py-0 whitespace-nowrap"
+					style={{
+						width: cell.column.id === "tags" || cell.column.id === "actions" ? "50px" : undefined,
+					}}
+				>
+					{flexRender(cell.column.columnDef.cell, cell.getContext())}
+				</TableCell>
+			))}
+
+			{isDragging && <div className="h-full w-full bg-blue-500/50"></div>}
+		</TableRow>
+	);
+}
+
+export default DroppableTableRow;
 
 /**
  * Get modern Lucide React icon for file type
