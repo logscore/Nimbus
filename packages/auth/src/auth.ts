@@ -4,7 +4,6 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import type { Redis as ValkeyRedis } from "iovalkey";
 import type { RedisClient } from "@nimbus/cache";
-import type { Env } from "@nimbus/env/server";
 import { sendMail } from "./utils/send-mail";
 import { type DB } from "@nimbus/db";
 import type { Resend } from "resend";
@@ -13,7 +12,19 @@ import { eq } from "drizzle-orm";
 // TODO(shared): move constants to shared package. use in validation.
 // TODO(rate-limiting): implement for auth
 
-export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: Resend) => {
+export interface AuthEnv {
+	GOOGLE_CLIENT_ID: string;
+	GOOGLE_CLIENT_SECRET: string;
+	MICROSOFT_CLIENT_ID: string;
+	MICROSOFT_CLIENT_SECRET: string;
+	EMAIL_FROM: string;
+	BACKEND_URL: string;
+	// FRONTEND_URL: string;
+	TRUSTED_ORIGINS: string[];
+	IS_EDGE_RUNTIME: boolean;
+}
+
+export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resend: Resend) => {
 	const emailContext = {
 		from: env.EMAIL_FROM,
 		resend,
@@ -84,7 +95,8 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 					"https://www.googleapis.com/auth/userinfo.email",
 				],
 				accessType: "offline",
-				prompt: "consent",
+				prompt: "none",
+				// prompt: "consent",
 			},
 
 			microsoft: {
@@ -99,7 +111,8 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 					"offline_access",
 				],
 				tenantId: "common",
-				prompt: "select_account",
+				prompt: "none",
+				// prompt: "select_account",
 			},
 		},
 
@@ -228,7 +241,7 @@ export type Auth = ReturnType<typeof createAuth>;
 export type AuthSession = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
 export type SessionUser = AuthSession["user"];
 
-async function afterAccountCreation(db: DB, account: Account) {
+export async function afterAccountCreation(db: DB, account: Account) {
 	const user = await db.query.user.findFirst({
 		where: (table, { eq }) => eq(table.id, account.userId),
 	});

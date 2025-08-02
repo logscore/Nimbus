@@ -11,6 +11,27 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nimbus-test
+        options: >-
+          --health-cmd "pg_isready -U postgres"  --health-interval 10s  --health-timeout 5s  --health-retries 5
+      minio:
+        image: minio/minio
+        ports:
+          - 9000:9000
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"  --health-interval 10s  --health-timeout 5s  --health-retries 5
+
     steps:
       - uses: actions/checkout@master
 
@@ -28,10 +49,74 @@ jobs:
       - name: Run linter
         run: bun lint
 
+      - name: Run tests with coverage
+        run: bun run test:coverage
+
       - name: Build application
         env:
           NODE_ENV: production
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/github-actions
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/nimbus-test
           NEXT_PUBLIC_BACKEND_URL: http://localhost:1284
           NEXT_PUBLIC_FRONTEND_URL: http://localhost:3000
         run: bun run build
+
+      - name: Create coverage badge
+        if: github.ref == 'refs/heads/staging'
+        run: |
+          # Extract coverage percentage from JSON summary
+          if [ -f "coverage/coverage-summary.json" ]; then
+            coverage=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('coverage/coverage-summary.json')); const total=data.total; if(total && total.lines && total.lines.pct !== undefined) { console.log(total.lines.pct); } else { console.log('0'); }")
+          else
+            coverage=0
+          fi
+
+          # If coverage extraction fails, default to 0
+          if [ -z "$coverage" ] || [ "$coverage" = "null" ]; then coverage=0; fi
+
+          # Round coverage to integer
+          coverage=$(printf "%.0f" "$coverage")
+
+          # Determine color based on coverage
+          if [ "$coverage" -ge 80 ]; then
+            color=green
+          elif [ "$coverage" -ge 50 ]; then
+            color=yellow
+          else
+            color=red
+          fi
+
+          # Create a simpler badge using shields.io style URL
+          echo "Coverage: $coverage%"
+        continue-on-error: true
+
+      - name: Commit coverage report
+        if: github.ref == 'refs/heads/staging'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          # Update README with actual coverage percentage using shields.io badge
+          if [ -f "coverage/coverage-summary.json" ]; then
+            coverage=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('coverage/coverage-summary.json')); const total=data.total; if(total && total.lines && total.lines.pct !== undefined) { console.log(total.lines.pct); } else { console.log('0'); }")
+          else
+            coverage=0
+          fi
+
+          if [ -z "$coverage" ] || [ "$coverage" = "null" ]; then coverage=0; fi
+          coverage=$(printf "%.0f" "$coverage")
+
+          if [ "$coverage" -ge 80 ]; then
+            color=green
+          elif [ "$coverage" -ge 50 ]; then
+            color=yellow
+          else
+            color=red
+          fi
+
+          sed -i "s/coverage-[0-9]*%25-[a-z]*/coverage-$coverage%25-$color/" README.md
+          git add README.md
+          git commit -m "Update coverage badge [skip ci]" || echo "No changes to commit"
+          git push
+        continue-on-error: true

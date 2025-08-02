@@ -41,12 +41,13 @@
 		"hono": "^4.8.5",
 		"nanoid": "^5.1.5",
 		"pg": "^8.16.3",
+		"resend": "^4.7.0",
 		"zod": "^4.0.5"
 	},
 	"devDependencies": {
 		"@microsoft/microsoft-graph-types": "^2.40.0",
 		"@nimbus/tsconfig": "workspace:*",
-		"@types/pg": "^8.15.4",
-		"typescript": "^5.8.3"
+		"@nimbus/vitest": "workspace:*",
+		"@types/pg": "^8.15.4"
 	}
 }

@@ -8,5 +8,24 @@
 	"oxc.enable": true,
 	"[toml]": {
 		"editor.defaultFormatter": "tamasfe.even-better-toml"
-	}
+	},
+	// Code gutters and line numbers
+	"editor.glyphMargin": true,
+	"editor.lineNumbers": "on",
+	"editor.folding": true,
+	"editor.showFoldingControls": "always",
+	// Better column/word wrap settings
+	"editor.rulers": [80, 120],
+	"editor.wordWrap": "off",
+	"editor.wrappingIndent": "same",
+	"editor.renderLineHighlight": "all",
+	// Code coverage gutters
+	"coverage-gutters.coverageReportFileName": "coverage/lcov.info",
+	"coverage-gutters.coverageFileNames": ["coverage/lcov.info", "coverage/clover.xml", "coverage/coverage.json"],
+	"coverage-gutters.showLineCoverage": true,
+	"coverage-gutters.showRulerCoverage": true,
+	"coverage-gutters.showGutterCoverage": true,
+	// Recommended extensions
+	"extensions.autoUpdate": true,
+	"extensions.autoCheckUpdates": true
 }

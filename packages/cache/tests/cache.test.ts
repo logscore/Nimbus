@@ -1,73 +1,48 @@
-// ✅ Declare mock values BEFORE jest.mock()
-let mockIsEdge = false;
-let mockEnv = {
-	UPSTASH_REDIS_REST_URL: "https://example.com",
-	UPSTASH_REDIS_REST_TOKEN: "token123",
-	VALKEY_HOST: "localhost",
-	VALKEY_PORT: "6379",
-	VALKEY_USERNAME: "admin",
-	VALKEY_PASSWORD: "pass",
-};
+import {
+	UpstashRedis,
+	ValkeyRedis,
+	createRedisClient,
+	missingEnvErrorMessage,
+	upstashEnvVars,
+	valkeyEnvVars,
+} from "../src";
+import { describe, expect, it } from "vitest";
 
-// ✅ Now mock the env module after defining mockIsEdge and mockEnv
-jest.mock("@nimbus/env/server", () => ({
-	__esModule: true,
-	get default() {
-		return mockEnv;
-	},
-	get isEdge() {
-		return mockIsEdge;
-	},
-}));
+describe("createRedisClient", () => {
+	it("should return UpstashRedis instance on Edge", () => {
+		const { redisClient } = createRedisClient({
+			IS_EDGE_RUNTIME: true,
+			UPSTASH_REDIS_REST_URL: "https://test-url.com",
+			UPSTASH_REDIS_REST_TOKEN: "test-token",
+		});
+		expect(redisClient).toBeInstanceOf(UpstashRedis);
+	});
 
-// ✅ Now import everything else
-import { expect, describe, it, jest, beforeEach, afterEach } from "@jest/globals";
-import { UpstashRedis, ValkeyRedis, redisClientInstance } from "../src";
-
-describe("redisClientInstance", () => {
-	beforeEach(() => {
-		jest.clearAllMocks();
-
-		// Reset mock values
-		mockIsEdge = false;
-		mockEnv = {
-			UPSTASH_REDIS_REST_URL: "https://example.com",
-			UPSTASH_REDIS_REST_TOKEN: "token123",
+	it("should return ValkeyRedis instance on Server", () => {
+		const env = {
+			IS_EDGE_RUNTIME: false,
 			VALKEY_HOST: "localhost",
 			VALKEY_PORT: "6379",
-			VALKEY_USERNAME: "admin",
-			VALKEY_PASSWORD: "pass",
+			VALKEY_USERNAME: "test",
+			VALKEY_PASSWORD: "test",
 		};
+		const { redisClient } = createRedisClient(env);
+		expect(redisClient).toBeInstanceOf(ValkeyRedis);
 	});
 
-	afterEach(() => {
-		jest.restoreAllMocks();
+	it("should throw error if Upstash env vars are missing", () => {
+		expect(() =>
+			createRedisClient({
+				IS_EDGE_RUNTIME: true,
+			})
+		).toThrow(missingEnvErrorMessage(upstashEnvVars));
 	});
 
-	it("should return UpstashRedis instance on Edge", async () => {
-		mockIsEdge = true;
-
-		const client = await redisClientInstance();
-		expect(client).toBeInstanceOf(UpstashRedis);
-	});
-
-	it("should return ValkeyRedis instance on Server", async () => {
-		mockIsEdge = false;
-
-		const client = await redisClientInstance();
-		expect(client).toBeInstanceOf(ValkeyRedis);
-	});
-
-	it("should throw error if Upstash env vars are missing", async () => {
-		mockIsEdge = true;
-		mockEnv.UPSTASH_REDIS_REST_URL = undefined as any;
-
-		await expect(redisClientInstance()).rejects.toThrow("Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN");
-	});
-
-	it("should throw error if Valkey env vars are missing", async () => {
-		mockIsEdge = false;
-		mockEnv.VALKEY_HOST = undefined as any;
-		await expect(redisClientInstance()).rejects.toThrow("Missing VALKEY_* env vars");
+	it("should throw error if Valkey env vars are missing", () => {
+		expect(() =>
+			createRedisClient({
+				IS_EDGE_RUNTIME: false,
+			})
+		).toThrow(missingEnvErrorMessage(valkeyEnvVars));
 	});
 });

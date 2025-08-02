@@ -1,8 +1,17 @@
 # Nimbus cloud storage
 
+![Coverage](https://img.shields.io/badge/coverage-0%25-red)
+
 A better cloud
 
 ## Quickstart
+
+## Prerequisites
+
+- [Bun](https://bun.sh/) (JavaScript runtime)
+- [Docker](https://www.docker.com/) (for running PostgreSQL)
+- [Git](https://git-scm.com/)
+- [OpenSSL](https://www.openssl.org/)
 
 ### 1. Clone the Repository
 
@@ -17,14 +26,12 @@ cd Nimbus
 bun i
 ```
 
-### 3. Set Up Postgres and Valkey with Docker
+### 3. Environment Setup
 
-We use Docker to run a PostgreSQL database and Valkey for local development. Follow these steps to set it up:
-
-1. Copy .env.development.example to .env
+1. Copy .env.example to .env
 
 ```bash
-cp .env.development.example .env
+cp .env.example .env
 ```
 
 Copy .env to child directories
@@ -32,51 +39,6 @@ Copy .env to child directories
 ```bash
 bun run env:sync
 ```
-
-2. **Start the database and valkey**:
-
-   ```bash
-   bun db:up
-   bun cache:up
-   ```
-
-   This will start a Postgres container with default credentials:
-   - Host: `localhost`
-   - Port: `5432`
-   - Database: `nimbus`
-   - Username: `postgres`
-   - Password: `postgres`
-
-   And a Valkey container with credentials:
-   - Host: `localhost`
-   - Port: `6379`
-   - Username: `valkey`
-   - Password: `valkey`
-
-3. **Verify the database and valkey is running if running a detached container**:
-
-   ```bash
-   docker ps
-   ```
-
-   You should see the `nimbus-db-local-compose` and `nimbus-cache-local-compose` containers in the list with a status of
-   "Up".
-
-4. **Connect to the database** (optional):
-
-   ```bash
-   # Using psql client inside the container
-   docker compose exec postgres psql -U postgres -d nimbus
-   ```
-
-5. **Connect to the valkey** (optional):
-
-   ```bash
-   # Using valkey-cli inside the container
-   docker compose exec valkey valkey-cli --user valkey --pass valkey
-   ```
-
-### 4. Environment Setup
 
 Follow the instructions on the first step of this [guide](https://www.better-auth.com/docs/authentication/google).
 
@@ -158,13 +120,59 @@ BETTER_AUTH_SECRET=
    RESEND_API_KEY=your-api-key-here
    ```
 
-### 5. Run Database Migrations
+### 4. Set Up Postgres and Valkey with Docker
+
+We use Docker to run a PostgreSQL database and Valkey for local development. Follow these steps to set it up:
+
+1. **Start the database and valkey**:
+
+   ```bash
+   bun db:up
+   bun cache:up
+   ```
+
+   This will start a Postgres container with default credentials:
+   - Host: `localhost`
+   - Port: `5432`
+   - Database: `nimbus`
+   - Username: `postgres`
+   - Password: `postgres`
+
+   And a Valkey container with credentials:
+   - Host: `localhost`
+   - Port: `6379`
+   - Username: `valkey`
+   - Password: `valkey`
+
+2. **Verify the database and valkey is running if running a detached container**:
+
+   ```bash
+   docker ps
+   ```
+
+   You should see the `nimbus-db` and `nimbus-cache` containers in the list with a status of "Up".
+
+3. **Run Database Migrations**
 
 After setting up the database, run the migrations:
 
 ```bash
 bun db:push
 ```
+
+4. **Connect to the database** (optional):
+
+   ```bash
+   # Using psql client inside the container
+   docker compose exec postgres psql -U postgres -d nimbus
+   ```
+
+5. **Connect to the valkey** (optional):
+
+   ```bash
+   # Using valkey-cli inside the container
+   docker compose exec valkey valkey-cli --user valkey --pass valkey
+   ```
 
 ### 6. Enable Google Drive API
 
@@ -210,7 +218,16 @@ to work properly. Additionally, configure your Resend API key for the forgot pas
 If you want to contribute, please refer to the
 [contributing guide](https://github.com/nimbusdotstorage/Nimbus/blob/main/CONTRIBUTING.md)
 
-## Deploying Docker images (ex. Coolify)
+### 9. Tests
+
+Vitest and MinIO via Docker are used for testing. To run tests, use must use `bun run test` becasuse `bun test` is
+reserved for `bun` (just like `bun build` etc).
+
+Tests **require** the `docker-compose.test.yml` to be running.
+
+Look at the scripts in `package.json` for all the `test:*` options.
+
+## Deploying Docker images (ex. Coolify) or Cloudflare
 
 Follow the [DEPLOYMENT.md](DEPLOYMENT.md) file for instructions on how to deploy with Coolify.
 

@@ -32,6 +32,7 @@ interface S3Config {
 	region: string;
 	bucketName: string;
 	endpoint?: string;
+	forcePathStyle?: boolean;
 }
 
 export class S3Provider implements Provider {
@@ -50,7 +51,11 @@ export class S3Provider implements Provider {
 				accessKeyId: config.accessKeyId,
 				secretAccessKey: config.secretAccessKey,
 			},
-			...(config.endpoint && { endpoint: config.endpoint }),
+			...(config.endpoint && {
+				endpoint: config.endpoint,
+				// Default to false. Added this for localstack compatibility
+				forcePathStyle: config.forcePathStyle || false,
+			}),
 		});
 	}
 

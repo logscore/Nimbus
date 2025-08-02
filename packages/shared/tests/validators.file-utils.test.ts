@@ -1,5 +1,5 @@
 import { formatFileSize, getFileExtension } from "../src";
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 
 describe("formatFileSize", () => {
 	it("should format bytes correctly", () => {

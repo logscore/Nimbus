@@ -1,17 +1,16 @@
-import { expect, describe, it, jest, beforeEach, beforeAll } from "@jest/globals";
-import { afterAccountCreation, createAuth } from "../src/auth";
+import { dbMock, mockFindFirst, mockSet, mockUpdate, mockWhere } from "@nimbus/db/mock";
+import { afterAccountCreation, createAuth, type AuthEnv } from "../src/auth";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { RedisClient } from "@nimbus/cache";
+import { mock } from "vitest-mock-extended";
 import { betterAuth } from "better-auth";
-
-let mockFindFirst: jest.Mock;
-let mockUpdate: jest.Mock;
-let mockSet: jest.Mock;
-let mockWhere: jest.Mock;
+import type { Resend } from "resend";
 
 // Mock better-auth
-jest.mock("better-auth", () => ({
-	betterAuth: jest.fn(() => ({
+vi.mock("better-auth", () => ({
+	betterAuth: vi.fn(() => ({
 		api: {
-			getSession: jest.fn(() =>
+			getSession: vi.fn(() =>
 				Promise.resolve({
 					user: { id: "user123", email: "test@example.com" },
 				})
@@ -21,7 +20,7 @@ jest.mock("better-auth", () => ({
 }));
 
 // Mock @nimbus/env/server
-jest.mock("@nimbus/env/server", () => ({
+vi.mock("@nimbus/env/server", () => ({
 	__esModule: true,
 	default: {
 		DATABASE_URL: "mock-db-url",
@@ -34,68 +33,29 @@ jest.mock("@nimbus/env/server", () => ({
 	},
 }));
 
-// Mock @nimbus/db - initialize mocks inside the factory
-jest.mock("@nimbus/db", () => {
-	const mockFindFirstLocal = jest.fn();
-	const mockUpdateLocal = jest.fn();
-	const mockSetLocal = jest.fn();
-	const mockWhereLocal = jest.fn();
-
-	//@ts-ignore
-	mockWhereLocal.mockResolvedValue(undefined);
-	mockSetLocal.mockReturnValue({
-		where: mockWhereLocal,
-	});
-	mockUpdateLocal.mockReturnValue({
-		set: mockSetLocal,
-	});
-
-	// Create the db instance
-	const mockDb = {
-		query: {
-			user: {
-				findFirst: mockFindFirstLocal,
-			},
-		},
-		update: mockUpdateLocal,
-	};
-
-	return {
-		// Default export or named export - try both patterns
-		default: mockDb,
-		db: mockDb,
-		createDb: jest.fn(() => mockDb),
-		// Mock table and eq function
-		userTable: {
-			id: "id",
-		},
-		eq: jest.fn((col, val) => `${col} = ${val}`),
-		// Export the mocks so we can access them
-		__mockFindFirst: mockFindFirstLocal,
-		__mockUpdate: mockUpdateLocal,
-		__mockSet: mockSetLocal,
-		__mockWhere: mockWhereLocal,
-	};
-});
-
 // Mock send-mail
-jest.mock("../src/utils/send-mail", () => ({
-	sendMail: jest.fn(),
+vi.mock("../src/utils/send-mail", () => ({
+	sendMail: vi.fn(),
 }));
-
-// Get access to the mocks after they're created
-beforeAll(() => {
-	const dbMock = require("@nimbus/db") as any;
-	mockFindFirst = dbMock.__mockFindFirst;
-	mockUpdate = dbMock.__mockUpdate;
-	mockSet = dbMock.__mockSet;
-	mockWhere = dbMock.__mockWhere;
-});
 
 // TESTS
 describe("createAuth", () => {
 	it("should return a valid auth object", () => {
-		const auth = createAuth();
+		const mockEnv: AuthEnv = {
+			GOOGLE_CLIENT_ID: "test_google_client_id",
+			GOOGLE_CLIENT_SECRET: "test_google_client_secret",
+			MICROSOFT_CLIENT_ID: "test_ms_client_id",
+			MICROSOFT_CLIENT_SECRET: "test_ms_client_secret",
+			EMAIL_FROM: "test@example.com",
+			BACKEND_URL: "http://localhost:3000",
+			TRUSTED_ORIGINS: ["http://localhost:3000"],
+			IS_EDGE_RUNTIME: false,
+		};
+
+		const mockRedis = mock<RedisClient>();
+		const mockResend = mock<Resend>();
+
+		const auth = createAuth(mockEnv, dbMock, mockRedis, mockResend);
 		expect(auth).toBeDefined();
 		expect(betterAuth).toHaveBeenCalled();
 	});
@@ -121,38 +81,35 @@ describe("afterAccountCreation", () => {
 
 	it("should update user with default account/provider id if not set", async () => {
 		// Mock findFirst to return a user without default IDs
-		//@ts-ignore
 		mockFindFirst.mockResolvedValue({
 			id: "user1",
 			defaultAccountId: "accountid",
 			defaultProviderId: "google",
-		});
+		} as any);
 
-		await afterAccountCreation(account);
+		await afterAccountCreation(dbMock, account);
 
 		// For now, just test that findFirst was called
 		expect(mockFindFirst).toHaveBeenCalled();
 	});
 
 	it("should do nothing if user not found", async () => {
-		//@ts-ignore
-		mockFindFirst.mockResolvedValueOnce(null);
+		mockFindFirst.mockResolvedValueOnce(undefined);
 
-		await afterAccountCreation(account);
+		await afterAccountCreation(dbMock, account);
 
 		expect(mockFindFirst).toHaveBeenCalled();
 		expect(mockSet).not.toHaveBeenCalled();
 	});
 
 	it("should do nothing if default IDs already set", async () => {
-		//@ts-ignore
 		mockFindFirst.mockResolvedValueOnce({
 			id: "user1",
 			defaultAccountId: "acc123",
 			defaultProviderId: "google",
-		});
+		} as any);
 
-		await afterAccountCreation(account);
+		await afterAccountCreation(dbMock, account);
 
 		expect(mockFindFirst).toHaveBeenCalled();
 		expect(mockSet).not.toHaveBeenCalled();

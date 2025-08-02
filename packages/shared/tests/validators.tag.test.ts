@@ -7,7 +7,7 @@ import {
 	tagNameSchema,
 	updateTagSchema,
 } from "../src";
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 
 describe("tagNameSchema", () => {
 	it("should pass for valid string", () => {

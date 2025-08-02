@@ -1,5 +1,5 @@
 import { forgotPasswordSchema, signInSchema, signUpSchema, resetPasswordSchema } from "../src/validators/password";
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 
 describe("forgotPasswordSchema", () => {
 	it("should pass with a valid email", () => {

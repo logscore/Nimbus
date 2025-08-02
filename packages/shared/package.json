@@ -11,6 +11,7 @@
 		"@nimbus/db": "workspace:*"
 	},
 	"devDependencies": {
-		"@nimbus/tsconfig": "workspace:*"
+		"@nimbus/tsconfig": "workspace:*",
+		"@nimbus/vitest": "workspace:*"
 	}
 }

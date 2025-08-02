@@ -7,7 +7,7 @@ import {
 	slugToProvider,
 	providerToSlug,
 } from "../src/validators/provider";
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 
 describe("driveProviderSchema", () => {
 	it("should accept 'google'", () => {

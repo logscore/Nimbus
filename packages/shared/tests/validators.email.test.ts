@@ -1,5 +1,5 @@
 import { emailObjectSchema, emailSchema, sendMailSchema } from "../src";
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 
 describe("emailSchema", () => {
 	it("should pass for a valid email", () => {

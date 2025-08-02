@@ -1,5 +1,5 @@
 import { userSchema, updateUserSchema } from "../src/validators/user";
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 
 describe("userSchema", () => {
 	it("should pass with valid data", () => {

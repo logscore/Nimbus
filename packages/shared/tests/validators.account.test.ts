@@ -1,14 +1,5 @@
 import { limitedAccessAccountSchema, updateAccountSchema } from "../src";
-import { expect, describe, it, jest } from "@jest/globals";
-import { z } from "zod";
-
-jest.mock("../src/validators/provider", () => ({
-	driveProviderSchema: z.enum(["google", "dropbox", "onedrive"]),
-}));
-
-jest.mock("../src/validators/string", () => ({
-	limitedStringSchema: z.string().min(1).max(50),
-}));
+import { describe, expect, it } from "vitest";
 
 describe("limitedAccessAccountSchema", () => {
 	const validData = {

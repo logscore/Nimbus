@@ -1,114 +1,59 @@
-import { expect, describe, it, jest, beforeEach, afterEach } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createDb, type DatabaseEnv, type DB } from "../src";
+import postgres from "postgres";
+import * as pg from "pg";
 
-jest.mock("@t3-oss/env-core", () => ({
-	createEnv: jest.fn(() => ({
-		DATABASE_URL: "postgresql://test:test@localhost:5432/testdb",
-		NODE_ENV: "test",
+vi.mock("pg", () => ({
+	Pool: vi.fn(() => ({
+		connect: vi.fn(),
+		end: vi.fn(),
+		query: vi.fn(),
 	})),
 }));
 
-// Mock zod
-jest.mock("zod", () => ({
-	z: {
-		string: jest.fn(() => ({
-			url: jest.fn(() => ({})),
-			optional: jest.fn(() => ({})),
-		})),
-		object: jest.fn(() => ({})),
-		enum: jest.fn(() => ({})),
-	},
+vi.mock("drizzle-orm/postgres-js", () => ({
+	drizzle: vi.fn(() => ({})),
 }));
 
-// Mock the environment modules completely
-jest.mock("@nimbus/env/server", () => ({
-	__esModule: true,
-	default: {
-		DATABASE_URL: "postgresql://test:test@localhost:5432/testdb",
-		NODE_ENV: "test",
-	},
-	env: {
-		DATABASE_URL: "postgresql://test:test@localhost:5432/testdb",
-		NODE_ENV: "test",
-	},
+vi.mock("postgres", () => ({
+	default: vi.fn(),
 }));
 
-jest.mock("@nimbus/env/client", () => ({
-	__esModule: true,
-	default: {
-		NEXT_PUBLIC_BACKEND_URL: "http://localhost:3000",
-		NEXT_PUBLIC_FRONTEND_URL: "http://localhost:3001",
-	},
-	env: {
-		NEXT_PUBLIC_BACKEND_URL: "http://localhost:3000",
-		NEXT_PUBLIC_FRONTEND_URL: "http://localhost:3001",
-	},
-}));
-
-// Mock postgres library
-const mockPostgres = jest.fn(() => ({
-	query: jest.fn(),
-	end: jest.fn(),
-	connect: jest.fn(),
-}));
-jest.mock("postgres", () => mockPostgres);
-
-// Mock pg library
-const mockPool = jest.fn(() => ({
-	connect: jest.fn(),
-	end: jest.fn(),
-	query: jest.fn(),
-}));
-jest.mock("pg", () => ({
-	Pool: mockPool,
-}));
-
-// Mock drizzle-orm
-jest.mock("drizzle-orm/postgres-js", () => ({
-	drizzle: jest.fn(() => ({
-		select: jest.fn(),
-		insert: jest.fn(),
-		update: jest.fn(),
-		delete: jest.fn(),
-	})),
-}));
-
-jest.mock("drizzle-orm/node-postgres", () => ({
-	drizzle: jest.fn(() => ({
-		select: jest.fn(),
-		insert: jest.fn(),
-		update: jest.fn(),
-		delete: jest.fn(),
-	})),
-}));
-
-import { createDb } from "../src";
+const mockPostgres = postgres;
+const { Pool: MockPool } = pg;
 
 describe("Database Connection Tests", () => {
 	const testDatabaseUrl = "postgresql://testuser:testpass@localhost:5432/testdb";
+	const baseEnv: DatabaseEnv = {
+		IS_EDGE_RUNTIME: false,
+		NODE_ENV: "test",
+		DATABASE_URL: testDatabaseUrl,
+	};
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 		delete process.env.TEST_EDGE_MODE;
 	});
 
 	afterEach(() => {
-		jest.resetModules();
+		vi.resetModules();
 	});
 
 	describe("createDb function", () => {
 		it("should create a database connection successfully", () => {
-			const db = createDb(testDatabaseUrl);
+			const { db, closeDb } = createDb(baseEnv);
 
 			expect(db).toBeDefined();
 			expect(typeof db).toBe("object");
+			expect(closeDb).toBeInstanceOf(Function);
 		});
 
 		it("should handle empty database URL", () => {
-			expect(() => createDb(""));
+			expect(() => createDb({ ...baseEnv, DATABASE_URL: "" }));
 		});
 
 		it("should handle invalid database URL format", () => {
-			expect(() => createDb("invalid-url"));
+			expect(() => createDb({ ...baseEnv, DATABASE_URL: "invalid-url" }));
 		});
 
 		it("should create connection with valid postgresql URL", () => {
@@ -119,57 +64,30 @@ describe("Database Connection Tests", () => {
 			];
 
 			validUrls.forEach(url => {
-				expect(() => createDb(url)).not.toThrow();
+				expect(() => createDb({ ...baseEnv, DATABASE_URL: url })).not.toThrow();
 			});
 		});
 	});
 
 	describe("Environment-specific database creation", () => {
 		it("should use postgres-js in edge environment", () => {
-			// Mock edge environment detection
-			const mockIsEdge = jest.fn(() => true);
-
-			// Mock the environment check
-			jest.doMock("../src", () => ({
-				createDb: jest.fn(() => {
-					if (mockIsEdge()) {
-						mockPostgres();
-					}
-					return { type: "postgres-js" };
-				}),
-			}));
-
-			mockIsEdge.mockReturnValue(true);
-			const db = createDb(testDatabaseUrl);
-
-			expect(db).toBeDefined();
+			const edgeEnv = { ...baseEnv, IS_EDGE_RUNTIME: true };
+			createDb(edgeEnv);
+			expect(mockPostgres).toHaveBeenCalledWith(edgeEnv.DATABASE_URL, { prepare: false });
 		});
 
 		it("should use pg.Pool in node environment", () => {
-			// Mock node environment detection
-			const mockIsEdge = jest.fn(() => false);
-
-			jest.doMock("../src", () => ({
-				createDb: jest.fn(() => {
-					if (!mockIsEdge()) {
-						new mockPool();
-					}
-					return { type: "node-postgres" };
-				}),
-			}));
-
-			mockIsEdge.mockReturnValue(false);
-			const db = createDb(testDatabaseUrl);
-
-			expect(db).toBeDefined();
+			const nodeEnv = { ...baseEnv, NODE_ENV: "production" };
+			createDb(nodeEnv);
+			expect(MockPool).toHaveBeenCalledWith({ connectionString: nodeEnv.DATABASE_URL });
 		});
 	});
 
 	describe("Database operations", () => {
-		let db: any;
+		let db: DB;
 
 		beforeEach(() => {
-			db = createDb(testDatabaseUrl);
+			db = createDb(baseEnv).db;
 		});
 
 		it("should support basic query operations", async () => {
@@ -184,7 +102,7 @@ describe("Database Connection Tests", () => {
 			const invalidUrl = "postgresql://invalid";
 
 			expect(() => {
-				createDb(invalidUrl);
+				createDb({ ...baseEnv, DATABASE_URL: invalidUrl });
 			});
 		});
 	});
@@ -200,7 +118,7 @@ describe("Database Connection Tests", () => {
 
 		it("should accept various valid connection string formats", () => {
 			validConnectionStrings.forEach(connectionString => {
-				expect(() => createDb(connectionString)).not.toThrow();
+				expect(() => createDb({ ...baseEnv, DATABASE_URL: connectionString })).not.toThrow();
 			});
 		});
 
@@ -208,7 +126,7 @@ describe("Database Connection Tests", () => {
 
 		it("should reject invalid connection string formats", () => {
 			invalidConnectionStrings.forEach(connectionString => {
-				expect(() => createDb(connectionString));
+				expect(() => createDb({ ...baseEnv, DATABASE_URL: connectionString }));
 			});
 		});
 	});
@@ -219,7 +137,7 @@ describe("Database Connection Tests", () => {
 			const originalEnv = process.env;
 			process.env = {};
 
-			expect(() => createDb(testDatabaseUrl)).not.toThrow();
+			expect(() => createDb(baseEnv)).not.toThrow();
 
 			process.env = originalEnv;
 		});
@@ -228,7 +146,7 @@ describe("Database Connection Tests", () => {
 			const originalEnv = process.env;
 			process.env = {};
 
-			expect(() => createDb(testDatabaseUrl)).not.toThrow();
+			expect(() => createDb(baseEnv)).not.toThrow();
 
 			process.env = originalEnv;
 		});

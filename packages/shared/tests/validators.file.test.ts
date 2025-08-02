@@ -1,12 +1,12 @@
 import {
-	getFilesSchema,
-	fileIdSchema,
-	updateFileSchema,
 	createFileSchema,
-	uploadFileQuerySchema,
 	downloadFileSchema,
+	fileIdSchema,
+	getFilesSchema,
+	updateFileSchema,
+	uploadFileQuerySchema,
 } from "../src/validators/file";
-import { describe, it, expect } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 
 describe("fileIdSchema", () => {
 	it("should pass with valid file ID", () => {
