@@ -58,9 +58,7 @@ export default function DrivePage() {
 					onDragCancel={() => console.log("drag cancel")}
 				>
 					<Header />
-					<div className="flex flex-1 flex-col">
-						<FileTable files={data || []} isLoading={isLoading} refetch={refetch} error={error} />
-					</div>
+					<FileTable files={data || []} isLoading={isLoading} refetch={refetch} error={error} />
 				</DndContext>
 			</Suspense>
 		</>

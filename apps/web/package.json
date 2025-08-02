@@ -76,6 +76,7 @@
 		"@types/react": "^19.1.9",
 		"@types/react-dom": "^19.1.7",
 		"eslint": "^9.32.0",
-		"eslint-config-next": "15.4"
+		"eslint-config-next": "15.4",
+		"tailwind-scrollbar": "^4.0.2"
 	}
 }

@@ -14,7 +14,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 				<SidebarProvider className="has-data-[variant=inset]:dark:bg-neutral-800">
 					<AppSidebar variant="inset" className="px-0 py-0" />
 					<SidebarInset className="md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-0">
-						<main className="flex flex-1 flex-col p-1">{children}</main>
+						<main className="flex h-full w-full flex-col p-1">{children}</main>
 					</SidebarInset>
 				</SidebarProvider>
 			</DownloadProvider>

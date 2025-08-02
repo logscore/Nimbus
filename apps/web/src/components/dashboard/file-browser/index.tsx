@@ -365,9 +365,10 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 	// >>>>>>> 2701b21e7ec8ce9d8d0dd3dc407f7040bf5ad2e6
 
 	return (
-		<div className="relative flex flex-1 flex-col justify-start">
+		<div className="relative flex h-full w-full flex-col justify-start">
 			<DragNDropUploader>
-				<ScrollArea className="h-[740px] w-full px-2">
+				{/* h-0 is required to make the table scrollable */}
+				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar scrollbar-thumb-accent/70 scrollbar-track-transparent scrollbar-hover:scrollbar-thumb-accent scrollbar-w-2 scrollbar-h-2 h-0 min-h-full w-full overflow-auto overflow-y-scroll pb-5">
 					<Table>
 						<TableHeader className="hover:bg-transparent">
 							{table.getHeaderGroups().map(headerGroup => (
@@ -425,14 +426,14 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 								</TableRow>
 							</TableBody>
 						) : (
-							<TableBody>
+							<TableBody className="border-spacing-2">
 								{table.getRowModel().rows.map(row => (
 									<DroppableTableRow key={row.id} row={row} handleRowDoubleClick={handleRowDoubleClick} />
 								))}
 							</TableBody>
 						)}
 					</Table>
-				</ScrollArea>
+				</div>
 			</DragNDropUploader>
 		</div>
 	);
@@ -472,8 +473,10 @@ function DroppableTableRow({
 	return (
 		<TableRow
 			className={cn(
-				"mb-2 h-8 rounded-md transition-all hover:bg-transparent",
-				(isOver || transform) && "rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500"
+				"h-8 rounded-md transition-all hover:bg-transparent",
+				(isOver || transform) && "z-[100] scale-x-90 rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500",
+				isOver && "scale-x-95",
+				transform && "scale-95"
 			)}
 			onDoubleClick={() => handleRowDoubleClick(row.original)}
 			ref={node => {

@@ -86,7 +86,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 					<AppProviders>
 						<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
 							<div className="relative min-h-screen">
-								<main className="flex flex-1 justify-center">{children}</main>
+								<main className="flex h-full w-full justify-center">{children}</main>
 								<Toaster position="top-center" richColors theme="system" />
 							</div>
 						</ThemeProvider>
