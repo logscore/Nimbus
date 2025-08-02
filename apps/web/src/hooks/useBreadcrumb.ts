@@ -5,7 +5,7 @@ import type { DriveProviderClient } from "@/utils/client";
 import { handleUnauthorizedError } from "@/utils/client";
 import { useQuery } from "@tanstack/react-query";
 
-interface BreadcrumbItem {
+export interface BreadcrumbItem {
 	id: string;
 	name: string;
 }

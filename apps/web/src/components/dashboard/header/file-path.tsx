@@ -1,6 +1,7 @@
 "use client";
 
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from "@/components/ui/breadcrumb";
+import { type BreadcrumbItem as BreadcrumbItemType } from "@/hooks/useBreadcrumb";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBreadcrumbPath } from "@/hooks/useBreadcrumb";
@@ -85,37 +86,12 @@ export function FileBreadcrumb() {
 
 								{/* Breadcrumb items */}
 								{data?.map((item, index) => (
-									<div key={item.id}>
-										<motion.div
-											variants={variants}
-											initial="hidden"
-											animate="visible"
-											exit="exit"
-											layout
-											className="inline-flex items-center"
-										>
-											<BreadcrumbItem>
-												<BreadcrumbLink
-													onClick={() => handleFolderClick(item.id)}
-													className="flex items-center gap-2 rounded-md p-1 text-nowrap"
-												>
-													<span>{item.name}</span>
-												</BreadcrumbLink>
-											</BreadcrumbItem>
-										</motion.div>
-										{index < data.length - 1 && (
-											<motion.span
-												key={`separator-${item.id}`}
-												initial={{ opacity: 0 }}
-												animate={{ opacity: 1 }}
-												exit={{ opacity: 0 }}
-												transition={{ duration: 0.2 }}
-												className="pl-3 text-neutral-200"
-											>
-												/
-											</motion.span>
-										)}
-									</div>
+									<FileBreadcrumbItem
+										key={item.id}
+										item={item}
+										handleFolderClick={handleFolderClick}
+										showSeparator={index < data.length - 1}
+									/>
 								))}
 							</AnimatePresence>
 						</BreadcrumbList>
@@ -123,5 +99,49 @@ export function FileBreadcrumb() {
 				</div>
 			</div>
 		</>
+	);
+}
+
+function FileBreadcrumbItem({
+	item,
+	handleFolderClick,
+	showSeparator,
+}: {
+	item: BreadcrumbItemType;
+	handleFolderClick: (id: string) => void;
+	showSeparator: boolean;
+}) {
+	return (
+		<div>
+			<motion.div
+				variants={variants}
+				initial="hidden"
+				animate="visible"
+				exit="exit"
+				layout
+				className="inline-flex items-center"
+			>
+				<BreadcrumbItem>
+					<BreadcrumbLink
+						onClick={() => handleFolderClick(item.id)}
+						className="flex items-center gap-2 rounded-md p-1 text-nowrap"
+					>
+						<span>{item.name}</span>
+					</BreadcrumbLink>
+				</BreadcrumbItem>
+			</motion.div>
+			{showSeparator && (
+				<motion.span
+					key={`separator-${item.id}`}
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					transition={{ duration: 0.2 }}
+					className="pl-3 text-neutral-200"
+				>
+					/
+				</motion.span>
+			)}
+		</div>
 	);
 }

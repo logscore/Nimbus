@@ -455,7 +455,6 @@ function DroppableTableRow({
 		listeners,
 		setNodeRef: draggableRef,
 		transform,
-		isDragging,
 	} = useDraggable({
 		id: `draggable-${row.id}`,
 		data: row.original,
@@ -498,8 +497,6 @@ function DroppableTableRow({
 					{flexRender(cell.column.columnDef.cell, cell.getContext())}
 				</TableCell>
 			))}
-
-			{isDragging && <div className="h-full w-full bg-blue-500/50"></div>}
 		</TableRow>
 	);
 }

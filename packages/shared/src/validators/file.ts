@@ -65,6 +65,12 @@ export const downloadFileSchema = z.object({
 	acknowledgeAbuse: z.boolean().optional(),
 });
 
+export const moveFileSchema = z.object({
+	sourceId: fileIdSchema,
+	targetParentId: fileIdSchema,
+	newName: z.string().min(1, "Name cannot be empty").max(100, "Name cannot be longer than 100 characters"),
+});
+
 export type GetFilesSchema = z.infer<typeof getFilesSchema>;
 export type GetFileByIdSchema = z.infer<typeof getFileByIdSchema>;
 export type DeleteFileSchema = z.infer<typeof deleteFileSchema>;
@@ -72,3 +78,4 @@ export type UpdateFileSchema = z.infer<typeof updateFileSchema>;
 export type CreateFileSchema = z.infer<typeof createFileSchema>;
 export type UploadFileSchema = z.infer<typeof uploadFileSchema>;
 export type DownloadFileSchema = z.infer<typeof downloadFileSchema>;
+export type MoveFileSchema = z.infer<typeof moveFileSchema>;

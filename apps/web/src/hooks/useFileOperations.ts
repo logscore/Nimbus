@@ -4,6 +4,7 @@ import type {
 	File,
 	GetFileByIdSchema,
 	GetFilesSchema,
+	MoveFileSchema,
 	UpdateFileSchema,
 	UploadFileSchema,
 } from "@nimbus/shared";
@@ -303,6 +304,53 @@ export function useDownloadFile() {
 		onError: error => {
 			console.error("Download error:", error);
 			toast.error(error instanceof Error ? error.message : "Failed to download file");
+		},
+	});
+}
+
+export function useMoveFile() {
+	const queryClient = useQueryClient();
+	const { clientPromise } = useAccountProvider();
+	return useMutation({
+		mutationFn: async ({ sourceId, targetParentId, newName }: MoveFileSchema) => {
+			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
+			const response = await handleUnauthorizedError(
+				() =>
+					BASE_FILE_CLIENT.move.$post({
+						json: {
+							sourceId,
+							targetParentId,
+							newName,
+						},
+					}),
+				"Failed to move file"
+			);
+			return await response.json();
+		},
+		// onMutate: async ({ sourceId, targetParentId, newName }) => {
+		// 	await queryClient.cancelQueries({ queryKey: ["files"] });
+
+		// 	const previousFiles = queryClient.getQueryData<File[]>(["files"]);
+
+		// 	queryClient.setQueryData(["files", sourceId], (old: File[] = []) =>
+		// 		old.map(file => (file.id === sourceId ? { ...file, parentId: targetParentId, name: newName } : file))
+		// 	);
+
+		// 	return { previousFiles };
+		// },
+		onError: (_, __, context) => {
+			// if (context?.previousFiles) {
+			// 	queryClient.setQueryData(["files"], context.previousFiles);
+			// }
+			toast.error("Failed to move file");
+		},
+		onSettled: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["files"] });
+		},
+
+		onSuccess: async () => {
+			toast.success("File moved successfully");
+			await queryClient.invalidateQueries({ queryKey: ["files"] });
 		},
 	});
 }
