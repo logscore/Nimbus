@@ -25,7 +25,7 @@ export interface AuthCardProps extends ComponentProps<"div"> {
 
 type AuthAction = "signin" | "signup";
 
-type SocialProvider = Exclude<DriveProvider, "s3">; // S3 is not a social auth provider
+type SocialProvider = Exclude<DriveProvider, "s3">; // S3 uses credential-based auth, not social OAuth
 
 export interface SocialAuthButtonProps extends Omit<ComponentProps<typeof Button>, "variant" | "type"> {
 	provider: SocialProvider;
