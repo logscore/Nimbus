@@ -160,7 +160,7 @@ describe("S3Provider Integration Tests", () => {
 		});
 
 		it("should list directory contents", async () => {
-			const { folder, rootFile, nestedFile } = await resourceManager.setupEnvironment();
+			const { folder, rootFile: _rootFile, nestedFile: _nestedFile } = await resourceManager.setupEnvironment();
 
 			const rootListing = await s3Provider.listChildren();
 			expect(rootListing).toBeDefined();
@@ -205,7 +205,7 @@ describe("S3Provider Integration Tests", () => {
 		});
 
 		it("should move files between directories", async () => {
-			const { folder, nestedFile } = await resourceManager.setupEnvironment();
+			const { folder: _folder, nestedFile } = await resourceManager.setupEnvironment();
 			const moveName = generateTestFileName("moved-to-root") + ".txt";
 			const movedFile = await s3Provider.move(nestedFile.id, "", moveName);
 			resourceManager.trackResource({ id: movedFile!.id });
@@ -215,7 +215,7 @@ describe("S3Provider Integration Tests", () => {
 
 		it("should search for files", async () => {
 			const searchTerm = generateTestFileName("searchable");
-			const testFile = await resourceManager.createFile(searchTerm, "Searchable content");
+			const _testFile = await resourceManager.createFile(searchTerm, "Searchable content");
 			const searchResults = await s3Provider.search(searchTerm);
 			expect(searchResults).toBeDefined();
 			expect(Array.isArray(searchResults.items)).toBe(true);
