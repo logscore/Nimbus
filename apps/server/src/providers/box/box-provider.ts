@@ -62,8 +62,8 @@ export class BoxProvider implements Provider {
 		this.accessToken = accessToken;
 
 		const sdk = new BoxSDK({
-			clientID: "dummy",
-			clientSecret: "dummy",
+			clientID: process.env.BOX_CLIENT_ID || "dummy",
+			clientSecret: process.env.BOX_CLIENT_SECRET || "dummy",
 		});
 
 		this.client = sdk.getBasicClient(accessToken) as BoxClient;
@@ -74,7 +74,8 @@ export class BoxProvider implements Provider {
 			const parentId = metadata.parentId || "0"; // Root folder in Box is "0"
 			const isFolder =
 				metadata.mimeType === "application/vnd.google-apps.folder" ||
-				metadata.mimeType === "application/vnd.microsoft.folder";
+				metadata.mimeType === "application/vnd.microsoft.folder" ||
+				metadata.mimeType === "application/x-directory";
 
 			if (isFolder) {
 				const folderData = await this.client.folders.create(parentId, metadata.name, {
@@ -165,7 +166,7 @@ export class BoxProvider implements Provider {
 		try {
 			const existingFile = await this.getById(id);
 			if (!existingFile) {
-				return false;
+				throw new Error(`File with id ${id} not found`);
 			}
 
 			if (existingFile.type === "folder") {
@@ -177,7 +178,7 @@ export class BoxProvider implements Provider {
 			return true;
 		} catch (error) {
 			console.error("Error deleting Box item:", error);
-			return false;
+			throw error;
 		}
 	}
 
