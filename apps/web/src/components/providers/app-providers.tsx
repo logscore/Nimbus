@@ -1,7 +1,7 @@
 "use client";
 
 import { SigninAccountDialog } from "@/components/auth/signin-account-dialog";
-import { AuthProvider, useAuth } from "./auth-context";
+import { AuthProvider, useAuth } from "./auth-provider";
 import { setAuthContext } from "@/utils/client";
 import type { ReactNode } from "react";
 

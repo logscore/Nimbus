@@ -162,10 +162,11 @@ const filesRouter = createDriveProviderRouter()
 		}
 	})
 
+	// Move file
 	.post("/move", zValidator("json", moveFileSchema), async c => {
-		const queryData = c.req.valid("json");
-		const success = await fileService.moveFile(queryData);
-		if (!success) {
+		const data = c.req.valid("json");
+		const file = await fileService.moveFile(data);
+		if (!file) {
 			return sendError(c, { message: "Failed to move file", status: 500 });
 		}
 		return sendSuccess(c, { message: "File moved successfully" });

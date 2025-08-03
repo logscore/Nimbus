@@ -344,10 +344,6 @@ export function useMoveFile() {
 			// }
 			toast.error("Failed to move file");
 		},
-		onSettled: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["files"] });
-		},
-
 		onSuccess: async () => {
 			toast.success("File moved successfully");
 			await queryClient.invalidateQueries({ queryKey: ["files"] });

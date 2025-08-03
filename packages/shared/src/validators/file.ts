@@ -68,7 +68,7 @@ export const downloadFileSchema = z.object({
 export const moveFileSchema = z.object({
 	sourceId: fileIdSchema,
 	targetParentId: fileIdSchema,
-	newName: z.string().min(1, "Name cannot be empty").max(100, "Name cannot be longer than 100 characters"),
+	newName: z.string().max(100, "Name cannot be longer than 100 characters").optional(),
 });
 
 export type GetFilesSchema = z.infer<typeof getFilesSchema>;
