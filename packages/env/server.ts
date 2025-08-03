@@ -40,6 +40,8 @@ export function createEnv(runtimeEnv: NodeJS.ProcessEnv) {
 			GOOGLE_CLIENT_SECRET: z.string(),
 			MICROSOFT_CLIENT_ID: z.string(),
 			MICROSOFT_CLIENT_SECRET: z.string(),
+			BOX_CLIENT_ID: z.string(),
+			BOX_CLIENT_SECRET: z.string(),
 
 			// Server Configuration
 			BACKEND_URL: z.string(),
