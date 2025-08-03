@@ -98,6 +98,14 @@ export const useMicrosoftAuth = () => {
 	};
 };
 
+export const useBoxAuth = () => {
+	const { handleAuth, isLoading } = useSocialAuth("box");
+	return {
+		signInWithBoxProvider: handleAuth,
+		isLoading,
+	};
+};
+
 const useRedirect = () => {
 	const router = useRouter();
 	const { getParam } = useSearchParamsSafely();
