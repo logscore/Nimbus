@@ -2,8 +2,8 @@
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
+import { useGoogleAuth, useMicrosoftAuth, useBoxAuth } from "@/hooks/useAuth";
 import { S3AccountForm } from "@/components/settings/s3-account-form";
-import { useGoogleAuth, useMicrosoftAuth } from "@/hooks/useAuth";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import type { DriveProvider } from "@nimbus/shared";
 import { Button } from "@/components/ui/button";
@@ -27,9 +27,11 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 		google: false,
 		microsoft: false,
 		s3: false,
+		box: false,
 	});
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
+	const { signInWithBoxProvider } = useBoxAuth();
 
 	useEffect(() => {
 		if (isMounted) {
@@ -53,6 +55,8 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 				await signInWithGoogleProvider({ callbackURL });
 			} else if (provider === "microsoft") {
 				await signInWithMicrosoftProvider({ callbackURL });
+			} else if (provider === "box") {
+				await signInWithBoxProvider({ callbackURL });
 			}
 
 			onOpenChange(false);
@@ -109,6 +113,15 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 							disabled={isLoading.microsoft}
 						>
 							{isLoading.microsoft && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+						</SocialAuthButton>
+
+						<SocialAuthButton
+							provider="box"
+							action="signin"
+							onClick={() => handleSocialAuth("box")}
+							disabled={isLoading.box}
+						>
+							{isLoading.box && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 						</SocialAuthButton>
 
 						<Button
