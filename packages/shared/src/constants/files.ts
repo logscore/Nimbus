@@ -73,14 +73,14 @@ export const ALLOWED_MIME_TYPES = [
 //TODO: Need to verify this is accurate
 export const MIME_TO_EXTENSION_MAP: Record<string, string[]> = {
 	// Images
-	"image/jpeg": [".jpg"],
+	"image/jpeg": [".jpg", ".jpeg"],
 	"image/png": [".png"],
 	"image/gif": [".gif"],
 	"image/webp": [".webp"],
 	"image/avif": [".avif"],
 	"image/bmp": [".bmp"],
 	"image/svg+xml": [".svg"],
-	"image/tiff": [".tiff"],
+	"image/tiff": [".tiff", ".tif"],
 	"image/x-icon": [".ico"],
 
 	// Videos
@@ -101,7 +101,7 @@ export const MIME_TO_EXTENSION_MAP: Record<string, string[]> = {
 	"text/csv;charset=utf-8": [".csv"],
 	"text/html": [".html"],
 	"text/css": [".css"],
-	"text/javascript": [".js"],
+	"text/javascript": [".js", ".mjs"],
 	"application/json": [".json"],
 	"application/xml": [".xml"],
 	"text/xml": [".xml"],

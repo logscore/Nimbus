@@ -382,7 +382,7 @@ function DroppableTableRow({
 		data: { id: row.original.id, parentId: row.original.parentId },
 	});
 
-	const isFolder = row.original.type === "folder";
+	const isFolder = row.original.type === "folder" || row.original.mimeType.includes("folder");
 
 	return (
 		<>

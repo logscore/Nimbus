@@ -16,7 +16,7 @@ export default function DndKitProvider({ children, parentId }: { children: React
 				const targetParentId = target.data.id;
 				const sourceId = source.data.id;
 
-				if (targetParentId === sourceId) return;
+				if (!targetParentId || !sourceId || targetParentId === sourceId) return;
 
 				moveFile({
 					sourceId,
