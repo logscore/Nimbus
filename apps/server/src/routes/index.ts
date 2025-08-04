@@ -1,7 +1,7 @@
 import { createDriveProviderRouter, createProtectedRouter, createPublicRouter } from "../hono";
-import { GoogleDriveProvider } from "../providers/google/google-drive";
-import { OneDriveProvider } from "../providers/microsoft/one-drive";
 import type { Provider } from "../providers/interface/provider";
+import { OneDriveProvider } from "../providers/microsoft";
+import { GoogleDriveProvider } from "../providers/google";
 import { sendForbidden, sendUnauthorized } from "./utils";
 import { driveProviderSchema } from "@nimbus/shared";
 import { BoxProvider } from "../providers/box";
