@@ -1,20 +1,20 @@
 "use client";
 
-import { Box, Google, Microsoft } from "@/components/icons";
+import { BoxIcon, GoogleIcon, MicrosoftIcon } from "@/components/icons";
 import type { SocialAuthButtonProps } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 const providerConfig = {
 	google: {
-		icon: Google,
+		icon: GoogleIcon,
 		name: "Google",
 	},
 	microsoft: {
-		icon: Microsoft,
+		icon: MicrosoftIcon,
 		name: "Microsoft",
 	},
 	box: {
-		icon: Box,
+		icon: BoxIcon,
 		name: "Box",
 	},
 } as const;

@@ -57,21 +57,23 @@ interface BoxClient {
 export class BoxProvider implements Provider {
 	private client: BoxClient;
 	private accessToken: string;
+	private sdk: BoxSDK;
 
-	constructor(accessToken: string) {
+	constructor(accessToken: string, clientID: string, clientSecret: string) {
 		this.accessToken = accessToken;
-
-		const sdk = new BoxSDK({
-			clientID: process.env.BOX_CLIENT_ID || "dummy",
-			clientSecret: process.env.BOX_CLIENT_SECRET || "dummy",
+		this.sdk = new BoxSDK({
+			clientID,
+			clientSecret,
+			// request: {
+			// 	strictSSL: false,
+			// },
 		});
-
-		this.client = sdk.getBasicClient(accessToken) as BoxClient;
+		this.client = this.sdk.getBasicClient(accessToken) as BoxClient;
 	}
 
 	async create(metadata: FileMetadata, content?: Buffer | Readable): Promise<File | null> {
 		try {
-			const parentId = metadata.parentId || "0"; // Root folder in Box is "0"
+			const parentId = this.normalizeParentId(metadata.parentId);
 			const isFolder =
 				metadata.mimeType === "application/vnd.google-apps.folder" ||
 				metadata.mimeType === "application/vnd.microsoft.folder" ||
@@ -184,7 +186,7 @@ export class BoxProvider implements Provider {
 
 	async listChildren(parentId = "0", options: ListFilesOptions = {}): Promise<ListFilesResult> {
 		try {
-			const normalizedParentId = !parentId || parentId === "root" || parentId === "/" ? "0" : parentId;
+			const normalizedParentId = this.normalizeParentId(parentId);
 			const limit = options.pageSize || DEFAULT_PAGE_SIZE;
 			const offset = options.pageToken ? parseInt(options.pageToken, 10) : 0;
 
@@ -355,11 +357,12 @@ export class BoxProvider implements Provider {
 
 	setAccessToken(token: string): void {
 		this.accessToken = token;
-		const sdk = new BoxSDK({
-			clientID: "dummy",
-			clientSecret: "dummy",
-		});
-		this.client = sdk.getBasicClient(token) as BoxClient;
+		this.client = this.sdk.getBasicClient(token) as BoxClient;
+	}
+
+	private normalizeParentId(id: string | null | undefined): string {
+		const isRoot = !id || id === "root" || id === "/";
+		return isRoot ? "0" : id;
 	}
 
 	private mapToFile(boxItem: BoxItem): File {
@@ -371,7 +374,7 @@ export class BoxProvider implements Provider {
 			name: boxItem.name || "Untitled",
 			mimeType: isFolder ? "application/x-directory" : this.getMimeTypeFromExtension(boxItem.name || ""),
 			size: isFolder ? 0 : parseInt(boxItem.size || "0", 10) || 0,
-			parentId: parent?.id || "0",
+			parentId: this.normalizeParentId(parent?.id),
 			createdTime: boxItem.created_at || boxItem.content_created_at || new Date().toISOString(),
 			modifiedTime: boxItem.modified_at || boxItem.content_modified_at || new Date().toISOString(),
 			type: isFolder ? ("folder" as const) : ("file" as const),

@@ -1,10 +1,6 @@
-import type { JSX } from "react";
+import type { IconProps } from ".";
 
-interface GoogleDriveIconProps {
-	className?: string;
-}
-
-export default function GoogleDriveIcon({ className }: GoogleDriveIconProps): JSX.Element {
+export function GoogleDriveIcon({ className }: IconProps) {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

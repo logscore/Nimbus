@@ -1,8 +1,6 @@
-interface GoogleCloudIconProps {
-	className?: string;
-}
+import type { IconProps } from ".";
 
-export default function GoogleCloudIcon({ className }: GoogleCloudIconProps) {
+export function GoogleCloudIcon({ className }: IconProps) {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

@@ -102,7 +102,7 @@ Follow the instructions on the first step of this [guide](https://www.better-aut
 <summary>How to setup Box keys?</summary>
 <br>
 
-Official Guide: [Box Create Oauth App](https://developer.box.com/guides/cli/quick-start/create-oauth-app/)
+Official Guide: [Box Create OAuth 2.0 App](https://developer.box.com/guides/authentication/oauth2/oauth2-setup/)
 
 - Navigate to Box Developer Console [console](https://app.box.com/developers/console).
 
@@ -119,7 +119,9 @@ Official Guide: [Box Create Oauth App](https://developer.box.com/guides/cli/quic
 
 - Copy the **Client ID** and **Client Secret** under **OAuth 2.0 Credentials**.
 
-- Add **OAuth 2.0 Redirect URIs** as `http://localhost:1284/api/auth/callback/box`.
+- Add **OAuth 2.0 Redirect URIs** as `http://localhost:1284/api/auth/oauth2/callback/box`.
+
+> **Note**: The redirect URI is different because it uses the generic oauth2 plugin from better-auth.
 
 - Add **Application Scopes**:
   - `Read all files and folders stored in Box`

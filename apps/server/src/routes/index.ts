@@ -86,7 +86,7 @@ const driveProviderRouter = createDriveProviderRouter()
 				} else if (parsedProviderName.data === "microsoft") {
 					provider = new OneDriveProvider(accessToken);
 				} else if (parsedProviderName.data === "box") {
-					provider = new BoxProvider(accessToken);
+					provider = new BoxProvider(accessToken, c.var.env.BOX_CLIENT_ID, c.var.env.BOX_CLIENT_SECRET);
 				} else {
 					return sendForbidden(c, "Unsupported provider");
 				}
