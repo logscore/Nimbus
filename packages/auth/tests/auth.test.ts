@@ -30,6 +30,10 @@ vi.mock("@nimbus/env/server", () => ({
 		GOOGLE_CLIENT_SECRET: "google-secret",
 		MICROSOFT_CLIENT_ID: "ms-id",
 		MICROSOFT_CLIENT_SECRET: "ms-secret",
+		BOX_CLIENT_ID: "box-id",
+		BOX_CLIENT_SECRET: "box-secret",
+		DROPBOX_CLIENT_ID: "dropbox-id",
+		DROPBOX_CLIENT_SECRET: "dropbox-secret",
 	},
 }));
 
