@@ -3,6 +3,7 @@ import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import type { Redis as ValkeyRedis } from "iovalkey";
+import { genericOAuth } from "better-auth/plugins";
 import type { RedisClient } from "@nimbus/cache";
 import { sendMail } from "./utils/send-mail";
 import { type DB } from "@nimbus/db";
@@ -116,14 +117,29 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 				prompt: "none",
 				// prompt: "select_account",
 			},
-
-			box: {
-				clientId: env.BOX_CLIENT_ID,
-				clientSecret: env.BOX_CLIENT_SECRET,
-				scope: ["root_readwrite", "manage_app_users"],
-				prompt: "none",
-			},
 		},
+
+		plugins: [
+			genericOAuth({
+				config: [
+					{
+						providerId: "box",
+						clientId: env.BOX_CLIENT_ID,
+						clientSecret: env.BOX_CLIENT_SECRET,
+						authorizationUrl: "https://account.box.com/api/oauth2/authorize",
+						tokenUrl: "https://api.box.com/oauth2/token",
+						userInfoUrl: "https://api.box.com/2.0/users/me",
+						mapProfileToUser: profile => ({
+							id: profile.id,
+							name: profile.name,
+							email: profile.login,
+						}),
+						scopes: ["root_readwrite", "manage_app_users"],
+						prompt: "none",
+					},
+				],
+			}),
+		],
 
 		secondaryStorage: {
 			// better-auth expects a JSON string

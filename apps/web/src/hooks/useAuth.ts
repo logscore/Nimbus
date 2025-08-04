@@ -127,6 +127,7 @@ export const useSignIn = () => {
 	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
+	const { signInWithBoxProvider } = useBoxAuth();
 
 	const { redirectToDashboard } = useRedirect();
 
@@ -171,6 +172,7 @@ export const useSignIn = () => {
 		signInWithCredentials,
 		signInWithGoogleProvider,
 		signInWithMicrosoftProvider,
+		signInWithBoxProvider,
 	};
 };
 
@@ -178,6 +180,7 @@ export const useSignUp = () => {
 	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
+	const { signInWithBoxProvider } = useBoxAuth();
 	const { redirectToDashboard } = useRedirect();
 
 	const signUpWithCredentials = useCallback(
@@ -234,6 +237,7 @@ export const useSignUp = () => {
 		signUpWithCredentials,
 		signInWithGoogleProvider,
 		signInWithMicrosoftProvider,
+		signInWithBoxProvider,
 	};
 };
 
