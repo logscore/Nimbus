@@ -16,7 +16,7 @@ import { toast } from "sonner";
 export default function DragNDropUploader({ children }: { children: React.ReactNode }) {
 	const { mutate: uploadFile, isPending } = useUploadFile();
 
-	const [openDialog, setOpenDialog] = useState(isPending);
+	const [openDialog, setOpenDialog] = useState(false);
 
 	const searchParams = useSearchParams();
 	const parentId = searchParams.get("folderId") ?? "root";
