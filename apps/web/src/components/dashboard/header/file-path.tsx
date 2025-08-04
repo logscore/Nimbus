@@ -138,14 +138,14 @@ function FileBreadcrumbItem({
 	return (
 		<div>
 			{showSeparator ? (
-				<FileBreadcrumbItemText
+				<FileBreadcrumbItemLink
 					isDropTarget={isDropTarget}
 					item={item}
 					handleFolderClick={handleFolderClick}
 					ref={droppableRef}
 				/>
 			) : (
-				<FileBreadcrumbItemText item={item} handleFolderClick={handleFolderClick} />
+				<FileBreadcrumbItemLink item={item} handleFolderClick={handleFolderClick} />
 			)}
 			{showSeparator && (
 				<motion.span
@@ -170,7 +170,7 @@ type FileBreadcrumbItemProps = {
 	ref?: React.Ref<HTMLDivElement>;
 };
 
-function FileBreadcrumbItemText({ isDropTarget, item, handleFolderClick, ref }: FileBreadcrumbItemProps) {
+function FileBreadcrumbItemLink({ isDropTarget, item, handleFolderClick, ref }: FileBreadcrumbItemProps) {
 	return (
 		<motion.div
 			variants={variants}

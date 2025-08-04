@@ -331,7 +331,7 @@ export function useMoveFile() {
 			return await response.json();
 		},
 		onMutate: async ({ sourceId, parentId }) => {
-			await queryClient.cancelQueries({ queryKey: ["files", providerId, accountId] });
+			await queryClient.cancelQueries({ queryKey: ["files", providerId, accountId, parentId] });
 
 			const previousFiles = queryClient.getQueryData<File[]>(["files", providerId, accountId, parentId]);
 
@@ -348,9 +348,6 @@ export function useMoveFile() {
 			queryClient.setQueryData(["files", providerId, accountId, parentId], context?.previousFiles);
 			console.error("Error moving file:", error);
 			toast.error(error.message ?? "Failed to move file");
-		},
-		onSettled: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["files", providerId, accountId] });
 		},
 	});
 }
