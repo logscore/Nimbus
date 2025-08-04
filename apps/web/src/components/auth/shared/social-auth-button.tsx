@@ -1,5 +1,6 @@
 "use client";
 
+import DropboxIcon from "@/components/icons/dropbox-icon";
 import type { SocialAuthButtonProps } from "@/lib/types";
 import { Google, Microsoft } from "@/components/icons";
 import BoxIcon from "@/components/icons/box-icon";
@@ -17,6 +18,10 @@ const providerConfig = {
 	box: {
 		icon: BoxIcon,
 		name: "Box",
+	},
+	dropbox: {
+		icon: DropboxIcon,
+		name: "Dropbox",
 	},
 } as const;
 
