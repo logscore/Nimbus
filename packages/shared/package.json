@@ -7,10 +7,11 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"zod": "^4.0.13",
+		"zod": "^4.0.14",
 		"@nimbus/db": "workspace:*"
 	},
 	"devDependencies": {
-		"@nimbus/tsconfig": "workspace:*"
+		"@nimbus/tsconfig": "workspace:*",
+		"@nimbus/vitest": "workspace:*"
 	}
 }

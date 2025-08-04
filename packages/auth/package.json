@@ -9,7 +9,8 @@
 		"./auth": "./src/auth.ts"
 	},
 	"devDependencies": {
-		"@nimbus/tsconfig": "workspace:*"
+		"@nimbus/tsconfig": "workspace:*",
+		"@nimbus/vitest": "workspace:*"
 	},
 	"dependencies": {
 		"@nimbus/cache": "workspace:*",

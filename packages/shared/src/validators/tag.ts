@@ -33,8 +33,9 @@ export const updateTagJsonSchema = z.object({
 });
 export const updateTagSchema = z.object({}).extend(updateTagParamSchema.shape).extend(updateTagJsonSchema.shape);
 
-export const addTagsToFileParamSchema = z.object({}).extend(fileIdObjectSchema.shape);
-export const removeTagsFromFileParamSchema = z.object({}).extend(fileIdObjectSchema.shape);
+export const addTagsToFileParamSchema = fileIdObjectSchema;
+export const removeTagsFromFileParamSchema = fileIdObjectSchema;
+
 const tagIdsSchema = z.object({
 	tagIds: z.array(tagIdSchema).min(1, "At least one tag ID must be provided"),
 });

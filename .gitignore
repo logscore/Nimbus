@@ -13,6 +13,10 @@ dist
 
 # testing
 /coverage
+**/coverage/
+**/.nyc_output
+**/coverage-final.json
+**/coverage-summary.json
 
 # next.js
 /.next/

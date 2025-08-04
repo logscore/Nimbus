@@ -1,7 +1,7 @@
 "use client";
 
 import { Close, Content, Description, Overlay, Portal, Root, Title, Trigger } from "@radix-ui/react-dialog";
-import { XIcon } from "lucide-react";
+import { ArrowLeftIcon, XIcon } from "lucide-react";
 
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
@@ -35,14 +35,20 @@ function DialogOverlay({ className, ...props }: ComponentProps<typeof Overlay>) 
 	);
 }
 
+interface DialogContentProps extends ComponentProps<typeof Content> {
+	showCloseButton?: boolean;
+	showBackButton?: boolean;
+	onBack?: () => void;
+}
+
 function DialogContent({
 	className,
 	children,
 	showCloseButton = true,
+	showBackButton = false,
+	onBack,
 	...props
-}: ComponentProps<typeof Content> & {
-	showCloseButton?: boolean;
-}) {
+}: DialogContentProps) {
 	return (
 		<DialogPortal data-slot="dialog-portal">
 			<DialogOverlay />
@@ -55,6 +61,16 @@ function DialogContent({
 				{...props}
 			>
 				{children}
+				{showBackButton && (
+					<button
+						type="button"
+						onClick={onBack}
+						className="ring-offset-background focus:ring-ring absolute top-4 left-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none"
+					>
+						<ArrowLeftIcon className="size-4" />
+						<span className="sr-only">Back</span>
+					</button>
+				)}
 				{showCloseButton && (
 					<Close
 						data-slot="dialog-close"

@@ -1,0 +1,48 @@
+services:
+  # Database Service
+  db:
+    image: postgres:16
+    container_name: nimbus-test-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nimbus-test
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nimbus-test-network
+
+  # S3 Service
+  minio:
+    image: minio/minio:latest
+    container_name: nimbus-test-minio
+    ports:
+      - "127.0.0.1:9000:9000" # MinIO API
+      - "127.0.0.1:9001:9001" # MinIO Console
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_REGION=us-east-1
+    command: server /data --console-address :9001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres-data:
+    name: nimbus-test-db-data
+
+networks:
+  nimbus-test-network:
+    driver: bridge

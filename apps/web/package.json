@@ -49,7 +49,6 @@
 		"@tanstack/react-query-devtools": "^5.84.1",
 		"@tanstack/react-table": "^8.21.3",
 		"axios": "^1.11.0",
-		"better-auth": "^1.3.4",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"date-fns": "^4.1.0",
@@ -68,12 +67,13 @@
 		"tailwindcss": "^4.1.11",
 		"tw-animate-css": "^1.3.6",
 		"vaul": "^1.1.2",
-		"zod": "^4.0.13"
+		"zod": "^4.0.14"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.1",
 		"@nimbus/eslint": "workspace:*",
 		"@nimbus/tsconfig": "workspace:*",
+		"@nimbus/vitest": "workspace:*",
 		"@types/react": "^19.1.9",
 		"@types/react-dom": "^19.1.7",
 		"eslint": "^9.32.0",

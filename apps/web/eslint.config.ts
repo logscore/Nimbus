@@ -2,7 +2,7 @@ import { buildEslintConfig } from "@nimbus/eslint";
 import { FlatCompat } from "@eslint/eslintrc";
 
 const compat = new FlatCompat({
-	baseDirectory: import.meta.url,
+	baseDirectory: import.meta.dirname,
 });
 
 const baseConfig = buildEslintConfig();

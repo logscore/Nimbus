@@ -25,25 +25,29 @@
 		"docker:reset": "bun run docker:remove && bun run docker:up"
 	},
 	"dependencies": {
-		"@googleapis/drive": "^14.2.0",
-		"@hono/zod-validator": "^0.7.2",
+		"@aws-sdk/client-s3": "^3.850.0",
+		"@aws-sdk/lib-storage": "^3.850.0",
+		"@aws-sdk/s3-request-presigner": "^3.850.0",
+		"@googleapis/drive": "^14.1.0",
+		"@hono/zod-validator": "^0.7.1",
 		"@microsoft/microsoft-graph-client": "^3.0.7",
 		"@nimbus/auth": "workspace:*",
 		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
 		"@nimbus/env": "workspace:*",
 		"@nimbus/shared": "workspace:*",
-		"drizzle-orm": "^0.44.4",
-		"google-auth-library": "^10.2.0",
-		"hono": "^4.8.10",
+		"drizzle-orm": "^0.44.2",
+		"google-auth-library": "^10.1.0",
+		"hono": "^4.8.5",
 		"nanoid": "^5.1.5",
 		"pg": "^8.16.3",
 		"resend": "^4.7.0",
-		"zod": "^4.0.13"
+		"zod": "^4.0.5"
 	},
 	"devDependencies": {
 		"@microsoft/microsoft-graph-types": "^2.40.0",
 		"@nimbus/tsconfig": "workspace:*",
-		"@types/pg": "^8.15.5"
+		"@nimbus/vitest": "workspace:*",
+		"@types/pg": "^8.15.4"
 	}
 }

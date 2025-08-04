@@ -6,7 +6,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState, type ReactNode } from "react";
 import { FieldError } from "@/components/ui/field-error";
 import { createTagSchema } from "@nimbus/shared";

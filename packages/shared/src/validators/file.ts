@@ -1,4 +1,4 @@
-import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "@nimbus/shared";
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "../constants";
 import z from "zod";
 
 const returnedValuesSchema = z.array(z.string());
