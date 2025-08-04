@@ -19,6 +19,8 @@ export interface AuthEnv {
 	MICROSOFT_CLIENT_SECRET: string;
 	BOX_CLIENT_ID: string;
 	BOX_CLIENT_SECRET: string;
+	DROPBOX_CLIENT_ID: string;
+	DROPBOX_CLIENT_SECRET: string;
 	EMAIL_FROM: string;
 	BACKEND_URL: string;
 	// FRONTEND_URL: string;
@@ -121,6 +123,13 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 				clientId: env.BOX_CLIENT_ID as string,
 				clientSecret: env.BOX_CLIENT_SECRET as string,
 				scope: ["root_readwrite", "manage_app_users"],
+				prompt: "none",
+			},
+
+			dropbox: {
+				clientId: env.DROPBOX_CLIENT_ID as string,
+				clientSecret: env.DROPBOX_CLIENT_SECRET as string,
+				scope: ["files.metadata.read", "files.content.read", "files.content.write", "sharing.read"],
 				prompt: "none",
 			},
 		},
