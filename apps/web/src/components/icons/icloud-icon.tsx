@@ -1,10 +1,6 @@
-import type { JSX } from "react";
+import type { IconProps } from ".";
 
-interface ICloudIconProps {
-	className?: string;
-}
-
-export default function ICloudIcon({ className }: ICloudIconProps): JSX.Element {
+export function ICloudIcon({ className }: IconProps) {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

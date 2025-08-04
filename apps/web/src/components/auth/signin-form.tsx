@@ -1,6 +1,6 @@
 "use client";
 
-import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
+import { AuthProviderButtons } from "@/components/auth/shared/auth-provider-buttons";
 import { PasswordInput } from "@/components/auth/shared/password-input";
 import { signInSchema, type SignInFormData } from "@nimbus/shared";
 import { AuthCard } from "@/components/auth/shared/auth-card";
@@ -17,7 +17,7 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export function SignInForm({ className, ...props }: ComponentProps<"div">) {
-	const { isLoading, signInWithCredentials, signInWithGoogleProvider, signInWithMicrosoftProvider } = useSignIn();
+	const { isLoading, signInWithCredentials } = useSignIn();
 
 	const {
 		register,
@@ -49,18 +49,7 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 			{...props}
 		>
 			<div className="flex flex-col gap-4">
-				<SocialAuthButton
-					provider="google"
-					action="signin"
-					onClick={() => signInWithGoogleProvider()}
-					disabled={isLoading}
-				/>
-				<SocialAuthButton
-					provider="microsoft"
-					action="signin"
-					onClick={() => signInWithMicrosoftProvider()}
-					disabled={isLoading}
-				/>
+				<AuthProviderButtons action="signin" isLoading={isLoading} />
 
 				<div className="text-muted-foreground text-center font-mono text-sm font-semibold tracking-wider">OR</div>
 

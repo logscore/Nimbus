@@ -3,6 +3,7 @@ import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import type { Redis as ValkeyRedis } from "iovalkey";
+import { genericOAuth } from "better-auth/plugins";
 import type { RedisClient } from "@nimbus/cache";
 import { sendMail } from "./utils/send-mail";
 import { type DB } from "@nimbus/db";
@@ -17,6 +18,8 @@ export interface AuthEnv {
 	GOOGLE_CLIENT_SECRET: string;
 	MICROSOFT_CLIENT_ID: string;
 	MICROSOFT_CLIENT_SECRET: string;
+	BOX_CLIENT_ID: string;
+	BOX_CLIENT_SECRET: string;
 	EMAIL_FROM: string;
 	BACKEND_URL: string;
 	// FRONTEND_URL: string;
@@ -87,8 +90,8 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 
 		socialProviders: {
 			google: {
-				clientId: env.GOOGLE_CLIENT_ID as string,
-				clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+				clientId: env.GOOGLE_CLIENT_ID,
+				clientSecret: env.GOOGLE_CLIENT_SECRET,
 				scope: [
 					"https://www.googleapis.com/auth/drive",
 					"https://www.googleapis.com/auth/userinfo.profile",
@@ -100,8 +103,8 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 			},
 
 			microsoft: {
-				clientId: env.MICROSOFT_CLIENT_ID as string,
-				clientSecret: env.MICROSOFT_CLIENT_SECRET as string,
+				clientId: env.MICROSOFT_CLIENT_ID,
+				clientSecret: env.MICROSOFT_CLIENT_SECRET,
 				scope: [
 					"https://graph.microsoft.com/User.Read",
 					"https://graph.microsoft.com/Files.ReadWrite.All",
@@ -115,6 +118,28 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 				// prompt: "select_account",
 			},
 		},
+
+		plugins: [
+			genericOAuth({
+				config: [
+					{
+						providerId: "box",
+						clientId: env.BOX_CLIENT_ID,
+						clientSecret: env.BOX_CLIENT_SECRET,
+						authorizationUrl: "https://account.box.com/api/oauth2/authorize",
+						tokenUrl: "https://api.box.com/oauth2/token",
+						userInfoUrl: "https://api.box.com/2.0/users/me",
+						mapProfileToUser: profile => ({
+							id: profile.id,
+							name: profile.name,
+							email: profile.login,
+						}),
+						scopes: ["root_readwrite", "manage_app_users"],
+						prompt: "none",
+					},
+				],
+			}),
+		],
 
 		secondaryStorage: {
 			// better-auth expects a JSON string

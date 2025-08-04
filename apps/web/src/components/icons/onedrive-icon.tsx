@@ -1,10 +1,6 @@
-import type { JSX } from "react";
+import type { IconProps } from ".";
 
-interface OneDriveIconProps {
-	className?: string;
-}
-
-export default function OneDriveIcon({ className }: OneDriveIconProps): JSX.Element {
+export function OneDriveIcon({ className }: IconProps) {
 	return (
 		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 5.5 32 20.5" className={className}>
 			<title>OfficeCore10_32x_24x_20x_16x_01-22-2019</title>

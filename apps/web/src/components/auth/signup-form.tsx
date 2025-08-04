@@ -1,11 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCheckEmailExists, useGoogleAuth, useMicrosoftAuth, useSignUp } from "@/hooks/useAuth";
-import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
+import { AuthProviderButtons } from "@/components/auth/shared/auth-provider-buttons";
 import { SegmentedProgress } from "@/components/ui/segmented-progress";
 import { signUpSchema, type SignUpFormData } from "@nimbus/shared";
 import { ArrowLeft, Eye, EyeClosed, Loader2 } from "lucide-react";
+import { useCheckEmailExists, useSignUp } from "@/hooks/useAuth";
 import { FieldError } from "@/components/ui/field-error";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,8 +25,6 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 	const [showPasswordEntry, setShowPasswordEntry] = useState(false);
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const { isLoading, signUpWithCredentials } = useSignUp();
-	const { signInWithGoogleProvider } = useGoogleAuth();
-	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
 	const checkEmailMutation = useCheckEmailExists();
 
 	const {
@@ -104,19 +102,7 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 					<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
 						{!showPasswordEntry && (
 							<>
-								<SocialAuthButton
-									provider="google"
-									action="signup"
-									onClick={() => signInWithGoogleProvider()}
-									disabled={isLoading}
-								/>
-								<SocialAuthButton
-									provider="microsoft"
-									action="signup"
-									onClick={() => signInWithMicrosoftProvider()}
-									disabled={isLoading}
-								/>
-
+								<AuthProviderButtons action="signup" isLoading={isLoading} />
 								<div className="text-muted-foreground text-center font-mono text-sm font-semibold tracking-wider">
 									OR
 								</div>

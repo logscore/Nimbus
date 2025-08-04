@@ -50,37 +50,44 @@ Follow the instructions on the first step of this [guide](https://www.better-aut
 
 - Create a new project and navigate to its dashboard.
 
-- Under <b>API & Services</b>, navigate to <b>Oauth Consent Screen</b> and enter the details.
+- Navigate to [**OAuth Consent Screen**](https://console.cloud.google.com/auth/overview) and enter the details.
+  - Name: _Nimbus_
+  - Audience: _External_
+  - Contact info: _youremail@gmail.com_
 
-- Now create a client. Add <b>Authorised Javascript origin</b> as `http://localhost:3000` and <b> Authorised redirect
-  uri</b> as `http://localhost:1284/api/auth/callback/google` and get your `client_id` and `client_secret`.
+- Navigate to [**Clients**](https://console.cloud.google.com/auth/clients).
+  - Type: _Web application_
+  - Name: _Nimbus_
+  - Add **Authorised Javascript origin** as `http://localhost:3000`
+  - Add **Authorised redirect uri** as `http://localhost:1284/api/auth/callback/google`
+  - **IMPORTANT**:Get your `client_id` and `client_secret`.
 
-- Now navigate to <b>Audience</b> and add <b>Test users</b>.
+- Enable Google Drive API
+  - Search for **Google Drive API** or [Click Here](https://console.cloud.google.com/apis/library/drive.googleapis.com).
+  - Click **Enable**.
+
+- Now navigate to [**Audience**](https://console.cloud.google.com/auth/audience) and add **Test users**.
+
 </details>
 
 <details>
 <summary>How to setup Microsoft keys?</summary>
 <br>
 
-- Go to the <a href="https://portal.azure.com/" target="_blank"><b>Microsoft Azure Portal</b></a>.
+- Go to the <a href="https://portal.azure.com/" target="_blank">**Microsoft Azure Portal**</a>.
 
-- Navigate to <b>Azure Active Directory or Microsoft Entra ID</b> → <b>App registrations</b> → click <b>New
-  registration</b>.
+- Navigate to [**Microsoft Entra ID**](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade) → Click **Add** → Click **App registrations**.
+  - Name: _Nimbus_
+  - Under **Supported account types**, choose: **Accounts in any organizational directory and personal Microsoft accounts** (i.e. all Microsoft account users).
+  - Under **Redirect URI**, select **Web** and enter: `http://localhost:1284/api/auth/callback/microsoft` (Also add `http://localhost:3000` under front-end origins if needed.)
 
-- Enter a name for your app.
+- After registration, navigate to the app's **Overview** to copy your **Application (client) ID**.
 
-- Under <b>Supported account types</b>, choose: <b>Accounts in any organizational directory and personal Microsoft
-  accounts</b> (i.e. all Microsoft account users).
+- In the left menu, Click **Manage**. Use this to navigate.
 
-- Under <b>Redirect URI</b>, select <b>Web</b> and enter: `http://localhost:1284/api/auth/callback/microsoft` (Also add
-  `http://localhost:3000` under front-end origins if needed.)
+- Navigate to **Certificates & secrets** → Click **New client secret** → Add a _description_ and _expiry_ → Click **Add** → Copy the generated secret value.
 
-- After registration, go to the app's <b>Overview</b> to copy your <b>Application (client) ID</b>.
-
-- Then go to <b>Certificates & secrets</b> → <b>New client secret</b> → add a description and expiry → click <b>Add</b>
-  → copy the generated secret value.
-
-- Now, go to <b>API permissions</b> and make sure these **delegated Microsoft Graph** permissions are added and granted:
+- Navigate to **API permissions** and make sure these **delegated Microsoft Graph** permissions are added and granted:
   - `email` – View users' email address
   - `offline_access` – Maintain access to data you have given it access to
   - `openid` – Sign users in
@@ -88,8 +95,43 @@ Follow the instructions on the first step of this [guide](https://www.better-aut
   - `User.Read` – Sign in and read user profile
   - `Files.ReadWrite.All` – Have full access to user files (OneDrive access)
 
-- Click <b>Grant admin consent</b> to apply the permissions.
+- Click **Grant admin consent** to apply the permissions.
+</details>
 
+<details>
+<summary>How to setup Box keys?</summary>
+<br>
+
+Official Guide: [Box Create OAuth 2.0 App](https://developer.box.com/guides/authentication/oauth2/oauth2-setup/)
+
+- Navigate to Box Developer Console [console](https://app.box.com/developers/console).
+
+- Click **Create App**. Select **Custom App**.
+
+- Fill in the form.
+  - Name: _Nimbus_
+  - Purpose: _Integration_
+  - Categories: _Productivity, Collaboration, Core Enterprise_
+  - External system are you integrating with: _Box files_
+  - Click **Next**
+  - Select **User Authentication (OAuth 2.0)**
+  - Click **Create App**
+
+- Copy the **Client ID** and **Client Secret** under **OAuth 2.0 Credentials**.
+
+- Add **OAuth 2.0 Redirect URIs** as `http://localhost:1284/api/auth/oauth2/callback/box`.
+
+> **Note**: The redirect URI is different because it uses the generic oauth2 plugin from better-auth.
+
+- Add **Application Scopes**:
+  - `Read all files and folders stored in Box`
+  - `Write all files and folders stored in Box`
+  - `Manage Users`
+  - `Enable Integrations`
+
+- Add **CORS Domains** as `http://localhost:3000`.
+
+- Click **Save Changes**.
 </details>
 
 ```bash
@@ -98,6 +140,9 @@ GOOGLE_CLIENT_SECRET=
 
 MICROSOFT_CLIENT_ID=
 MICROSOFT_CLIENT_SECRET=
+
+BOX_CLIENT_ID=
+BOX_CLIENT_SECRET=
 
 # To generate a secret, just run `openssl rand -base64 32`
 BETTER_AUTH_SECRET=
@@ -174,30 +219,11 @@ bun db:push
    docker compose exec valkey valkey-cli --user valkey --pass valkey
    ```
 
-### 6. Enable Google Drive API
-
-To ensure the application works correctly and can fetch data from Google Drive, you must enable the Google Drive API in
-the same Google Cloud project where your OAuth credentials are configured.
-
-<details>
-<summary> Steps To Enable Drive API </summary>
-<br>
-
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Select the project you're using for OAuth.
-3. Navigate to **APIs & Services > Library**.
-4. Search for **Google Drive API** or [Click Here](https://console.cloud.google.com/apis/library/drive.googleapis.com).
-5. Click **Enable**.
-</details>
-
-> Note: This step is **required** for the application to access Google Drive data via OAuth.
-
 ### 7. Start the Development Server
 
 In a new terminal, start the development server:
 
-> NOTE: this starts both the web and server development servers, to run just one, use `bun dev:web` or `bun dev:server`.
-> Both will need the db running to work.
+> NOTE: this starts both the web and server development servers, to run just one, use `bun dev:web` or `bun dev:server`. Both will need the db running to work.
 
 ```bash
 bun dev
@@ -212,16 +238,13 @@ Once the development server is running, you can access the authentication pages:
 - **Sign In**: Navigate to [http://localhost:3000/signin](http://localhost:3000/signin)
 - **Sign Up**: Navigate to [http://localhost:3000/signup](http://localhost:3000/signup)
 
-Make sure you have configured the Google OAuth credentials in your `.env` file as described in step 4 for authentication
-to work properly. Additionally, configure your Resend API key for the forgot password functionality to work.
+Make sure you have configured the Google OAuth credentials in your `.env` file as described in step 4 for authentication to work properly. Additionally, configure your Resend API key for the forgot password functionality to work.
 
-If you want to contribute, please refer to the
-[contributing guide](https://github.com/nimbusdotstorage/Nimbus/blob/main/CONTRIBUTING.md)
+If you want to contribute, please refer to the [contributing guide](https://github.com/nimbusdotstorage/Nimbus/blob/main/CONTRIBUTING.md)
 
 ### 9. Tests
 
-Vitest and MinIO via Docker are used for testing. To run tests, use must use `bun run test` becasuse `bun test` is
-reserved for `bun` (just like `bun build` etc).
+Vitest and MinIO via Docker are used for testing. To run tests, use must use `bun run test` becasuse `bun test` is reserved for `bun` (just like `bun build` etc).
 
 Tests **require** the `docker-compose.test.yml` to be running.
 

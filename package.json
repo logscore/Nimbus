@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"devDependencies": {
 		"@changesets/cli": "^2.29.5",
-		"@cloudflare/workers-types": "^4.20250802.0",
+		"@cloudflare/workers-types": "^4.20250803.0",
 		"@nimbus/eslint": "workspace:*",
 		"@nimbus/tsconfig": "workspace:*",
 		"@nimbus/vitest": "workspace:*",
@@ -15,7 +15,7 @@
 		"glob": "^11.0.3",
 		"husky": "^9.1.7",
 		"knip": "^5.62.0",
-		"lint-staged": "^16.1.2",
+		"lint-staged": "^16.1.4",
 		"oxlint": "^1.9.0",
 		"prettier": "^3.6.2",
 		"prettier-plugin-sort-imports": "^1.8.8",
