@@ -1,4 +1,5 @@
 import { DropboxProvider } from "../dropbox-provider";
+import type { FileMetadata } from "@nimbus/shared";
 import { vi } from "vitest";
 
 // Mock Dropbox client responses
@@ -44,7 +45,7 @@ export function createMockDropboxProvider(): DropboxProvider {
 	return provider;
 }
 
-export function createTestFileMetadata(overrides: any = {}) {
+export function createTestFileMetadata(overrides: Partial<FileMetadata> = {}) {
 	return {
 		name: "test-file.txt",
 		mimeType: "text/plain",
@@ -53,7 +54,7 @@ export function createTestFileMetadata(overrides: any = {}) {
 	};
 }
 
-export function createTestFolderMetadata(overrides: any = {}) {
+export function createTestFolderMetadata(overrides: Partial<FileMetadata> = {}) {
 	return {
 		name: "test-folder",
 		mimeType: "application/x-directory",
