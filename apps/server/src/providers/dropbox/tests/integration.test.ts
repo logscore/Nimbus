@@ -36,30 +36,42 @@ describe.skip("DropboxProvider Integration Tests", () => {
 
 		it("should create and delete a test folder", async () => {
 			const folderName = `test-folder-${Date.now()}`;
+			let folderId: string | undefined;
 
-			// Create folder
-			const folder = await provider.create({
-				name: folderName,
-				mimeType: "application/x-directory",
-				parentId: "",
-			});
+			try {
+				// Create folder
+				const folder = await provider.create({
+					name: folderName,
+					mimeType: "application/x-directory",
+					parentId: "",
+				});
 
-			expect(folder).not.toBeNull();
-			expect(folder?.name).toBe(folderName);
-			expect(folder?.type).toBe("folder");
+				expect(folder).not.toBeNull();
+				expect(folder?.name).toBe(folderName);
+				expect(folder?.type).toBe("folder");
 
-			// Verify folder exists
-			if (folder) {
-				const retrieved = await provider.getById(folder.id);
-				expect(retrieved).not.toBeNull();
-				expect(retrieved?.name).toBe(folderName);
+				folderId = folder?.id;
 
-				// Delete folder
-				const deleted = await provider.delete(folder.id);
-				expect(deleted).toBe(true);
+				// Verify folder exists
+				if (folder) {
+					const retrieved = await provider.getById(folder.id);
+					expect(retrieved).not.toBeNull();
+					expect(retrieved?.name).toBe(folderName);
+				}
+			} finally {
+				// Cleanup: Delete folder if it was created
+				if (folderId) {
+					try {
+						await provider.delete(folderId);
+					} catch (cleanupError) {
+						console.warn(`Failed to cleanup test folder ${folderId}:`, cleanupError);
+					}
+				}
+			}
 
-				// Verify folder is deleted
-				const shouldBeNull = await provider.getById(folder.id);
+			// Verify folder is deleted
+			if (folderId) {
+				const shouldBeNull = await provider.getById(folderId);
 				expect(shouldBeNull).toBeNull();
 			}
 		});
@@ -67,36 +79,48 @@ describe.skip("DropboxProvider Integration Tests", () => {
 		it("should create, download, and delete a test file", async () => {
 			const fileName = `test-file-${Date.now()}.txt`;
 			const fileContent = "This is a test file content";
+			let fileId: string | undefined;
 
-			// Create file
-			const file = await provider.create(
-				{
-					name: fileName,
-					mimeType: "text/plain",
-					parentId: "",
-				},
-				Buffer.from(fileContent)
-			);
+			try {
+				// Create file
+				const file = await provider.create(
+					{
+						name: fileName,
+						mimeType: "text/plain",
+						parentId: "",
+					},
+					Buffer.from(fileContent)
+				);
 
-			expect(file).not.toBeNull();
-			expect(file?.name).toBe(fileName);
-			expect(file?.type).toBe("file");
+				expect(file).not.toBeNull();
+				expect(file?.name).toBe(fileName);
+				expect(file?.type).toBe("file");
 
-			if (file) {
-				// Download file
-				const downloadResult = await provider.download(file.id);
-				expect(downloadResult).not.toBeNull();
-				if (downloadResult) {
-					expect(downloadResult.filename).toBe(fileName);
-					expect(downloadResult.data.toString()).toBe(fileContent);
+				fileId = file?.id;
+
+				if (file) {
+					// Download file
+					const downloadResult = await provider.download(file.id);
+					expect(downloadResult).not.toBeNull();
+					if (downloadResult) {
+						expect(downloadResult.filename).toBe(fileName);
+						expect(downloadResult.data.toString()).toBe(fileContent);
+					}
 				}
+			} finally {
+				// Cleanup: Delete file if it was created
+				if (fileId) {
+					try {
+						await provider.delete(fileId);
+					} catch (cleanupError) {
+						console.warn(`Failed to cleanup test file ${fileId}:`, cleanupError);
+					}
+				}
+			}
 
-				// Delete file
-				const deleted = await provider.delete(file.id);
-				expect(deleted).toBe(true);
-
-				// Verify file is deleted
-				const shouldBeNull = await provider.getById(file.id);
+			// Verify file is deleted
+			if (fileId) {
+				const shouldBeNull = await provider.getById(fileId);
 				expect(shouldBeNull).toBeNull();
 			}
 		});
