@@ -61,9 +61,16 @@ export class BoxProvider implements Provider {
 	constructor(accessToken: string) {
 		this.accessToken = accessToken;
 
+		const clientId = process.env.BOX_CLIENT_ID;
+		const clientSecret = process.env.BOX_CLIENT_SECRET;
+
+		if (!clientId || !clientSecret) {
+			throw new Error("BOX_CLIENT_ID and BOX_CLIENT_SECRET environment variables are required");
+		}
+
 		const sdk = new BoxSDK({
-			clientID: process.env.BOX_CLIENT_ID || "dummy",
-			clientSecret: process.env.BOX_CLIENT_SECRET || "dummy",
+			clientID: clientId,
+			clientSecret: clientSecret,
 		});
 
 		this.client = sdk.getBasicClient(accessToken) as BoxClient;
@@ -355,9 +362,17 @@ export class BoxProvider implements Provider {
 
 	setAccessToken(token: string): void {
 		this.accessToken = token;
+
+		const clientId = process.env.BOX_CLIENT_ID;
+		const clientSecret = process.env.BOX_CLIENT_SECRET;
+
+		if (!clientId || !clientSecret) {
+			throw new Error("BOX_CLIENT_ID and BOX_CLIENT_SECRET environment variables are required");
+		}
+
 		const sdk = new BoxSDK({
-			clientID: "dummy",
-			clientSecret: "dummy",
+			clientID: clientId,
+			clientSecret: clientSecret,
 		});
 		this.client = sdk.getBasicClient(token) as BoxClient;
 	}
