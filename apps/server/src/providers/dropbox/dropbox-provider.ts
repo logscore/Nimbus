@@ -1,5 +1,4 @@
 import {
-	DEFAULT_MIME_TYPE,
 	DEFAULT_PAGE_SIZE,
 	type DownloadFileSchema,
 	type DriveInfo,
@@ -7,6 +6,7 @@ import {
 	type FileMetadata,
 } from "@nimbus/shared";
 import type { DownloadResult, ListFilesOptions, ListFilesResult } from "../interface/types";
+import { getMimeTypeFromExtension } from "../utils/mime-types";
 import type { Provider } from "../interface/provider";
 import { Readable } from "node:stream";
 import type { files } from "dropbox";
@@ -133,7 +133,7 @@ export class DropboxProvider implements Provider {
 			return {
 				data: fileBuffer,
 				filename: downloadData.result.name,
-				mimeType: this.getMimeTypeFromExtension(downloadData.result.name),
+				mimeType: getMimeTypeFromExtension(downloadData.result.name),
 				size: downloadData.result.size || 0,
 			};
 		} catch {
@@ -269,7 +269,7 @@ export class DropboxProvider implements Provider {
 		return {
 			id: path,
 			name,
-			mimeType: isFolder ? "application/x-directory" : this.getMimeTypeFromExtension(name),
+			mimeType: isFolder ? "application/x-directory" : getMimeTypeFromExtension(name),
 			size,
 			createdTime: createdTime || new Date().toISOString(),
 			modifiedTime: modifiedTime || new Date().toISOString(),
@@ -314,37 +314,5 @@ export class DropboxProvider implements Provider {
 			stream.on("end", () => resolve(Buffer.concat(chunks)));
 			stream.on("error", reject);
 		});
-	}
-
-	private getMimeTypeFromExtension(filename: string): string {
-		const extension = filename.split(".").pop()?.toLowerCase();
-		const mimeTypes: Record<string, string> = {
-			txt: "text/plain",
-			pdf: "application/pdf",
-			jpg: "image/jpeg",
-			jpeg: "image/jpeg",
-			png: "image/png",
-			gif: "image/gif",
-			mp4: "video/mp4",
-			mp3: "audio/mpeg",
-			zip: "application/zip",
-			doc: "application/msword",
-			docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-			xls: "application/vnd.ms-excel",
-			xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-			ppt: "application/vnd.ms-powerpoint",
-			pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-			js: "application/javascript",
-			json: "application/json",
-			html: "text/html",
-			css: "text/css",
-			webm: "video/webm",
-			avi: "video/x-msvideo",
-			wav: "audio/wav",
-			tar: "application/x-tar",
-			gz: "application/gzip",
-			rar: "application/vnd.rar",
-		};
-		return mimeTypes[extension || ""] || DEFAULT_MIME_TYPE;
 	}
 }
