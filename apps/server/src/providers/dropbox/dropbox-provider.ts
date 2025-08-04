@@ -69,8 +69,13 @@ export class DropboxProvider implements Provider {
 			});
 
 			return this.mapToFile(metadata.result as DropboxMetadata);
-		} catch {
-			return null;
+		} catch (error: any) {
+			// Only return null for "not found" errors
+			if (error?.error?.error?.[".tag"] === "path" && error?.error?.error?.path?.[".tag"] === "not_found") {
+				return null;
+			}
+			// Re-throw other errors
+			throw error;
 		}
 	}
 
@@ -87,7 +92,11 @@ export class DropboxProvider implements Provider {
 		return this.mapToFile(moveData.result.metadata as DropboxMetadata);
 	}
 
-	async delete(id: string, _permanent = true): Promise<boolean> {
+	async delete(id: string, permanent = true): Promise<boolean> {
+		if (!permanent) {
+			// Dropbox API v2 only supports permanent deletion
+			throw new Error("Dropbox provider only supports permanent deletion");
+		}
 		await this.client.filesDeleteV2({
 			path: id,
 		});
@@ -136,8 +145,13 @@ export class DropboxProvider implements Provider {
 				mimeType: getMimeTypeFromExtension(downloadData.result.name),
 				size: downloadData.result.size || 0,
 			};
-		} catch {
-			return null;
+		} catch (error: any) {
+			// Only return null for "not found" errors
+			if (error?.error?.error?.[".tag"] === "path" && error?.error?.error?.path?.[".tag"] === "not_found") {
+				return null;
+			}
+			// Re-throw other errors
+			throw error;
 		}
 	}
 
