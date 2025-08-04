@@ -48,11 +48,7 @@ git push origin feature/your-feature-name
 
 - Go to GitHub and open a pull request from your feature branch
 
-> Note: If you open a pull request, try to minimize the amount of repo wide changes you make. It will highly increase
-> the chances that we just review and merge. We're much more likely to question and challenge changes if they do not
-> make sense to the actual features or fixes the PR was intended for. Example: adding unneeded dependencies for the
-> server when the PR was for a dialog component, or changing the middleware functionality when you were working on
-> better error handling on the server
+> Note: If you open a pull request, try to minimize the amount of repo wide changes you make. It will highly increase the chances that we just review and merge. We're much more likely to question and challenge changes if they do not make sense to the actual features or fixes the PR was intended for. Example: adding unneeded dependencies for the server when the PR was for a dialog component, or changing the middleware functionality when you were working on better error handling on the server
 
 ## Useful Commands
 
@@ -71,28 +67,22 @@ git push origin feature/your-feature-name
 ## Troubleshooting
 
 - **Port conflicts**: If port 5432 is already in use, just change the port mapping in `docker-compose.yml`
-- **Permission issues**: On Linux, you might need to run Docker commands with `sudo` or add your user to the `docker`
-  group with the command `sudo usermod -aG docker $USER`
-- **Database connection issues**: Ensure the database is running and the connection string in your `.env` file is
-  correct
+- **Permission issues**: On Linux, you might need to run Docker commands with `sudo` or add your user to the `docker` group with the command `sudo usermod -aG docker $USER`
+- **Database connection issues**: Ensure the database is running and the connection string in your `.env` file is correct
 
 ## License
 
-By contributing to this project, you agree that your contributions will be licensed under its
-[Apache License 2.0](LICENSE).
+By contributing to this project, you agree that your contributions will be licensed under its [Apache License 2.0](LICENSE).
 
 ---
 
 ## For new contributors
 
-We want everyone to be able to contribute something to Nimbus. So we set up a list of a few items that can get you
-started contributing to the project. This will be updated as needed.
+We want everyone to be able to contribute something to Nimbus. So we set up a list of a few items that can get you started contributing to the project. This will be updated as needed.
 
 ### 1. Storage source support
 
-If you have experience with the APIs or specs for S3, R2, OneDrive, or any other storage source, we would love it if you
-help us add support for it. Try to stay as close to the API spec as possible, especially for S3 storage so we can
-support S3 compatible storage sources like MinIO.
+If you have experience with the APIs or specs for S3, R2, OneDrive, or any other storage source, we would love it if you help us add support for it. Try to stay as close to the API spec as possible, especially for S3 storage so we can support S3 compatible storage sources like MinIO.
 
 ### 2. UI/UX improvements
 
@@ -109,8 +99,7 @@ Some items to get started with:
 - A settings page that functions with the providers and user settings
 - Add folder tree navigation, breadcrumbs, or a file previewer
 
-We realize that many of these changes will not have total functionality hooked up yet. Thats fine, just make sure to add
-dummy data so we can see the UI and make sure it works as expected before adding real data.
+We realize that many of these changes will not have total functionality hooked up yet. Thats fine, just make sure to add dummy data so we can see the UI and make sure it works as expected before adding real data.
 
 ### 3. Backend Improvements
 

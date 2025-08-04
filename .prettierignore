@@ -30,3 +30,6 @@ drizzle/
 
 # If you have serverless function output directories (e.g., Vercel, Netlify)
 **/.vercel/
+
+# Changelog
+CHANGELOG.md
