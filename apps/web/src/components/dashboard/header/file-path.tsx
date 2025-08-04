@@ -5,8 +5,11 @@ import { type BreadcrumbItem as BreadcrumbItemType } from "@/hooks/useBreadcrumb
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBreadcrumbPath } from "@/hooks/useBreadcrumb";
+import { pointerIntersection } from "@dnd-kit/collision";
 import { SourceSelector } from "./source-selector";
+import { useDroppable } from "@dnd-kit/react";
 import { HomeIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Define animation variants for slide-in/slide-out
 const variants: Variants = {
@@ -52,6 +55,13 @@ export function FileBreadcrumb() {
 		router.push(`?${params.toString()}`);
 	}
 
+	const { ref: droppableRef, isDropTarget } = useDroppable({
+		id: `droppable-root`,
+		accept: "files",
+		data: { id: "root" },
+		collisionDetector: pointerIntersection,
+	});
+
 	return (
 		<>
 			<div className="flex flex-[1_0_0] items-center gap-1">
@@ -61,7 +71,13 @@ export function FileBreadcrumb() {
 					<Breadcrumb>
 						<BreadcrumbList className="flex items-center px-1">
 							<AnimatePresence mode="popLayout">
-								<BreadcrumbItem>
+								<BreadcrumbItem
+									ref={droppableRef}
+									className={cn(
+										"flex items-center justify-center",
+										isDropTarget && "rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500"
+									)}
+								>
 									<BreadcrumbLink
 										onClick={handleHomeClick}
 										className="flex items-center gap-2 rounded-md p-1 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.04)]"
@@ -111,6 +127,13 @@ function FileBreadcrumbItem({
 	handleFolderClick: (id: string) => void;
 	showSeparator: boolean;
 }) {
+	const { ref: droppableRef, isDropTarget } = useDroppable({
+		id: `droppable-${item.id}`,
+		accept: "files",
+		data: { id: item.id },
+		collisionDetector: pointerIntersection,
+	});
+
 	return (
 		<div>
 			<motion.div
@@ -119,7 +142,11 @@ function FileBreadcrumbItem({
 				animate="visible"
 				exit="exit"
 				layout
-				className="inline-flex items-center"
+				className={cn(
+					"inline-flex items-center",
+					isDropTarget && "rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500"
+				)}
+				ref={droppableRef}
 			>
 				<BreadcrumbItem>
 					<BreadcrumbLink

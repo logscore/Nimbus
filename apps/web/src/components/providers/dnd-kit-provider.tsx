@@ -1,31 +1,33 @@
+import { DragDropProvider, KeyboardSensor, PointerSensor } from "@dnd-kit/react";
 import { useMoveFile } from "@/hooks/useFileOperations";
-import { DndContext } from "@dnd-kit/core";
-import React from "react";
 
-export default function DndKitProvider({ children }: { children: React.ReactNode }) {
-	const { mutate: moveFile, isPending } = useMoveFile();
+export default function DndKitProvider({ children, parentId }: { children: React.ReactNode; parentId: string }) {
+	const { mutate: moveFile } = useMoveFile();
 
 	return (
-		<DndContext
-			onDragStart={() => console.log("drag started")}
-			onDragMove={() => console.log("Drag move")}
-			onDragOver={() => console.log("drag over")}
+		<DragDropProvider
+			sensors={[PointerSensor, KeyboardSensor]}
 			onDragEnd={event => {
-				const targetParentId = event.over?.data?.current?.id;
-				const sourceId = event.active?.data?.current?.id;
-				const newName = event.active?.data?.current?.name;
-				console.log(event);
+				const { operation, canceled } = event;
+				const { source, target } = operation;
+
+				if (canceled || !target || !source) return;
+
+				const targetParentId = target.data.id;
+				const sourceId = source.data.id;
+
+				console.log(targetParentId, sourceId);
+
+				if (targetParentId === sourceId) return;
+
 				moveFile({
 					sourceId,
 					targetParentId,
-					newName,
+					parentId,
 				});
-
-				console.log(targetParentId, sourceId, newName);
 			}}
-			onDragCancel={() => console.log("drag cancel")}
 		>
 			{children}
-		</DndContext>
+		</DragDropProvider>
 	);
 }

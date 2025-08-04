@@ -4,7 +4,6 @@ import {
 	Archive,
 	ChevronDown,
 	ChevronUp,
-	CloudUpload,
 	Code,
 	FileIcon,
 	FileSpreadsheet,
@@ -26,25 +25,21 @@ import {
 	type SortingState,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ALLOWED_MIME_TYPES, formatFileSize } from "@nimbus/shared";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/react";
 import React, { useMemo, useState, type JSX } from "react";
 import { UploadButton } from "@/components/upload-button";
-import { useUploadFile } from "@/hooks/useFileOperations";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { pointerIntersection } from "@dnd-kit/collision";
 import DragNDropUploader from "./drag-n-drop-uploader";
-import { AnimatePresence, motion } from "motion/react";
-import { Logo, PdfIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { useDropzone } from "react-dropzone";
+import { formatFileSize } from "@nimbus/shared";
+import { PdfIcon } from "@/components/icons";
 import { FileActions } from "./file-actions";
 import type { File } from "@nimbus/shared";
 import { useTags } from "@/hooks/useTags";
 import { FileTags } from "./file-tags";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 // Utility function for date formatting
 const formatDate = (dateString: string | null): string => {
@@ -446,61 +441,50 @@ function DroppableTableRow({
 	row: Row<File>;
 	handleRowDoubleClick: (file: File) => void;
 }) {
-	const { isOver, setNodeRef: droppableRef } = useDroppable({
+	const { ref: droppableRef, isDropTarget } = useDroppable({
 		id: `droppable-${row.id}`,
-		data: row.original,
+		accept: "files",
+		data: { id: row.original.id },
+		collisionDetector: pointerIntersection,
 	});
 
-	const {
-		attributes,
-		listeners,
-		setNodeRef: draggableRef,
-		transform,
-	} = useDraggable({
+	const { ref: draggableRef, isDragging } = useDraggable({
 		id: `draggable-${row.id}`,
-		data: row.original,
+		type: "files",
+		data: { id: row.original.id, parentId: row.original.parentId },
 	});
-
-	const style = {
-		...(transform && {
-			transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-			transition: "transform 0.1s ease",
-		}),
-	};
 
 	const isFolder = row.original.type === "folder";
 
 	return (
-		<TableRow
-			className={cn(
-				"h-8 rounded-md transition-all hover:bg-transparent",
-				(isOver || transform) && "z-[100] scale-x-90 rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500",
-				isOver && "scale-x-95",
-				transform && "scale-95"
-			)}
-			onDoubleClick={() => handleRowDoubleClick(row.original)}
-			ref={node => {
-				if (isFolder) {
-					droppableRef(node);
-				}
-				draggableRef(node);
-			}}
-			style={style}
-			{...listeners}
-			{...attributes}
-		>
-			{row.getVisibleCells().map(cell => (
-				<TableCell
-					key={cell.id}
-					className="h-10 py-0 whitespace-nowrap"
-					style={{
-						width: cell.column.id === "tags" || cell.column.id === "actions" ? "50px" : undefined,
-					}}
-				>
-					{flexRender(cell.column.columnDef.cell, cell.getContext())}
-				</TableCell>
-			))}
-		</TableRow>
+		<>
+			<TableRow
+				className={cn(
+					"h-8 rounded-md transition-all hover:bg-transparent",
+					isDragging && "z-[100] scale-x-90 rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500",
+					isDropTarget && "scale-x-95 rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500"
+				)}
+				onDoubleClick={() => handleRowDoubleClick(row.original)}
+				ref={node => {
+					if (isFolder) {
+						droppableRef(node);
+					}
+					draggableRef(node);
+				}}
+			>
+				{row.getVisibleCells().map(cell => (
+					<TableCell
+						key={cell.id}
+						className="h-10 py-0 whitespace-nowrap"
+						style={{
+							width: cell.column.id === "tags" || cell.column.id === "actions" ? "50px" : undefined,
+						}}
+					>
+						{flexRender(cell.column.columnDef.cell, cell.getContext())}
+					</TableCell>
+				))}
+			</TableRow>
+		</>
 	);
 }
 

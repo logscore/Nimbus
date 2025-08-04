@@ -22,7 +22,7 @@
 		"docker:reset": "bun run docker:remove && bun run docker:up"
 	},
 	"dependencies": {
-		"@dnd-kit/core": "^6.3.1",
+		"@dnd-kit/react": "^0.1.20",
 		"@hookform/resolvers": "^5.2.1",
 		"@nimbus/auth": "workspace:*",
 		"@nimbus/env": "workspace:*",
@@ -46,6 +46,7 @@
 		"@t3-oss/env-core": "^0.13.8",
 		"@tailwindcss/postcss": "^4.1.11",
 		"@tanstack/react-query": "^5.83.0",
+		"@tanstack/react-query-devtools": "^5.84.1",
 		"@tanstack/react-table": "^8.21.3",
 		"axios": "^1.11.0",
 		"better-auth": "^1.3.4",

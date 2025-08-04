@@ -310,9 +310,9 @@ export function useDownloadFile() {
 
 export function useMoveFile() {
 	const queryClient = useQueryClient();
-	const { clientPromise } = useAccountProvider();
+	const { clientPromise, providerId, accountId } = useAccountProvider();
 	return useMutation({
-		mutationFn: async ({ sourceId, targetParentId, newName }: MoveFileSchema) => {
+		mutationFn: async ({ sourceId, targetParentId, newName }: MoveFileSchema & { parentId: string }) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await handleUnauthorizedError(
 				() =>
@@ -327,26 +327,27 @@ export function useMoveFile() {
 			);
 			return await response.json();
 		},
-		// onMutate: async ({ sourceId, targetParentId, newName }) => {
-		// 	await queryClient.cancelQueries({ queryKey: ["files"] });
+		onMutate: async ({ sourceId, parentId }) => {
+			await queryClient.cancelQueries({ queryKey: ["files", providerId, accountId] });
 
-		// 	const previousFiles = queryClient.getQueryData<File[]>(["files"]);
+			const previousFiles = queryClient.getQueryData<File[]>(["files", providerId, accountId, parentId]);
 
-		// 	queryClient.setQueryData(["files", sourceId], (old: File[] = []) =>
-		// 		old.map(file => (file.id === sourceId ? { ...file, parentId: targetParentId, name: newName } : file))
-		// 	);
+			queryClient.setQueryData(["files", providerId, accountId, parentId], (old: File[] = []) =>
+				old.filter(file => file.id !== sourceId)
+			);
 
-		// 	return { previousFiles };
-		// },
-		onError: (_, __, context) => {
-			// if (context?.previousFiles) {
-			// 	queryClient.setQueryData(["files"], context.previousFiles);
-			// }
-			toast.error("Failed to move file");
+			return { previousFiles };
 		},
 		onSuccess: async () => {
 			toast.success("File moved successfully");
-			await queryClient.invalidateQueries({ queryKey: ["files"] });
+		},
+		onError: async (error, { parentId }, context) => {
+			queryClient.setQueryData(["files", providerId, accountId, parentId], context?.previousFiles);
+			console.error("Error moving file:", error);
+			toast.error(error.message ?? "Failed to move file");
+		},
+		onSettled: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["files", providerId, accountId] });
 		},
 	});
 }

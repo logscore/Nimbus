@@ -1,5 +1,6 @@
 "use client";
 
+import DndKitProvider from "@/components/providers/dnd-kit-provider";
 import { FileTable } from "@/components/dashboard/file-browser";
 import { useGetFiles } from "@/hooks/useFileOperations";
 import { Header } from "@/components/dashboard/header";
@@ -21,8 +22,10 @@ export default function DrivePage() {
 	return (
 		<>
 			<Suspense fallback={null}>
-				<Header />
-				<FileTable files={data || []} isLoading={isLoading} refetch={refetch} error={error} />
+				<DndKitProvider parentId={folderId}>
+					<Header />
+					<FileTable files={data || []} isLoading={isLoading} refetch={refetch} error={error} />
+				</DndKitProvider>
 			</Suspense>
 		</>
 	);

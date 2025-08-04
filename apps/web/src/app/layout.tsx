@@ -3,6 +3,7 @@
 import { ReactQueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AppProviders } from "@/components/providers/app-providers";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Geist, Geist_Mono } from "next/font/google";
 import { siteConfig } from "@/utils/site-config";
 import OGImage from "@/public/images/og.png";
@@ -91,6 +92,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 							</div>
 						</ThemeProvider>
 					</AppProviders>
+					<ReactQueryDevtools initialIsOpen={false} />
 				</ReactQueryProvider>
 			</body>
 		</html>

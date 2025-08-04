@@ -69,3 +69,67 @@ export const ALLOWED_MIME_TYPES = [
 	"application/gzip",
 	"application/x-gzip",
 ];
+
+//TODO: This is AI generated, so it may not be 100% accurate - need to double check
+export const MIME_TO_EXTENSION_MAP: Record<string, string[]> = {
+	// Images
+	"image/jpeg": [".jpg"],
+	"image/png": [".png"],
+	"image/gif": [".gif"],
+	"image/webp": [".webp"],
+	"image/avif": [".avif"],
+	"image/bmp": [".bmp"],
+	"image/svg+xml": [".svg"],
+	"image/tiff": [".tiff"],
+	"image/x-icon": [".ico"],
+
+	// Videos
+	"video/mp4": [".mp4"],
+	"video/mpeg": [".mpeg"],
+	"video/quicktime": [".mov"],
+	"video/webm": [".webm"],
+	"video/x-msvideo": [".avi"],
+	"video/x-ms-wmv": [".wmv"],
+	"video/x-flv": [".flv"],
+
+	// Text and Documents
+	"text/plain": [".txt"],
+	"text/plain;charset=utf-8": [".txt"],
+	"text/plain;charset=us-ascii": [".txt"],
+	"text/plain;charset=iso-8859-1": [".txt"],
+	"text/csv": [".csv"],
+	"text/csv;charset=utf-8": [".csv"],
+	"text/html": [".html"],
+	"text/css": [".css"],
+	"text/javascript": [".js"],
+	"application/json": [".json"],
+	"application/xml": [".xml"],
+	"text/xml": [".xml"],
+	"application/rtf": [".rtf"],
+	"application/x-rtf": [".rtf"],
+	"text/richtext": [".rtx"],
+	"application/x-tex": [".tex"],
+	"text/markdown": [".md"],
+	"text/x-markdown": [".md"],
+
+	// PDF and Office Documents
+	"application/pdf": [".pdf"],
+	"application/msword": [".doc"],
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+	"application/vnd.ms-excel": [".xls"],
+	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+	"application/vnd.ms-powerpoint": [".ppt"],
+	"application/vnd.openxmlformats-officedocument.presentationml.presentation": [".pptx"],
+	"application/vnd.oasis.opendocument.text": [".odt"],
+	"application/vnd.oasis.opendocument.spreadsheet": [".ods"],
+	"application/vnd.oasis.opendocument.presentation": [".odp"],
+
+	// Archives
+	"application/zip": [".zip"],
+	"application/x-zip-compressed": [".zip"],
+	"application/x-7z-compressed": [".7z"],
+	"application/x-rar-compressed": [".rar"],
+	"application/x-tar": [".tar"],
+	"application/gzip": [".gz"],
+	"application/x-gzip": [".gz"],
+};
