@@ -37,6 +37,7 @@
 		"@nimbus/env": "workspace:*",
 		"@nimbus/shared": "workspace:*",
 		"box-node-sdk": "^3.8.2",
+		"dropbox": "^10.34.0",
 		"drizzle-orm": "^0.44.2",
 		"google-auth-library": "^10.1.0",
 		"hono": "^4.8.5",
