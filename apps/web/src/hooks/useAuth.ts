@@ -106,6 +106,14 @@ export const useBoxAuth = () => {
 	};
 };
 
+export const useDropboxAuth = () => {
+	const { handleAuth, isLoading } = useSocialAuth("dropbox");
+	return {
+		signInWithDropboxProvider: handleAuth,
+		isLoading,
+	};
+};
+
 const useRedirect = () => {
 	const router = useRouter();
 	const { getParam } = useSearchParamsSafely();

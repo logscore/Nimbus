@@ -7,6 +7,7 @@ import {
 	type FileMetadata,
 } from "@nimbus/shared";
 import type { DownloadResult, ListFilesOptions, ListFilesResult } from "../interface/types";
+import { getMimeTypeFromExtension } from "../utils/mime-types";
 import type { Provider } from "../interface/provider";
 import { Readable } from "node:stream";
 import BoxSDK from "box-node-sdk";
@@ -224,7 +225,7 @@ export class BoxProvider implements Provider {
 			return {
 				data,
 				filename: fileInfo.name || "download",
-				mimeType: this.getMimeTypeFromExtension(fileInfo.name || ""),
+				mimeType: getMimeTypeFromExtension(fileInfo.name || ""),
 				size: parseInt(fileInfo.size || "0", 10) || data.length,
 			};
 		} catch (error) {
@@ -372,44 +373,12 @@ export class BoxProvider implements Provider {
 		return {
 			id: boxItem.id,
 			name: boxItem.name || "Untitled",
-			mimeType: isFolder ? "application/x-directory" : this.getMimeTypeFromExtension(boxItem.name || ""),
+			mimeType: isFolder ? "application/x-directory" : getMimeTypeFromExtension(boxItem.name || ""),
 			size: isFolder ? 0 : parseInt(boxItem.size || "0", 10) || 0,
 			parentId: this.normalizeParentId(parent?.id),
 			createdTime: boxItem.created_at || boxItem.content_created_at || new Date().toISOString(),
 			modifiedTime: boxItem.modified_at || boxItem.content_modified_at || new Date().toISOString(),
 			type: isFolder ? ("folder" as const) : ("file" as const),
 		};
-	}
-
-	private getMimeTypeFromExtension(filename: string): string {
-		const extension = filename.split(".").pop()?.toLowerCase();
-		const mimeTypes: Record<string, string> = {
-			txt: "text/plain",
-			pdf: "application/pdf",
-			jpg: "image/jpeg",
-			jpeg: "image/jpeg",
-			png: "image/png",
-			gif: "image/gif",
-			mp4: "video/mp4",
-			mp3: "audio/mpeg",
-			zip: "application/zip",
-			doc: "application/msword",
-			docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-			xls: "application/vnd.ms-excel",
-			xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-			ppt: "application/vnd.ms-powerpoint",
-			pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-			js: "application/javascript",
-			json: "application/json",
-			html: "text/html",
-			css: "text/css",
-			webm: "video/webm",
-			avi: "video/x-msvideo",
-			wav: "audio/wav",
-			tar: "application/x-tar",
-			gz: "application/gzip",
-			rar: "application/vnd.rar",
-		};
-		return mimeTypes[extension || ""] || DEFAULT_MIME_TYPE;
 	}
 }

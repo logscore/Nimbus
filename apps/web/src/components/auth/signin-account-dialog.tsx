@@ -25,6 +25,7 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 		microsoft: false,
 		s3: false,
 		box: false,
+		dropbox: false,
 	});
 
 	useEffect(() => {

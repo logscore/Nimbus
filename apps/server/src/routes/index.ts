@@ -3,6 +3,7 @@ import type { Provider } from "../providers/interface/provider";
 import { OneDriveProvider } from "../providers/microsoft";
 import { GoogleDriveProvider } from "../providers/google";
 import { sendForbidden, sendUnauthorized } from "./utils";
+import { DropboxProvider } from "../providers/dropbox";
 import { driveProviderSchema } from "@nimbus/shared";
 import { BoxProvider } from "../providers/box";
 import { decrypt } from "../utils/encryption";
@@ -87,6 +88,8 @@ const driveProviderRouter = createDriveProviderRouter()
 					provider = new OneDriveProvider(accessToken);
 				} else if (parsedProviderName.data === "box") {
 					provider = new BoxProvider(accessToken, c.var.env.BOX_CLIENT_ID, c.var.env.BOX_CLIENT_SECRET);
+				} else if (parsedProviderName.data === "dropbox") {
+					provider = new DropboxProvider(accessToken);
 				} else {
 					return sendForbidden(c, "Unsupported provider");
 				}

@@ -30,6 +30,10 @@ vi.mock("@nimbus/env/server", () => ({
 		GOOGLE_CLIENT_SECRET: "google-secret",
 		MICROSOFT_CLIENT_ID: "ms-id",
 		MICROSOFT_CLIENT_SECRET: "ms-secret",
+		BOX_CLIENT_ID: "box-id",
+		BOX_CLIENT_SECRET: "box-secret",
+		DROPBOX_CLIENT_ID: "dropbox-id",
+		DROPBOX_CLIENT_SECRET: "dropbox-secret",
 	},
 }));
 
@@ -46,6 +50,10 @@ describe("createAuth", () => {
 			GOOGLE_CLIENT_SECRET: "test_google_client_secret",
 			MICROSOFT_CLIENT_ID: "test_ms_client_id",
 			MICROSOFT_CLIENT_SECRET: "test_ms_client_secret",
+			BOX_CLIENT_ID: "test_box_client_id",
+			BOX_CLIENT_SECRET: "test_box_client_secret",
+			DROPBOX_CLIENT_ID: "test_dropbox_client_id",
+			DROPBOX_CLIENT_SECRET: "test_dropbox_client_secret",
 			EMAIL_FROM: "test@example.com",
 			BACKEND_URL: "http://localhost:3000",
 			TRUSTED_ORIGINS: ["http://localhost:3000"],
