@@ -2,6 +2,7 @@
 
 import type { SocialAuthButtonProps } from "@/lib/types";
 import { Google, Microsoft } from "@/components/icons";
+import BoxIcon from "@/components/icons/box-icon";
 import { Button } from "@/components/ui/button";
 
 const providerConfig = {
@@ -12,6 +13,10 @@ const providerConfig = {
 	microsoft: {
 		icon: Microsoft,
 		name: "Microsoft",
+	},
+	box: {
+		icon: BoxIcon,
+		name: "Box",
 	},
 } as const;
 

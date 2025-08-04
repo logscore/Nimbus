@@ -4,6 +4,7 @@ import { OneDriveProvider } from "../providers/microsoft/one-drive";
 import type { Provider } from "../providers/interface/provider";
 import { sendForbidden, sendUnauthorized } from "./utils";
 import { driveProviderSchema } from "@nimbus/shared";
+import { BoxProvider } from "../providers/box";
 import { decrypt } from "../utils/encryption";
 import { S3Provider } from "../providers/s3";
 import waitlistRoutes from "./waitlist";
@@ -80,10 +81,15 @@ const driveProviderRouter = createDriveProviderRouter()
 					return sendUnauthorized(c, "Access token not available. Please re-authenticate.");
 				}
 
-				provider =
-					parsedProviderName.data === "google"
-						? new GoogleDriveProvider(accessToken)
-						: new OneDriveProvider(accessToken);
+				if (parsedProviderName.data === "google") {
+					provider = new GoogleDriveProvider(accessToken);
+				} else if (parsedProviderName.data === "microsoft") {
+					provider = new OneDriveProvider(accessToken);
+				} else if (parsedProviderName.data === "box") {
+					provider = new BoxProvider(accessToken);
+				} else {
+					return sendForbidden(c, "Unsupported provider");
+				}
 				c.set("provider", provider);
 			} catch (error) {
 				// @ts-ignore

@@ -17,6 +17,8 @@ export interface AuthEnv {
 	GOOGLE_CLIENT_SECRET: string;
 	MICROSOFT_CLIENT_ID: string;
 	MICROSOFT_CLIENT_SECRET: string;
+	BOX_CLIENT_ID: string;
+	BOX_CLIENT_SECRET: string;
 	EMAIL_FROM: string;
 	BACKEND_URL: string;
 	// FRONTEND_URL: string;
@@ -113,6 +115,13 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 				tenantId: "common",
 				prompt: "none",
 				// prompt: "select_account",
+			},
+
+			box: {
+				clientId: env.BOX_CLIENT_ID as string,
+				clientSecret: env.BOX_CLIENT_SECRET as string,
+				scope: ["root_readwrite", "manage_app_users"],
+				prompt: "none",
 			},
 		},
 
