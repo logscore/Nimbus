@@ -124,6 +124,8 @@ Official Guide: [Box Create Oauth App](https://developer.box.com/guides/cli/quic
 - Add **Application Scopes**:
   - `Read all files and folders stored in Box`
   - `Write all files and folders stored in Box`
+  - `Manage Users`
+  - `Enable Integrations`
 
 - Add **CORS Domains** as `http://localhost:3000`.
 
