@@ -1,13 +1,13 @@
 import {
-	driveProviderSchema,
-	driveProviderSlugSchema,
 	driveProviderParamSchema,
+	driveProviderSchema,
 	driveProviderSlugParamSchema,
+	driveProviderSlugSchema,
 	providerSchema,
-	slugToProvider,
 	providerToSlug,
+	slugToProvider,
 } from "../src/validators/provider";
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
 describe("driveProviderSchema", () => {
 	it("should accept 'google'", () => {
@@ -62,7 +62,7 @@ describe("driveProviderSlugParamSchema", () => {
 
 	it("should fail with invalid slug", () => {
 		const result = driveProviderSlugParamSchema.safeParse({
-			providerSlug: "b",
+			providerSlug: "z",
 			accountId: "abc",
 		});
 		expect(result.success).toBe(false);
