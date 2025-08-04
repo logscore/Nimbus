@@ -1,14 +1,11 @@
 "use client";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { SocialAuthButton } from "@/components/auth/shared/social-auth-button";
-import { useGoogleAuth, useMicrosoftAuth, useBoxAuth } from "@/hooks/useAuth";
+import { AuthProviderButtons } from "@/components/auth/shared/auth-provider-buttons";
 import { S3AccountForm } from "@/components/settings/s3-account-form";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import type { DriveProvider } from "@nimbus/shared";
-import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
-import { Cloud, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type SigninAccountDialogProps = {
@@ -23,15 +20,12 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 	const pathname = usePathname();
 	const [callbackURL, setCallbackURL] = useState<string>("");
 	const [viewMode, setViewMode] = useState<ViewMode>("select");
-	const [isLoading, setIsLoading] = useState<Record<DriveProvider, boolean>>({
+	const [isLoading] = useState<Record<DriveProvider, boolean>>({
 		google: false,
 		microsoft: false,
 		s3: false,
 		box: false,
 	});
-	const { signInWithGoogleProvider } = useGoogleAuth();
-	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
-	const { signInWithBoxProvider } = useBoxAuth();
 
 	useEffect(() => {
 		if (isMounted) {
@@ -46,26 +40,6 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 			setViewMode("select");
 		}
 	}, [open]);
-
-	const handleSocialAuth = async (provider: DriveProvider) => {
-		try {
-			setIsLoading(prev => ({ ...prev, [provider]: true }));
-
-			if (provider === "google") {
-				await signInWithGoogleProvider({ callbackURL });
-			} else if (provider === "microsoft") {
-				await signInWithMicrosoftProvider({ callbackURL });
-			} else if (provider === "box") {
-				await signInWithBoxProvider({ callbackURL });
-			}
-
-			onOpenChange(false);
-		} catch (error) {
-			console.error(`Error signing in with ${provider}:`, error);
-		} finally {
-			setIsLoading(prev => ({ ...prev, [provider]: false }));
-		}
-	};
 
 	const handleS3Success = () => {
 		onOpenChange(false);
@@ -97,42 +71,14 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 
 				{viewMode === "select" ? (
 					<div className="flex flex-col gap-4 py-4">
-						<SocialAuthButton
-							provider="google"
+						<AuthProviderButtons
 							action="signin"
-							onClick={() => handleSocialAuth("google")}
-							disabled={isLoading.google}
-						>
-							{isLoading.google && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-						</SocialAuthButton>
-
-						<SocialAuthButton
-							provider="microsoft"
-							action="signin"
-							onClick={() => handleSocialAuth("microsoft")}
-							disabled={isLoading.microsoft}
-						>
-							{isLoading.microsoft && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-						</SocialAuthButton>
-
-						<SocialAuthButton
-							provider="box"
-							action="signin"
-							onClick={() => handleSocialAuth("box")}
-							disabled={isLoading.box}
-						>
-							{isLoading.box && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-						</SocialAuthButton>
-
-						<Button
-							variant="outline"
-							onClick={() => setViewMode("s3-form")}
-							disabled={isLoading.s3}
-							className="flex items-center gap-2"
-						>
-							<Cloud className="h-4 w-4" />
-							Amazon S3 / S3-Compatible
-						</Button>
+							isLoading={isLoading}
+							showS3Button={true}
+							callbackURL={callbackURL}
+							onAuthSuccess={() => onOpenChange(false)}
+							onS3Click={() => setViewMode("s3-form")}
+						/>
 					</div>
 				) : (
 					<div className="py-4">

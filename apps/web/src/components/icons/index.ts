@@ -1,3 +1,4 @@
+export { Box } from "./box";
 export { Logo } from "./brand/logo";
 export { Discord } from "./discord";
 export { GitHub } from "./github";

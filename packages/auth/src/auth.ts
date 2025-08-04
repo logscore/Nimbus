@@ -89,8 +89,8 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 
 		socialProviders: {
 			google: {
-				clientId: env.GOOGLE_CLIENT_ID as string,
-				clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+				clientId: env.GOOGLE_CLIENT_ID,
+				clientSecret: env.GOOGLE_CLIENT_SECRET,
 				scope: [
 					"https://www.googleapis.com/auth/drive",
 					"https://www.googleapis.com/auth/userinfo.profile",
@@ -102,8 +102,8 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 			},
 
 			microsoft: {
-				clientId: env.MICROSOFT_CLIENT_ID as string,
-				clientSecret: env.MICROSOFT_CLIENT_SECRET as string,
+				clientId: env.MICROSOFT_CLIENT_ID,
+				clientSecret: env.MICROSOFT_CLIENT_SECRET,
 				scope: [
 					"https://graph.microsoft.com/User.Read",
 					"https://graph.microsoft.com/Files.ReadWrite.All",
@@ -118,8 +118,8 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 			},
 
 			box: {
-				clientId: env.BOX_CLIENT_ID as string,
-				clientSecret: env.BOX_CLIENT_SECRET as string,
+				clientId: env.BOX_CLIENT_ID,
+				clientSecret: env.BOX_CLIENT_SECRET,
 				scope: ["root_readwrite", "manage_app_users"],
 				prompt: "none",
 			},
