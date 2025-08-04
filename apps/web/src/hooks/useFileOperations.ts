@@ -166,11 +166,14 @@ export function useCreateFolder() {
 	});
 }
 
+export const uploadMutationKey = ["uploadFile"];
+
 export function useUploadFile() {
 	const queryClient = useQueryClient();
 	const { clientPromise } = useAccountProvider();
 	return useMutation({
 		// mutationFn: async ({ file, parentId, onProgress }: UploadFileParams) => {
+		mutationKey: uploadMutationKey,
 		mutationFn: async ({ file, parentId }: UploadFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await handleUnauthorizedError(

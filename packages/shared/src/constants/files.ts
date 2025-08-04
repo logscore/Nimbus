@@ -70,7 +70,7 @@ export const ALLOWED_MIME_TYPES = [
 	"application/x-gzip",
 ];
 
-//TODO: This is AI generated, so it may not be 100% accurate - need to double check
+//TODO: Need to verify this is accurate
 export const MIME_TO_EXTENSION_MAP: Record<string, string[]> = {
 	// Images
 	"image/jpeg": [".jpg"],

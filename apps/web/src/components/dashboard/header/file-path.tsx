@@ -69,22 +69,23 @@ export function FileBreadcrumb() {
 					{/* Source Dropdown */}
 					<SourceSelector />
 					<Breadcrumb>
-						<BreadcrumbList className="flex items-center px-1">
-							<AnimatePresence mode="popLayout">
-								<BreadcrumbItem
-									ref={droppableRef}
-									className={cn(
-										"flex items-center justify-center",
-										isDropTarget && "rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500"
-									)}
-								>
-									<BreadcrumbLink
-										onClick={handleHomeClick}
-										className="flex items-center gap-2 rounded-md p-1 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.04)]"
+						<AnimatePresence mode="popLayout">
+							<BreadcrumbList className="flex items-center px-1">
+								<div ref={droppableRef}>
+									<BreadcrumbItem
+										className={cn(
+											"flex items-center justify-center",
+											isDropTarget && "rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500"
+										)}
 									>
-										<HomeIcon className="h-4 w-4" />
-									</BreadcrumbLink>
-								</BreadcrumbItem>
+										<BreadcrumbLink
+											onClick={handleHomeClick}
+											className="flex items-center gap-2 rounded-md p-1 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.04)]"
+										>
+											<HomeIcon className="h-4 w-4" />
+										</BreadcrumbLink>
+									</BreadcrumbItem>
+								</div>
 
 								{/* Separator after home if there are breadcrumb items */}
 								{data && data.length > 0 && (
@@ -103,14 +104,14 @@ export function FileBreadcrumb() {
 								{/* Breadcrumb items */}
 								{data?.map((item, index) => (
 									<FileBreadcrumbItem
-										key={item.id}
+										key={`${item.id}-${index < data.length - 1}`} // (index < data.length - 1) to make sure the last two item re-render on changes - this also affect the animation
 										item={item}
 										handleFolderClick={handleFolderClick}
 										showSeparator={index < data.length - 1}
 									/>
 								))}
-							</AnimatePresence>
-						</BreadcrumbList>
+							</BreadcrumbList>
+						</AnimatePresence>
 					</Breadcrumb>
 				</div>
 			</div>
@@ -136,27 +137,16 @@ function FileBreadcrumbItem({
 
 	return (
 		<div>
-			<motion.div
-				variants={variants}
-				initial="hidden"
-				animate="visible"
-				exit="exit"
-				layout
-				className={cn(
-					"inline-flex items-center",
-					isDropTarget && "rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500"
-				)}
-				ref={droppableRef}
-			>
-				<BreadcrumbItem>
-					<BreadcrumbLink
-						onClick={() => handleFolderClick(item.id)}
-						className="flex items-center gap-2 rounded-md p-1 text-nowrap"
-					>
-						<span>{item.name}</span>
-					</BreadcrumbLink>
-				</BreadcrumbItem>
-			</motion.div>
+			{showSeparator ? (
+				<FileBreadcrumbItemText
+					isDropTarget={isDropTarget}
+					item={item}
+					handleFolderClick={handleFolderClick}
+					ref={droppableRef}
+				/>
+			) : (
+				<FileBreadcrumbItemText item={item} handleFolderClick={handleFolderClick} />
+			)}
 			{showSeparator && (
 				<motion.span
 					key={`separator-${item.id}`}
@@ -170,5 +160,38 @@ function FileBreadcrumbItem({
 				</motion.span>
 			)}
 		</div>
+	);
+}
+
+type FileBreadcrumbItemProps = {
+	isDropTarget?: boolean;
+	item: BreadcrumbItemType;
+	handleFolderClick: (id: string) => void;
+	ref?: React.Ref<HTMLDivElement>;
+};
+
+function FileBreadcrumbItemText({ isDropTarget, item, handleFolderClick, ref }: FileBreadcrumbItemProps) {
+	return (
+		<motion.div
+			variants={variants}
+			initial="hidden"
+			animate="visible"
+			exit="exit"
+			layout
+			className={cn(
+				"inline-flex items-center",
+				isDropTarget && "rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500"
+			)}
+			ref={ref}
+		>
+			<BreadcrumbItem>
+				<BreadcrumbLink
+					onClick={() => handleFolderClick(item.id)}
+					className="flex items-center gap-2 rounded-md p-1 text-nowrap"
+				>
+					<span>{item.name}</span>
+				</BreadcrumbLink>
+			</BreadcrumbItem>
+		</motion.div>
 	);
 }

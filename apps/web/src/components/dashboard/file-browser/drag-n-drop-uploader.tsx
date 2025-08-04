@@ -1,26 +1,19 @@
 "use client";
 
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { MAX_FILE_SIZE, MIME_TO_EXTENSION_MAP, type UploadFileSchema } from "@nimbus/shared";
 import { CircleAlert, CircleCheckBig, CloudUpload, RefreshCcw } from "lucide-react";
-import { MAX_FILE_SIZE, MIME_TO_EXTENSION_MAP } from "@nimbus/shared";
-import { useUploadFile } from "@/hooks/useFileOperations";
-import { ErrorCode, useDropzone } from "react-dropzone";
+import { uploadMutationKey, useUploadFile } from "@/hooks/useFileOperations";
+import { useMutationState, type MutationState } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import { useSearchParams } from "next/navigation";
+import { useDropzone } from "react-dropzone";
 import { getModernFileIcon } from ".";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
-import { set } from "zod";
-
-type FileUploadItem = {
-	file: File;
-	status: "idle" | "uploading" | "success" | "error";
-	error?: string;
-};
 
 export default function DragNDropUploader({ children }: { children: React.ReactNode }) {
-	const [fileStates, setFileStates] = useState<FileUploadItem[]>([]);
 	const { mutate: uploadFile, isPending } = useUploadFile();
 
 	const [openDialog, setOpenDialog] = useState(isPending);
@@ -38,23 +31,8 @@ export default function DragNDropUploader({ children }: { children: React.ReactN
 		maxSize: MAX_FILE_SIZE,
 		onDropAccepted: files => {
 			setOpenDialog(true);
-			setFileStates(files.map(file => ({ file, status: "uploading" })));
 			files.forEach(file => {
-				uploadFile(
-					{ file, parentId },
-					{
-						onSuccess: () => {
-							setFileStates(prev => prev.map(item => (item.file === file ? { ...item, status: "success" } : item)));
-						},
-						onError: error => {
-							setFileStates(prev =>
-								prev.map(item =>
-									item.file === file ? { ...item, status: "error", error: error.message ?? "Upload failed" } : item
-								)
-							);
-						},
-					}
-				);
+				uploadFile({ file, parentId });
 			});
 		},
 		onDropRejected: fileRejections => {
@@ -87,6 +65,10 @@ export default function DragNDropUploader({ children }: { children: React.ReactN
 		},
 	});
 
+	const fileUploadState: MutationState<unknown, Error, UploadFileSchema>[] = useMutationState({
+		filters: { mutationKey: uploadMutationKey, exact: true },
+	});
+
 	return (
 		<div
 			{...getRootProps({
@@ -110,26 +92,30 @@ export default function DragNDropUploader({ children }: { children: React.ReactN
 				)}
 			</AnimatePresence>
 			<Drawer open={openDialog} onClose={() => setOpenDialog(false)}>
-				<DrawerContent className="bg-card mx-auto mb-4 max-w-sm">
-					<DrawerHeader className="flex items-start justify-between">
+				<DrawerContent className="bg-card mx-auto mb-4 max-w-sm p-0">
+					<DrawerHeader className="flex items-start justify-between p-4">
 						<DrawerTitle className="flex w-full items-center justify-between gap-2">
 							{`Uploading ${acceptedFiles.length} files`}
 						</DrawerTitle>
 						<DrawerDescription>This may take a while</DrawerDescription>
 					</DrawerHeader>
-					{Object.entries(fileStates).map(([id, { file, status }]) => (
-						<div key={id} className="flex items-center justify-between border-b px-2">
-							<div className="flex items-center gap-2 py-2">
-								<div className="flex-shrink-0 text-sm font-medium">{getModernFileIcon(file.type, file.name)}</div>
-								<span>{file.name}</span>
+					<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar scrollbar-thumb-accent/70 scrollbar-track-transparent scrollbar-hover:scrollbar-thumb-accent scrollbar-w-2 scrollbar-h-2 max-h-[500px] overflow-y-scroll">
+						{fileUploadState.map(({ status, variables }, idx) => (
+							<div key={idx} className="flex items-center justify-between border-b px-2">
+								<div className="flex items-center gap-2 py-2">
+									<div className="flex-shrink-0 text-sm font-medium">
+										{getModernFileIcon(variables?.file?.type, variables?.file?.name)}
+									</div>
+									<span>{variables?.file.name}</span>
+								</div>
+								<div>
+									{status === "pending" && <RefreshCcw className="h-4 w-4 animate-spin text-blue-500" />}
+									{status === "error" && <CircleAlert className="h-4 w-4 text-red-500" />}
+									{status === "success" && <CircleCheckBig className="h-4 w-4 text-green-500" />}
+								</div>
 							</div>
-							<div>
-								{status === "uploading" && <RefreshCcw className="h-4 w-4 animate-spin text-blue-500" />}
-								{status === "error" && <CircleAlert className="h-4 w-4 text-red-500" />}
-								{status === "success" && <CircleCheckBig className="h-4 w-4 text-green-500" />}
-							</div>
-						</div>
-					))}
+						))}
+					</div>
 				</DrawerContent>
 			</Drawer>
 			{children}
