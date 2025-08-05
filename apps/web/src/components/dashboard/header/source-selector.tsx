@@ -30,7 +30,7 @@ export function providerToIcon(providerId: string) {
 		case "s3":
 			return <S3Icon className="h-5 w-5" />;
 		default:
-			return <LogoIcon className="h-5 w-5 text-black" />;
+			return <LogoIcon className="h-5 w-5" />;
 	}
 }
 
@@ -39,7 +39,7 @@ export function SourceSelector() {
 	const { providerId, accountId, setDriveProviderById } = useAccountProvider();
 	const { openSignIn } = useAuth();
 	const [selectedAccountNickname, setSelectedAccountNickname] = useState<string | null>(null);
-	const [selectedIcon, setSelectedIcon] = useState(<LogoIcon className="h-5 w-5 text-black" />);
+	const [selectedIcon, setSelectedIcon] = useState(<LogoIcon className="h-5 w-5" />);
 
 	useEffect(() => {
 		if (providerId && accountId) {

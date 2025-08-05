@@ -21,13 +21,13 @@ const driveProviderRouters = [filesRoutes, drivesRoutes, tagsRoutes] as const;
 const driveProviderRouter = createDriveProviderRouter()
 	.use("*", async (c, next) => {
 		const userId = c.var.user.id;
-		const providerIdHeader = c.req.header("X-Provider-Id");
-		const accountIdHeader = c.req.header("X-Account-Id");
+		const providerIdHeader = decodeURIComponent(c.req.header("X-Provider-Id") || "");
+		const accountIdHeader = decodeURIComponent(c.req.header("X-Account-Id") || "");
+
 		const parsedProviderId = driveProviderSchema.safeParse(providerIdHeader);
 		if (!parsedProviderId.success || !accountIdHeader) {
 			return sendForbidden(c, "Invalid provider or account information");
 		}
-
 		const account = await c.var.db.query.account.findFirst({
 			where: (table, { and, eq }) =>
 				and(
