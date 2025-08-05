@@ -1,9 +1,11 @@
 import { createDriveProviderRouter, createProtectedRouter, createPublicRouter } from "../hono";
-import { GoogleDriveProvider } from "../providers/google/google-drive";
-import { OneDriveProvider } from "../providers/microsoft/one-drive";
 import type { Provider } from "../providers/interface/provider";
+import { OneDriveProvider } from "../providers/microsoft";
+import { GoogleDriveProvider } from "../providers/google";
 import { sendForbidden, sendUnauthorized } from "./utils";
+import { DropboxProvider } from "../providers/dropbox";
 import { driveProviderSchema } from "@nimbus/shared";
+import { BoxProvider } from "../providers/box";
 import { decrypt } from "../utils/encryption";
 import { S3Provider } from "../providers/s3";
 import waitlistRoutes from "./waitlist";
@@ -19,13 +21,13 @@ const driveProviderRouters = [filesRoutes, drivesRoutes, tagsRoutes] as const;
 const driveProviderRouter = createDriveProviderRouter()
 	.use("*", async (c, next) => {
 		const userId = c.var.user.id;
-		const providerIdHeader = c.req.header("X-Provider-Id");
-		const accountIdHeader = c.req.header("X-Account-Id");
+		const providerIdHeader = decodeURIComponent(c.req.header("X-Provider-Id") || "");
+		const accountIdHeader = decodeURIComponent(c.req.header("X-Account-Id") || "");
+
 		const parsedProviderId = driveProviderSchema.safeParse(providerIdHeader);
 		if (!parsedProviderId.success || !accountIdHeader) {
 			return sendForbidden(c, "Invalid provider or account information");
 		}
-
 		const account = await c.var.db.query.account.findFirst({
 			where: (table, { and, eq }) =>
 				and(
@@ -80,10 +82,17 @@ const driveProviderRouter = createDriveProviderRouter()
 					return sendUnauthorized(c, "Access token not available. Please re-authenticate.");
 				}
 
-				provider =
-					parsedProviderName.data === "google"
-						? new GoogleDriveProvider(accessToken)
-						: new OneDriveProvider(accessToken);
+				if (parsedProviderName.data === "google") {
+					provider = new GoogleDriveProvider(accessToken);
+				} else if (parsedProviderName.data === "microsoft") {
+					provider = new OneDriveProvider(accessToken);
+				} else if (parsedProviderName.data === "box") {
+					provider = new BoxProvider(accessToken, c.var.env.BOX_CLIENT_ID, c.var.env.BOX_CLIENT_SECRET);
+				} else if (parsedProviderName.data === "dropbox") {
+					provider = new DropboxProvider(accessToken);
+				} else {
+					return sendForbidden(c, "Unsupported provider");
+				}
 				c.set("provider", provider);
 			} catch (error) {
 				// @ts-ignore

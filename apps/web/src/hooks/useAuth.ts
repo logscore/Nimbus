@@ -98,6 +98,22 @@ export const useMicrosoftAuth = () => {
 	};
 };
 
+export const useBoxAuth = () => {
+	const { handleAuth, isLoading } = useSocialAuth("box");
+	return {
+		signInWithBoxProvider: handleAuth,
+		isLoading,
+	};
+};
+
+export const useDropboxAuth = () => {
+	const { handleAuth, isLoading } = useSocialAuth("dropbox");
+	return {
+		signInWithDropboxProvider: handleAuth,
+		isLoading,
+	};
+};
+
 const useRedirect = () => {
 	const router = useRouter();
 	const { getParam } = useSearchParamsSafely();
@@ -115,118 +131,100 @@ const useRedirect = () => {
 	return { getRedirectUrl, redirectToDashboard };
 };
 
-export const useSignIn = () => {
+const useAuthMutation = <TData, TResult = unknown>(mutationFn: (data: TData) => Promise<TResult>) => {
 	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
-	const { signInWithGoogleProvider } = useGoogleAuth();
-	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
 
-	const { redirectToDashboard } = useRedirect();
-
-	const signInWithCredentials = useCallback(
-		async (data: SignInFormData) => {
+	const mutate = useCallback(
+		async (data: TData, options: Parameters<typeof toast.promise<TResult>>[1]) => {
 			setState({ isLoading: true, error: null });
-
 			try {
-				toast.promise(
-					authClient.signIn.email(
-						{
-							email: data.email,
-							password: data.password,
-							rememberMe: data.remember,
-						},
-						{
-							onSuccess: redirectToDashboard,
-							onError: ctx => {
-								throw ctx.error;
-							},
-						}
-					),
-					{
-						loading: "Signing you in...",
-						success: `Welcome back, ${data.email}!`,
-						error: error => handleAuthError(error, "Unable to sign in. Please try again."),
-					}
-				);
+				toast.promise(mutationFn(data), options);
 			} catch (error) {
-				const errorMessage = handleAuthError(error, "Unable to sign in. Please try again.");
+				const errorMessage = handleAuthError(error, "An unexpected error occurred.");
 				setState(prev => ({ ...prev, error: errorMessage }));
-				throw error;
+				throw error; // Re-throw for form-level error handling
 			} finally {
 				setState(prev => ({ ...prev, isLoading: false }));
 			}
 		},
+		[mutationFn]
+	);
+
+	return { ...state, mutate };
+};
+
+export const useSignIn = () => {
+	const { redirectToDashboard } = useRedirect();
+
+	const signInMutation = useCallback(
+		(data: SignInFormData) =>
+			authClient.signIn.email(
+				{
+					email: data.email,
+					password: data.password,
+					rememberMe: data.remember,
+				},
+				{
+					onSuccess: redirectToDashboard,
+					onError: ctx => {
+						throw ctx.error;
+					},
+				}
+			),
 		[redirectToDashboard]
 	);
 
-	return {
-		...state,
-		signInWithCredentials,
-		signInWithGoogleProvider,
-		signInWithMicrosoftProvider,
-	};
+	const { mutate, ...state } = useAuthMutation(signInMutation);
+
+	const signInWithCredentials = (data: SignInFormData) =>
+		mutate(data, {
+			loading: "Signing you in...",
+			success: `Welcome back, ${data.email}!`,
+			error: error => handleAuthError(error, "Unable to sign in. Please try again."),
+		});
+
+	return { ...state, signInWithCredentials };
 };
 
 export const useSignUp = () => {
-	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
-	const { signInWithGoogleProvider } = useGoogleAuth();
-	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
 	const { redirectToDashboard } = useRedirect();
 
-	const signUpWithCredentials = useCallback(
+	const signUpMutation = useCallback(
 		async (data: SignUpFormData) => {
-			setState({ isLoading: true, error: null });
-
-			try {
-				const fullName = `${data.firstName} ${data.lastName}`;
-
-				toast.promise(
-					(async () => {
-						try {
-							await authClient.signUp.email({
-								name: fullName,
-								email: data.email,
-								password: data.password,
-								callbackURL: BASE_CALLBACK_URL,
-							});
-							redirectToDashboard();
-						} catch (error) {
-							console.error("Sign up error:", error);
-							throw error;
-						}
-					})(),
-					{
-						loading: "Creating your account...",
-						success: `Welcome to Nimbus, ${fullName}!`,
-						error: error => {
-							if (error instanceof Error) {
-								if (error.message.toLowerCase().includes("exists")) {
-									return "An account with this email already exists. Please sign in instead.";
-								} else if (error.message.toLowerCase().includes("password")) {
-									return "Password doesn't meet requirements. Please check and try again.";
-								}
-								return error.message;
-							}
-							return "Unable to create your account. Please try again.";
-						},
-					}
-				);
-			} catch (error) {
-				const errorMessage = handleAuthError(error, "Unable to create your account. Please try again.");
-				setState(prev => ({ ...prev, error: errorMessage }));
-				throw error;
-			} finally {
-				setState(prev => ({ ...prev, isLoading: false }));
-			}
+			const fullName = `${data.firstName} ${data.lastName}`;
+			await authClient.signUp.email({
+				name: fullName,
+				email: data.email,
+				password: data.password,
+				callbackURL: BASE_CALLBACK_URL,
+			});
+			redirectToDashboard();
 		},
 		[redirectToDashboard]
 	);
 
-	return {
-		...state,
-		signUpWithCredentials,
-		signInWithGoogleProvider,
-		signInWithMicrosoftProvider,
+	const { mutate, ...state } = useAuthMutation(signUpMutation);
+
+	const signUpWithCredentials = (data: SignUpFormData) => {
+		const fullName = `${data.firstName} ${data.lastName}`;
+		return mutate(data, {
+			loading: "Creating your account...",
+			success: `Welcome to Nimbus, ${fullName}!`,
+			error: error => {
+				if (error instanceof Error) {
+					if (error.message.toLowerCase().includes("exists")) {
+						return "An account with this email already exists. Please sign in instead.";
+					} else if (error.message.toLowerCase().includes("password")) {
+						return "Password doesn't meet requirements. Please check and try again.";
+					}
+					return error.message;
+				}
+				return "Unable to create your account. Please try again.";
+			},
+		});
 	};
+
+	return { ...state, signUpWithCredentials };
 };
 
 export const useSignOut = () => {

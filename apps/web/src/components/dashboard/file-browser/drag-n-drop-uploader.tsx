@@ -1,10 +1,10 @@
 "use client";
 
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { MAX_FILE_SIZE, MIME_TO_EXTENSION_MAP, type UploadFileSchema } from "@nimbus/shared";
 import { CircleAlert, CircleCheckBig, CloudUpload, RefreshCcw } from "lucide-react";
 import { uploadMutationKey, useUploadFile } from "@/hooks/useFileOperations";
 import { useMutationState, type MutationState } from "@tanstack/react-query";
+import { MAX_FILE_SIZE, type UploadFileSchema } from "@nimbus/shared";
 import { AnimatePresence, motion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { useDropzone } from "react-dropzone";
@@ -14,7 +14,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export default function DragNDropUploader({ children }: { children: React.ReactNode }) {
-	const { mutate: uploadFile, isPending } = useUploadFile();
+	const { mutate: uploadFile } = useUploadFile();
 
 	const [openDialog, setOpenDialog] = useState(false);
 
@@ -22,7 +22,6 @@ export default function DragNDropUploader({ children }: { children: React.ReactN
 	const parentId = searchParams.get("folderId") ?? "root";
 
 	const { getRootProps, isDragActive, acceptedFiles } = useDropzone({
-		accept: MIME_TO_EXTENSION_MAP,
 		multiple: true,
 		noClick: true,
 		noKeyboard: true,

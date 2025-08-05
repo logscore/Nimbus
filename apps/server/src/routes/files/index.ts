@@ -1,5 +1,4 @@
 import {
-	ALLOWED_MIME_TYPES,
 	createFileSchema,
 	deleteFileSchema,
 	downloadFileSchema,
@@ -84,11 +83,6 @@ const filesRouter = createDriveProviderRouter()
 		try {
 			const file = c.req.valid("form").file;
 			const parentId = c.req.valid("query").parentId;
-
-			// Validate file type
-			if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-				return sendError(c, { message: `File type ${file.type} is not allowed`, status: 400 });
-			}
 
 			// Validate file size
 			if (file.size > MAX_FILE_SIZE) {

@@ -1,4 +1,4 @@
-import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "../constants";
+import { MAX_FILE_SIZE } from "../constants";
 import z from "zod";
 
 const returnedValuesSchema = z.array(z.string());
@@ -49,8 +49,7 @@ export const uploadFileFormSchema = z.object({
 	// File size and mime is validated here and on the backend
 	file: z
 		.custom<File>(file => file instanceof File, { message: "Invalid file" })
-		.refine(file => file.size <= MAX_FILE_SIZE, { message: "File size must be less than 100MB" })
-		.refine(file => ALLOWED_MIME_TYPES.includes(file.type), { message: "Invalid file type" }),
+		.refine(file => file.size <= MAX_FILE_SIZE, { message: "File size must be less than 100MB" }),
 });
 
 const uploadFileSchema = z.object({}).extend(uploadFileQuerySchema.shape).extend(uploadFileFormSchema.shape);

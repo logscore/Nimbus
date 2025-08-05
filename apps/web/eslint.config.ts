@@ -1,8 +1,13 @@
 import { buildEslintConfig } from "@nimbus/eslint";
 import { FlatCompat } from "@eslint/eslintrc";
+import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const compat = new FlatCompat({
-	baseDirectory: import.meta.dirname,
+	baseDirectory: __dirname,
 });
 
 const baseConfig = buildEslintConfig();

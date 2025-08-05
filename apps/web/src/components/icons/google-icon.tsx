@@ -1,8 +1,15 @@
-import type { HTMLAttributes } from "react";
+import type { IconProps } from ".";
 
-export function Google(props: HTMLAttributes<SVGElement>) {
+export function GoogleIcon({ className }: IconProps) {
 	return (
-		<svg xmlns="http://www.w3.org/2000/svg" width="0.98em" height="1em" viewBox="0 0 256 262" role="img" {...props}>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="0.98em"
+			height="1em"
+			viewBox="0 0 256 262"
+			role="img"
+			className={className}
+		>
 			<title>Google</title>
 			<path
 				fill="#4285F4"

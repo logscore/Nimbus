@@ -94,8 +94,9 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
 	// Update state when URL params change
 	useEffect(() => {
+		const decodedAccountIdParam = decodeURIComponent(accountIdParam);
 		const newProviderId = slugToProvider(providerSlugParam as DriveProviderSlug) ?? null;
-		const newAccountId = accountIdParam;
+		const newAccountId = decodedAccountIdParam;
 
 		// Only update state if values have actually changed
 		if (newProviderId !== providerId || newAccountId !== accountId || providerSlugParam !== providerSlug) {

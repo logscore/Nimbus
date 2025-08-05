@@ -1,7 +1,7 @@
 "use client";
 
+import { DiscordIcon, GitHubIcon, LogoIcon, XPlatformIcon } from "@/components/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Discord, GitHub, Logo, XPlatform } from "@/components/icons";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
@@ -13,7 +13,7 @@ export default function Header() {
 			<h1>
 				<Link href="/" className="hover:text-primary/80 flex items-center gap-2 font-bold transition-colors">
 					<span>
-						<Logo className="h-9 w-9" aria-hidden="true" />
+						<LogoIcon className="h-9 w-9" aria-hidden="true" />
 					</span>
 					<span className="hidden md:inline">Nimbus</span>
 				</Link>
@@ -33,7 +33,7 @@ export default function Header() {
 					<TooltipTrigger asChild>
 						<Button variant="ghost" aria-label="Discord" className="h-9 w-9">
 							<a href="https://discord.gg/c9nWy26ubK" target="_blank" rel="noopener noreferrer">
-								<Discord />
+								<DiscordIcon />
 							</a>
 						</Button>
 					</TooltipTrigger>
@@ -43,7 +43,7 @@ export default function Header() {
 					<TooltipTrigger asChild>
 						<Button variant="ghost" asChild className="h-9 w-9">
 							<a href="https://github.com/nimbusdotstorage/Nimbus" target="_blank" rel="noopener noreferrer">
-								<GitHub />
+								<GitHubIcon />
 							</a>
 						</Button>
 					</TooltipTrigger>
@@ -53,7 +53,7 @@ export default function Header() {
 					<TooltipTrigger asChild>
 						<Button variant="ghost" aria-label="X (Twitter)" className="h-9 w-9">
 							<a href="https://x.com/nimbusdotcloud" target="_blank" rel="noopener noreferrer">
-								<XPlatform />
+								<XPlatformIcon />
 							</a>
 						</Button>
 					</TooltipTrigger>
