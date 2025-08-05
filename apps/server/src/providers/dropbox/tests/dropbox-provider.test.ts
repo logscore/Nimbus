@@ -32,7 +32,7 @@ describe("DropboxProvider", () => {
 			expect(provider.getAccessToken()).toBe("mock-access-token");
 
 			provider.setAccessToken("new-token");
-			// Restore mock client after setAccessToken creates a new real client
+			// Restore mock client after setAccessToken instantiates new Dropbox client
 			restoreMockClient(provider);
 			expect(provider.getAccessToken()).toBe("new-token");
 		});
