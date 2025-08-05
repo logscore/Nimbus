@@ -1,8 +1,6 @@
-interface DropboxIconProps {
-	className?: string;
-}
+import type { IconProps } from ".";
 
-export default function DropboxIcon({ className }: DropboxIconProps) {
+export function DropboxIcon({ className }: IconProps) {
 	return (
 		<svg
 			version="1.2"

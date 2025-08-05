@@ -1,8 +1,6 @@
-interface AWSIconProps {
-	className?: string;
-}
+import type { IconProps } from ".";
 
-export default function AWSIcon({ className }: AWSIconProps) {
+export function AWSIcon({ className }: IconProps) {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

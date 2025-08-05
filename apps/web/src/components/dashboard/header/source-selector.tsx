@@ -5,6 +5,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { BoxIcon, DropboxIcon, GoogleDriveIcon, LogoIcon, OneDriveIcon, S3Icon } from "@/components/icons";
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useAccountProvider } from "@/components/providers/account-provider";
 import { useAuth } from "@/components/providers/auth-context";
@@ -12,11 +13,8 @@ import type { LimitedAccessAccount } from "@nimbus/shared";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronsUpDown, Plus } from "lucide-react";
-import GoogleDriveIcon from "@/public/googledrive";
 import { Button } from "@/components/ui/button";
-import OneDriveIcon from "@/public/onedrive";
 import { useEffect, useState } from "react";
-import { Logo } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 export function providerToIcon(providerId: string) {
@@ -25,8 +23,14 @@ export function providerToIcon(providerId: string) {
 			return <GoogleDriveIcon className="h-5 w-5" />;
 		case "microsoft":
 			return <OneDriveIcon className="h-5 w-5" />;
+		case "box":
+			return <BoxIcon className="h-5 w-5" />;
+		case "dropbox":
+			return <DropboxIcon className="h-5 w-5" />;
+		case "s3":
+			return <S3Icon className="h-5 w-5" />;
 		default:
-			return <Logo className="h-5 w-5 text-black" />;
+			return <LogoIcon className="h-5 w-5 text-black" />;
 	}
 }
 
@@ -35,7 +39,7 @@ export function SourceSelector() {
 	const { providerId, accountId, setDriveProviderById } = useAccountProvider();
 	const { openSignIn } = useAuth();
 	const [selectedAccountNickname, setSelectedAccountNickname] = useState<string | null>(null);
-	const [selectedIcon, setSelectedIcon] = useState(<Logo className="h-5 w-5 text-black" />);
+	const [selectedIcon, setSelectedIcon] = useState(<LogoIcon className="h-5 w-5 text-black" />);
 
 	useEffect(() => {
 		if (providerId && accountId) {

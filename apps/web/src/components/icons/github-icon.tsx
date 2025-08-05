@@ -1,10 +1,10 @@
 import type { HTMLAttributes } from "react";
 
-interface GitHubProps extends HTMLAttributes<SVGElement> {
+interface GitHubIconProps extends HTMLAttributes<SVGElement> {
 	variant?: "default" | "outline";
 }
 
-export function GitHub({ variant = "default", ...props }: GitHubProps) {
+export function GitHubIcon({ variant = "default", ...props }: GitHubIconProps) {
 	if (variant === "outline") {
 		return (
 			<svg

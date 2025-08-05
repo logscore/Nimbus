@@ -3,9 +3,8 @@ import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import type { Redis as ValkeyRedis } from "iovalkey";
+import { genericOAuth } from "better-auth/plugins";
 import type { RedisClient } from "@nimbus/cache";
-import { providerSchema } from "@nimbus/shared";
-import type { Env } from "@nimbus/env/server";
 import { sendMail } from "./utils/send-mail";
 import { type DB } from "@nimbus/db";
 import type { Resend } from "resend";
@@ -14,7 +13,21 @@ import { eq } from "drizzle-orm";
 // TODO(shared): move constants to shared package. use in validation.
 // TODO(rate-limiting): implement for auth
 
-export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: Resend) => {
+export interface AuthEnv {
+	GOOGLE_CLIENT_ID: string;
+	GOOGLE_CLIENT_SECRET: string;
+	MICROSOFT_CLIENT_ID: string;
+	MICROSOFT_CLIENT_SECRET: string;
+	BOX_CLIENT_ID: string;
+	BOX_CLIENT_SECRET: string;
+	EMAIL_FROM: string;
+	BACKEND_URL: string;
+	// FRONTEND_URL: string;
+	TRUSTED_ORIGINS: string[];
+	IS_EDGE_RUNTIME: boolean;
+}
+
+export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resend: Resend) => {
 	const emailContext = {
 		from: env.EMAIL_FROM,
 		resend,
@@ -77,20 +90,21 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 
 		socialProviders: {
 			google: {
-				clientId: env.GOOGLE_CLIENT_ID as string,
-				clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+				clientId: env.GOOGLE_CLIENT_ID,
+				clientSecret: env.GOOGLE_CLIENT_SECRET,
 				scope: [
 					"https://www.googleapis.com/auth/drive",
 					"https://www.googleapis.com/auth/userinfo.profile",
 					"https://www.googleapis.com/auth/userinfo.email",
 				],
 				accessType: "offline",
-				prompt: "consent",
+				prompt: "none",
+				// prompt: "consent",
 			},
 
 			microsoft: {
-				clientId: env.MICROSOFT_CLIENT_ID as string,
-				clientSecret: env.MICROSOFT_CLIENT_SECRET as string,
+				clientId: env.MICROSOFT_CLIENT_ID,
+				clientSecret: env.MICROSOFT_CLIENT_SECRET,
 				scope: [
 					"https://graph.microsoft.com/User.Read",
 					"https://graph.microsoft.com/Files.ReadWrite.All",
@@ -100,9 +114,32 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 					"offline_access",
 				],
 				tenantId: "common",
-				prompt: "select_account",
+				prompt: "none",
+				// prompt: "select_account",
 			},
 		},
+
+		plugins: [
+			genericOAuth({
+				config: [
+					{
+						providerId: "box",
+						clientId: env.BOX_CLIENT_ID,
+						clientSecret: env.BOX_CLIENT_SECRET,
+						authorizationUrl: "https://account.box.com/api/oauth2/authorize",
+						tokenUrl: "https://api.box.com/oauth2/token",
+						userInfoUrl: "https://api.box.com/2.0/users/me",
+						mapProfileToUser: profile => ({
+							id: profile.id,
+							name: profile.name,
+							email: profile.login,
+						}),
+						scopes: ["root_readwrite", "manage_app_users"],
+						prompt: "none",
+					},
+				],
+			}),
+		],
 
 		secondaryStorage: {
 			// better-auth expects a JSON string
@@ -142,10 +179,10 @@ export const createAuth = (env: Env, db: DB, redisClient: RedisClient, resend: R
 					returned: true,
 					required: false,
 					unique: false,
-					validator: {
-						input: providerSchema,
-						output: providerSchema,
-					},
+					// validator: {
+					// 	input: providerSchema,
+					// 	output: providerSchema,
+					// },
 				},
 				defaultAccountId: {
 					type: "string",
@@ -229,7 +266,7 @@ export type Auth = ReturnType<typeof createAuth>;
 export type AuthSession = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
 export type SessionUser = AuthSession["user"];
 
-async function afterAccountCreation(db: DB, account: Account) {
+export async function afterAccountCreation(db: DB, account: Account) {
 	const user = await db.query.user.findFirst({
 		where: (table, { eq }) => eq(table.id, account.userId),
 	});

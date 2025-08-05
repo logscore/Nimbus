@@ -19,11 +19,10 @@
 		"@upstash/ratelimit": "^2.0.6",
 		"@upstash/redis": "^1.35.2",
 		"iovalkey": "^0.3.3",
-		"rate-limiter-flexible": "^7.2.0",
-		"@nimbus/env": "workspace:*"
+		"rate-limiter-flexible": "^7.2.0"
 	},
 	"devDependencies": {
 		"@nimbus/tsconfig": "workspace:*",
-		"@types/bun": "^1.2.19"
+		"@nimbus/vitest": "workspace:*"
 	}
 }

@@ -19,7 +19,7 @@
 			"files": ".*.ts"
 		},
 		{
-			"files": ".github/workflows/*.yml",
+			"files": [".github/workflows/*.yml", "*.md"],
 			"options": {
 				"printWidth": 9999
 			}

@@ -1,9 +1,12 @@
 import { createDriveProviderRouter, createProtectedRouter, createPublicRouter } from "../hono";
-import { GoogleDriveProvider } from "../providers/google/google-drive";
-import { OneDriveProvider } from "../providers/microsoft/one-drive";
 import type { Provider } from "../providers/interface/provider";
+import { OneDriveProvider } from "../providers/microsoft";
+import { GoogleDriveProvider } from "../providers/google";
 import { sendForbidden, sendUnauthorized } from "./utils";
 import { driveProviderSchema } from "@nimbus/shared";
+import { BoxProvider } from "../providers/box";
+import { decrypt } from "../utils/encryption";
+import { S3Provider } from "../providers/s3";
 import waitlistRoutes from "./waitlist";
 import accountRouter from "./account";
 import drivesRoutes from "./drives";
@@ -32,37 +35,69 @@ const driveProviderRouter = createDriveProviderRouter()
 					eq(table.accountId, accountIdHeader)
 				),
 		});
-		if (!account || !account.accessToken || !account.providerId || !account.accountId) {
+
+		if (!account || !account.providerId || !account.accountId) {
 			return sendForbidden(c);
 		}
 
-		try {
-			const { accessToken } = await c.var.auth.api.getAccessToken({
-				body: {
-					providerId: account.providerId,
-					accountId: account.id,
-					userId: account.userId,
-				},
-				headers: c.req.raw.headers,
+		const parsedProviderName = driveProviderSchema.safeParse(account.providerId);
+		if (!parsedProviderName.success) {
+			return sendForbidden(c, "Invalid provider");
+		}
+
+		let provider: Provider;
+
+		// Handle S3 provider separately (no access token needed)
+		if (parsedProviderName.data === "s3") {
+			if (!account.s3AccessKeyId || !account.s3SecretAccessKey || !account.s3Region || !account.s3BucketName) {
+				return sendUnauthorized(c, "Missing S3 credentials");
+			}
+
+			provider = new S3Provider({
+				accessKeyId: account.s3AccessKeyId,
+				secretAccessKey: decrypt(account.s3SecretAccessKey),
+				region: account.s3Region,
+				bucketName: account.s3BucketName,
+				endpoint: account.s3Endpoint || undefined,
 			});
-
-			if (!accessToken) {
-				return sendUnauthorized(c, "Access token not available. Please re-authenticate.");
-			}
-
-			const parsedProviderName = driveProviderSchema.safeParse(account.providerId);
-			if (!parsedProviderName.success) {
-				return sendForbidden(c, "Invalid provider");
-			}
-			const provider: Provider =
-				parsedProviderName.data === "google" ? new GoogleDriveProvider(accessToken) : new OneDriveProvider(accessToken);
 			c.set("provider", provider);
-		} catch (error) {
-			// @ts-ignore
-			if (error?.body?.code === "FAILED_TO_GET_A_VALID_ACCESS_TOKEN") {
-				return sendUnauthorized(c, "Authentication expired. Please sign in again.");
+		} else {
+			// Handle OAuth providers (Google, Microsoft)
+			if (!account.accessToken) {
+				return sendForbidden(c);
 			}
-			throw error;
+
+			try {
+				const { accessToken } = await c.var.auth.api.getAccessToken({
+					body: {
+						providerId: account.providerId,
+						accountId: account.id,
+						userId: account.userId,
+					},
+					headers: c.req.raw.headers,
+				});
+
+				if (!accessToken) {
+					return sendUnauthorized(c, "Access token not available. Please re-authenticate.");
+				}
+
+				if (parsedProviderName.data === "google") {
+					provider = new GoogleDriveProvider(accessToken);
+				} else if (parsedProviderName.data === "microsoft") {
+					provider = new OneDriveProvider(accessToken);
+				} else if (parsedProviderName.data === "box") {
+					provider = new BoxProvider(accessToken, c.var.env.BOX_CLIENT_ID, c.var.env.BOX_CLIENT_SECRET);
+				} else {
+					return sendForbidden(c, "Unsupported provider");
+				}
+				c.set("provider", provider);
+			} catch (error) {
+				// @ts-ignore
+				if (error?.body?.code === "FAILED_TO_GET_A_VALID_ACCESS_TOKEN") {
+					return sendUnauthorized(c, "Authentication expired. Please sign in again.");
+				}
+				throw error;
+			}
 		}
 
 		await next();
