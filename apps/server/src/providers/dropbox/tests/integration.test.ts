@@ -2,16 +2,18 @@ import { describe, expect, it, beforeEach } from "vitest";
 import { DropboxProvider } from "../dropbox-provider";
 
 // Integration tests require real Dropbox credentials
-// These tests are marked as skipped by default to avoid API calls
-describe.skip("DropboxProvider Integration Tests", () => {
+// Tests will be automatically skipped if DROPBOX_TEST_ACCESS_TOKEN is not set
+const testAccessToken = process.env.DROPBOX_TEST_ACCESS_TOKEN;
+
+if (testAccessToken) {
+	console.log("Running integration tests if DROPBOX_TEST_ACCESS_TOKEN is set");
+}
+
+(testAccessToken ? describe : describe.skip)("DropboxProvider Integration Tests", () => {
 	let provider: DropboxProvider;
-	const testAccessToken = process.env.DROPBOX_TEST_ACCESS_TOKEN;
 
 	beforeEach(() => {
-		if (!testAccessToken) {
-			throw new Error("DROPBOX_TEST_ACCESS_TOKEN environment variable is required for integration tests");
-		}
-		provider = new DropboxProvider(testAccessToken);
+		provider = new DropboxProvider(testAccessToken!);
 	});
 
 	describe("Real API Integration", () => {

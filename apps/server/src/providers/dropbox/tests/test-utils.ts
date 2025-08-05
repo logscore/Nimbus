@@ -2,8 +2,7 @@ import { DropboxProvider } from "../dropbox-provider";
 import type { FileMetadata } from "@nimbus/shared";
 import { vi } from "vitest";
 
-// Mock Dropbox client responses
-export const mockDropboxFile = {
+const MOCK_FILE_RESPONSE = {
 	".tag": "file" as const,
 	id: "id:test-file-id",
 	name: "test-file.txt",
@@ -15,7 +14,7 @@ export const mockDropboxFile = {
 	content_hash: "abc123",
 };
 
-export const mockDropboxFolder = {
+const MOCK_FOLDER_RESPONSE = {
 	".tag": "folder" as const,
 	id: "id:test-folder-id",
 	name: "test-folder",
@@ -23,29 +22,43 @@ export const mockDropboxFolder = {
 	path_display: "/test-folder",
 };
 
-export const mockDropboxClient = {
-	filesCreateFolderV2: vi.fn(),
-	filesUpload: vi.fn(),
-	filesGetMetadata: vi.fn(),
-	filesMoveV2: vi.fn(),
-	filesDeleteV2: vi.fn(),
-	filesListFolder: vi.fn(),
-	filesListFolderContinue: vi.fn(),
-	filesDownload: vi.fn(),
-	filesCopyV2: vi.fn(),
-	usersGetSpaceUsage: vi.fn(),
-	sharingCreateSharedLinkWithSettings: vi.fn(),
-	filesSearchV2: vi.fn(),
-};
+export function createMockDropboxClient() {
+	return {
+		filesCreateFolderV2: vi.fn(),
+		filesUpload: vi.fn(),
+		filesGetMetadata: vi.fn(),
+		filesMoveV2: vi.fn(),
+		filesDeleteV2: vi.fn(),
+		filesListFolder: vi.fn(),
+		filesListFolderContinue: vi.fn(),
+		filesDownload: vi.fn(),
+		filesCopyV2: vi.fn(),
+		usersGetSpaceUsage: vi.fn(),
+		sharingCreateSharedLinkWithSettings: vi.fn(),
+		filesSearchV2: vi.fn(),
+	};
+}
 
-export function createMockDropboxProvider(): DropboxProvider {
+export const mockDropboxClient = createMockDropboxClient();
+
+export function createProviderWithMockClient(): DropboxProvider {
 	const provider = new DropboxProvider("mock-access-token");
-	// Replace the client with our mock
 	(provider as any).client = mockDropboxClient;
 	return provider;
 }
 
-export function createTestFileMetadata(overrides: Partial<FileMetadata> = {}) {
+export function createProviderWithFreshMockClient(): DropboxProvider {
+	const provider = new DropboxProvider("mock-access-token");
+	const freshMockClient = createMockDropboxClient();
+	(provider as any).client = freshMockClient;
+	return provider;
+}
+
+export function restoreMockClient(provider: DropboxProvider): void {
+	(provider as any).client = mockDropboxClient;
+}
+
+export function createFileMetadata(overrides: Partial<FileMetadata> = {}): FileMetadata {
 	return {
 		name: "test-file.txt",
 		mimeType: "text/plain",
@@ -54,7 +67,7 @@ export function createTestFileMetadata(overrides: Partial<FileMetadata> = {}) {
 	};
 }
 
-export function createTestFolderMetadata(overrides: Partial<FileMetadata> = {}) {
+export function createFolderMetadata(overrides: Partial<FileMetadata> = {}): FileMetadata {
 	return {
 		name: "test-folder",
 		mimeType: "application/x-directory",
@@ -71,23 +84,23 @@ export function resetAllMocks() {
 export const mockResponses = {
 	createFolder: {
 		result: {
-			metadata: mockDropboxFolder,
+			metadata: MOCK_FOLDER_RESPONSE,
 		},
 	},
 	uploadFile: {
-		result: mockDropboxFile,
+		result: MOCK_FILE_RESPONSE,
 	},
 	getMetadata: {
-		result: mockDropboxFile,
+		result: MOCK_FILE_RESPONSE,
 	},
 	moveFile: {
 		result: {
-			metadata: mockDropboxFile,
+			metadata: MOCK_FILE_RESPONSE,
 		},
 	},
 	listFolder: {
 		result: {
-			entries: [mockDropboxFile, mockDropboxFolder],
+			entries: [MOCK_FILE_RESPONSE, MOCK_FOLDER_RESPONSE],
 			has_more: true,
 			cursor: "cursor-123",
 		},
@@ -101,7 +114,7 @@ export const mockResponses = {
 	},
 	copy: {
 		result: {
-			metadata: mockDropboxFile,
+			metadata: MOCK_FILE_RESPONSE,
 		},
 	},
 	spaceUsage: {
@@ -124,7 +137,7 @@ export const mockResponses = {
 				{
 					metadata: {
 						".tag": "metadata",
-						metadata: mockDropboxFile,
+						metadata: MOCK_FILE_RESPONSE,
 					},
 				},
 			],

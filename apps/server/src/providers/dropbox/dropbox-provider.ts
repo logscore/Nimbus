@@ -41,7 +41,8 @@ export class DropboxProvider implements Provider {
 				path: fullPath,
 				autorename: false,
 			});
-			return this.mapToFile(folderData.result.metadata as files.FolderMetadataReference);
+			// Force folder type since filesCreateFolderV2 response doesn't include .tag
+			return this.mapToFile(folderData.result.metadata as files.FolderMetadataReference, "folder");
 		}
 
 		if (!content) {
@@ -57,7 +58,8 @@ export class DropboxProvider implements Provider {
 			autorename: false,
 		});
 
-		return this.mapToFile(fileData.result as files.FileMetadataReference);
+		// Force file type since filesUpload response may not include .tag consistently
+		return this.mapToFile(fileData.result as files.FileMetadataReference, "file");
 	}
 
 	async getById(id: string): Promise<File | null> {
@@ -267,18 +269,23 @@ export class DropboxProvider implements Provider {
 		this.client = new Dropbox({ accessToken: token });
 	}
 
-	private mapToFile(dropboxItem: DropboxMetadata): File {
-		const isFolder = dropboxItem[".tag"] === "folder";
-		const path = dropboxItem.path_display || dropboxItem.path_lower || "";
-		const name = dropboxItem.name || "";
+	private mapToFile(dropboxItem: DropboxMetadata, forceType?: "folder" | "file"): File {
+		// Handle both the expected structure and potential variations
+		const itemData = dropboxItem as any;
 
-		const size = isFolder ? 0 : dropboxItem[".tag"] === "file" ? dropboxItem.size || 0 : 0;
-		const createdTime = isFolder ? undefined : dropboxItem[".tag"] === "file" ? dropboxItem.client_modified : undefined;
-		const modifiedTime = isFolder
-			? undefined
-			: dropboxItem[".tag"] === "file"
-				? dropboxItem.server_modified
-				: undefined;
+		const tag = itemData[".tag"] || itemData.tag;
+
+		// Determine if this is a folder:
+		// 1. If forceType is specified, use it (for API calls where .tag is missing)
+		// 2. Otherwise, detect from .tag field (for API calls that include it)
+		const isFolder = forceType === "folder" || (forceType !== "file" && tag === "folder");
+
+		const path = itemData.path_display || itemData.path_lower || itemData.path || "";
+		const name = itemData.name || "";
+
+		const size = isFolder ? 0 : tag === "file" ? itemData.size || 0 : 0;
+		const createdTime = isFolder ? undefined : tag === "file" ? itemData.client_modified : undefined;
+		const modifiedTime = isFolder ? undefined : tag === "file" ? itemData.server_modified : undefined;
 
 		return {
 			id: path,

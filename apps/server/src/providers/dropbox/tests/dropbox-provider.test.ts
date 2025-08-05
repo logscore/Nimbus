@@ -1,12 +1,14 @@
 import {
-	createMockDropboxProvider,
-	createTestFileMetadata,
-	createTestFolderMetadata,
+	createFileMetadata,
+	createFolderMetadata,
+	createProviderWithFreshMockClient,
+	createProviderWithMockClient,
 	mockDropboxClient,
 	mockResponses,
 	resetAllMocks,
+	restoreMockClient,
 } from "./test-utils";
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { DropboxProvider } from "../dropbox-provider";
 import { Readable } from "node:stream";
 
@@ -15,7 +17,9 @@ describe("DropboxProvider", () => {
 
 	beforeEach(() => {
 		resetAllMocks();
-		provider = createMockDropboxProvider();
+		provider = createProviderWithMockClient();
+		// Ensure mock client is properly set
+		restoreMockClient(provider);
 	});
 
 	describe("Constructor", () => {
@@ -28,16 +32,18 @@ describe("DropboxProvider", () => {
 
 	describe("Authentication Interface", () => {
 		it("should get and set access token", () => {
-			expect(provider.getAccessToken()).toBe("mock-access-token");
+			const authProvider = createProviderWithMockClient();
+			expect(authProvider.getAccessToken()).toBe("mock-access-token");
 
-			provider.setAccessToken("new-token");
-			expect(provider.getAccessToken()).toBe("new-token");
+			authProvider.setAccessToken("new-token");
+			restoreMockClient(authProvider);
+			expect(authProvider.getAccessToken()).toBe("new-token");
 		});
 	});
 
 	describe("create", () => {
 		it("should create a folder", async () => {
-			const folderMetadata = createTestFolderMetadata();
+			const folderMetadata = createFolderMetadata();
 			mockDropboxClient.filesCreateFolderV2.mockResolvedValue(mockResponses.createFolder);
 
 			const result = await provider.create(folderMetadata);
@@ -60,7 +66,7 @@ describe("DropboxProvider", () => {
 		});
 
 		it("should create a file with Buffer content", async () => {
-			const fileMetadata = createTestFileMetadata();
+			const fileMetadata = createFileMetadata();
 			const content = Buffer.from("test content");
 			mockDropboxClient.filesUpload.mockResolvedValue(mockResponses.uploadFile);
 
@@ -86,7 +92,7 @@ describe("DropboxProvider", () => {
 		});
 
 		it("should create a file with Readable stream content", async () => {
-			const fileMetadata = createTestFileMetadata();
+			const fileMetadata = createFileMetadata();
 			const content = Readable.from(["test content"]);
 			mockDropboxClient.filesUpload.mockResolvedValue(mockResponses.uploadFile);
 
@@ -97,13 +103,13 @@ describe("DropboxProvider", () => {
 		});
 
 		it("should throw error when creating file without content", async () => {
-			const fileMetadata = createTestFileMetadata();
+			const fileMetadata = createFileMetadata();
 
 			await expect(provider.create(fileMetadata)).rejects.toThrow("Content is required for file upload");
 		});
 
 		it("should handle nested folder creation", async () => {
-			const folderMetadata = createTestFolderMetadata({
+			const folderMetadata = createFolderMetadata({
 				name: "nested-folder",
 				parentId: "/parent-folder",
 			});
@@ -151,7 +157,17 @@ describe("DropboxProvider", () => {
 		});
 
 		it("should return null when file not found", async () => {
-			mockDropboxClient.filesGetMetadata.mockRejectedValue(new Error("Not found"));
+			const notFoundError = {
+				error: {
+					error: {
+						".tag": "path",
+						path: {
+							".tag": "not_found",
+						},
+					},
+				},
+			};
+			mockDropboxClient.filesGetMetadata.mockRejectedValue(notFoundError);
 
 			const result = await provider.getById("/nonexistent.txt");
 
@@ -161,12 +177,15 @@ describe("DropboxProvider", () => {
 
 	describe("update", () => {
 		it("should rename/move file", async () => {
+			const isolatedProvider = createProviderWithFreshMockClient();
+			const isolatedMockClient = (isolatedProvider as any).client;
 			const updateMetadata = { name: "renamed-file.txt", parentId: "", mimeType: "text/plain" };
-			mockDropboxClient.filesMoveV2.mockResolvedValue(mockResponses.moveFile);
 
-			const result = await provider.update("/test-file.txt", updateMetadata);
+			isolatedMockClient.filesMoveV2.mockResolvedValue(mockResponses.moveFile);
 
-			expect(mockDropboxClient.filesMoveV2).toHaveBeenCalledWith({
+			const result = await isolatedProvider.update("/test-file.txt", updateMetadata);
+
+			expect(isolatedMockClient.filesMoveV2).toHaveBeenCalledWith({
 				from_path: "/test-file.txt",
 				to_path: "/renamed-file.txt",
 				autorename: false,
@@ -293,7 +312,17 @@ describe("DropboxProvider", () => {
 		});
 
 		it("should return null on download error", async () => {
-			mockDropboxClient.filesDownload.mockRejectedValue(new Error("Download failed"));
+			const notFoundError = {
+				error: {
+					error: {
+						".tag": "path",
+						path: {
+							".tag": "not_found",
+						},
+					},
+				},
+			};
+			mockDropboxClient.filesDownload.mockRejectedValue(notFoundError);
 
 			const result = await provider.download("/test-file.txt");
 
@@ -490,7 +519,7 @@ describe("DropboxProvider", () => {
 		});
 
 		it("should normalize folder paths correctly", async () => {
-			const folderMetadata = createTestFolderMetadata({
+			const folderMetadata = createFolderMetadata({
 				name: "test-folder",
 				parentId: "/parent/",
 			});
@@ -507,7 +536,7 @@ describe("DropboxProvider", () => {
 
 	describe("MIME Type Handling", () => {
 		it("should detect MIME types correctly", async () => {
-			const fileMetadata = createTestFileMetadata({ name: "document.pdf" });
+			const fileMetadata = createFileMetadata({ name: "document.pdf" });
 			mockDropboxClient.filesUpload.mockResolvedValue({
 				result: {
 					...mockResponses.uploadFile.result,
@@ -521,7 +550,7 @@ describe("DropboxProvider", () => {
 		});
 
 		it("should use default MIME type for unknown extensions", async () => {
-			const fileMetadata = createTestFileMetadata({ name: "file.unknown" });
+			const fileMetadata = createFileMetadata({ name: "file.unknown" });
 			mockDropboxClient.filesUpload.mockResolvedValue({
 				result: {
 					...mockResponses.uploadFile.result,
