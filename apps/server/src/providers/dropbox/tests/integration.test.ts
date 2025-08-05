@@ -1,11 +1,13 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { DropboxProvider } from "../dropbox-provider";
 
 // Integration tests require real Dropbox credentials
 // Tests will be automatically skipped if DROPBOX_TEST_ACCESS_TOKEN is not set
-console.log("Running integration tests if DROPBOX_TEST_ACCESS_TOKEN is set");
-
 const testAccessToken = process.env.DROPBOX_TEST_ACCESS_TOKEN;
+
+if (testAccessToken) {
+	console.log("Running integration tests if DROPBOX_TEST_ACCESS_TOKEN is set");
+}
 
 (testAccessToken ? describe : describe.skip)("DropboxProvider Integration Tests", () => {
 	let provider: DropboxProvider;
