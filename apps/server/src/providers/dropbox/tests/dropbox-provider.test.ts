@@ -180,6 +180,9 @@ describe("DropboxProvider", () => {
 			const updateMetadata = { name: "renamed-file.txt", parentId: "", mimeType: "text/plain" };
 			mockDropboxClient.filesMoveV2.mockResolvedValue(mockResponses.moveFile);
 
+			// Verify mock is properly set
+			expect((testProvider as any).client).toBe(mockDropboxClient);
+
 			const result = await testProvider.update("/test-file.txt", updateMetadata);
 
 			expect(mockDropboxClient.filesMoveV2).toHaveBeenCalledWith({
