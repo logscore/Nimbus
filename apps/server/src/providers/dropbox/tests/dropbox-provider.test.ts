@@ -151,7 +151,17 @@ describe("DropboxProvider", () => {
 		});
 
 		it("should return null when file not found", async () => {
-			mockDropboxClient.filesGetMetadata.mockRejectedValue(new Error("Not found"));
+			const notFoundError = {
+				error: {
+					error: {
+						".tag": "path",
+						path: {
+							".tag": "not_found",
+						},
+					},
+				},
+			};
+			mockDropboxClient.filesGetMetadata.mockRejectedValue(notFoundError);
 
 			const result = await provider.getById("/nonexistent.txt");
 
@@ -293,7 +303,17 @@ describe("DropboxProvider", () => {
 		});
 
 		it("should return null on download error", async () => {
-			mockDropboxClient.filesDownload.mockRejectedValue(new Error("Download failed"));
+			const notFoundError = {
+				error: {
+					error: {
+						".tag": "path",
+						path: {
+							".tag": "not_found",
+						},
+					},
+				},
+			};
+			mockDropboxClient.filesDownload.mockRejectedValue(notFoundError);
 
 			const result = await provider.download("/test-file.txt");
 
