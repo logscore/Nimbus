@@ -176,15 +176,18 @@ describe("DropboxProvider", () => {
 
 	describe("update", () => {
 		it("should rename/move file", async () => {
+			resetAllMocks();
 			const testProvider = createProviderWithMockClient();
-			const updateMetadata = { name: "renamed-file.txt", parentId: "", mimeType: "text/plain" };
+
+			// Ensure fresh mock setup
+			mockDropboxClient.filesMoveV2.mockClear();
 			mockDropboxClient.filesMoveV2.mockResolvedValue(mockResponses.moveFile);
 
-			// Verify mock is properly set
-			expect((testProvider as any).client).toBe(mockDropboxClient);
+			const updateMetadata = { name: "renamed-file.txt", parentId: "", mimeType: "text/plain" };
 
 			const result = await testProvider.update("/test-file.txt", updateMetadata);
 
+			expect(mockDropboxClient.filesMoveV2).toHaveBeenCalledTimes(1);
 			expect(mockDropboxClient.filesMoveV2).toHaveBeenCalledWith({
 				from_path: "/test-file.txt",
 				to_path: "/renamed-file.txt",
