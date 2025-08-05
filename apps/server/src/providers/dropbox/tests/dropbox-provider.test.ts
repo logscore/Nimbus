@@ -29,11 +29,12 @@ describe("DropboxProvider", () => {
 
 	describe("Authentication Interface", () => {
 		it("should get and set access token", () => {
-			expect(provider.getAccessToken()).toBe("mock-access-token");
+			const authProvider = createMockDropboxProvider();
+			expect(authProvider.getAccessToken()).toBe("mock-access-token");
 
-			provider.setAccessToken("new-token");
-			restoreMockClient(provider);
-			expect(provider.getAccessToken()).toBe("new-token");
+			authProvider.setAccessToken("new-token");
+			restoreMockClient(authProvider);
+			expect(authProvider.getAccessToken()).toBe("new-token");
 		});
 	});
 
