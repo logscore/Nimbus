@@ -15,9 +15,9 @@ describe("driveProviderSchema", () => {
 		expect(result.success).toBe(true);
 	});
 
-	it("should accept 'dropbox'", () => {
-		const result = driveProviderSchema.safeParse("dropbox");
-		expect(result.success).toBe(true);
+	it("should reject 'icloud'", () => {
+		const result = driveProviderSchema.safeParse("icloud");
+		expect(result.success).toBe(false);
 	});
 });
 
@@ -27,9 +27,9 @@ describe("driveProviderSlugSchema", () => {
 		expect(result.success).toBe(true);
 	});
 
-	it("should accept 'd'", () => {
-		const result = driveProviderSlugSchema.safeParse("d");
-		expect(result.success).toBe(true);
+	it("should reject 'z'", () => {
+		const result = driveProviderSlugSchema.safeParse("z");
+		expect(result.success).toBe(false);
 	});
 });
 
@@ -85,9 +85,9 @@ describe("providerSchema", () => {
 		expect(result.success).toBe(true);
 	});
 
-	it("should accept 'dropbox'", () => {
-		const result = providerSchema.safeParse("dropbox");
-		expect(result.success).toBe(true);
+	it("should reject 'icloud'", () => {
+		const result = providerSchema.safeParse("icloud");
+		expect(result.success).toBe(false);
 	});
 });
 
@@ -96,8 +96,8 @@ describe("slugToProvider", () => {
 		expect(slugToProvider("g")).toBe("google");
 	});
 
-	it("should return 'dropbox' for 'd'", () => {
-		expect(slugToProvider("d")).toBe("dropbox");
+	it("should return undefined for 'z'", () => {
+		expect(slugToProvider("z" as any)).toBeUndefined();
 	});
 });
 
@@ -106,7 +106,7 @@ describe("providerToSlug", () => {
 		expect(providerToSlug("microsoft")).toBe("m");
 	});
 
-	it("should return 'd' for 'dropbox'", () => {
-		expect(providerToSlug("dropbox")).toBe("d");
+	it("should return undefined for 'icloud'", () => {
+		expect(providerToSlug("icloud" as any)).toBeUndefined();
 	});
 });
