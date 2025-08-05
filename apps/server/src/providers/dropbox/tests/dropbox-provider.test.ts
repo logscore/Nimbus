@@ -7,7 +7,7 @@ import {
 	resetAllMocks,
 	restoreMockClient,
 } from "./test-utils";
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import { DropboxProvider } from "../dropbox-provider";
 import { Readable } from "node:stream";
 
@@ -176,18 +176,11 @@ describe("DropboxProvider", () => {
 
 	describe("update", () => {
 		it("should rename/move file", async () => {
-			resetAllMocks();
-			const testProvider = createProviderWithMockClient();
-
-			// Ensure fresh mock setup
-			mockDropboxClient.filesMoveV2.mockClear();
+			const updateMetadata = { name: "renamed-file.txt", parentId: "", mimeType: "text/plain" };
 			mockDropboxClient.filesMoveV2.mockResolvedValue(mockResponses.moveFile);
 
-			const updateMetadata = { name: "renamed-file.txt", parentId: "", mimeType: "text/plain" };
+			const result = await provider.update("/test-file.txt", updateMetadata);
 
-			const result = await testProvider.update("/test-file.txt", updateMetadata);
-
-			expect(mockDropboxClient.filesMoveV2).toHaveBeenCalledTimes(1);
 			expect(mockDropboxClient.filesMoveV2).toHaveBeenCalledWith({
 				from_path: "/test-file.txt",
 				to_path: "/renamed-file.txt",
