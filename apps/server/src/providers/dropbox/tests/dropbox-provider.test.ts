@@ -5,6 +5,7 @@ import {
 	mockDropboxClient,
 	mockResponses,
 	resetAllMocks,
+	restoreMockClient,
 } from "./test-utils";
 import { describe, expect, it, beforeEach } from "vitest";
 import { DropboxProvider } from "../dropbox-provider";
@@ -31,6 +32,8 @@ describe("DropboxProvider", () => {
 			expect(provider.getAccessToken()).toBe("mock-access-token");
 
 			provider.setAccessToken("new-token");
+			// Restore mock client after setAccessToken creates a new real client
+			restoreMockClient(provider);
 			expect(provider.getAccessToken()).toBe("new-token");
 		});
 	});

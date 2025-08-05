@@ -15,9 +15,9 @@ describe("driveProviderSchema", () => {
 		expect(result.success).toBe(true);
 	});
 
-	it("should reject 'dropbox'", () => {
+	it("should accept 'dropbox'", () => {
 		const result = driveProviderSchema.safeParse("dropbox");
-		expect(result.success).toBe(false);
+		expect(result.success).toBe(true);
 	});
 });
 
@@ -27,9 +27,9 @@ describe("driveProviderSlugSchema", () => {
 		expect(result.success).toBe(true);
 	});
 
-	it("should reject 'd'", () => {
+	it("should accept 'd'", () => {
 		const result = driveProviderSlugSchema.safeParse("d");
-		expect(result.success).toBe(false);
+		expect(result.success).toBe(true);
 	});
 });
 
@@ -85,9 +85,9 @@ describe("providerSchema", () => {
 		expect(result.success).toBe(true);
 	});
 
-	it("should reject 'dropbox'", () => {
+	it("should accept 'dropbox'", () => {
 		const result = providerSchema.safeParse("dropbox");
-		expect(result.success).toBe(false);
+		expect(result.success).toBe(true);
 	});
 });
 
@@ -96,8 +96,8 @@ describe("slugToProvider", () => {
 		expect(slugToProvider("g")).toBe("google");
 	});
 
-	it("should return undefined for 'd'", () => {
-		expect(slugToProvider("d" as any)).toBeUndefined();
+	it("should return 'dropbox' for 'd'", () => {
+		expect(slugToProvider("d")).toBe("dropbox");
 	});
 });
 
@@ -106,7 +106,7 @@ describe("providerToSlug", () => {
 		expect(providerToSlug("microsoft")).toBe("m");
 	});
 
-	it("should return undefined for 'dropbox'", () => {
-		expect(providerToSlug("dropbox" as any)).toBeUndefined();
+	it("should return 'd' for 'dropbox'", () => {
+		expect(providerToSlug("dropbox")).toBe("d");
 	});
 });

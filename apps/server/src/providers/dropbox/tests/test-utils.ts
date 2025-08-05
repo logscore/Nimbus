@@ -45,6 +45,11 @@ export function createMockDropboxProvider(): DropboxProvider {
 	return provider;
 }
 
+export function restoreMockClient(provider: DropboxProvider): void {
+	// Re-inject the mock client after setAccessToken calls
+	(provider as any).client = mockDropboxClient;
+}
+
 export function createTestFileMetadata(overrides: Partial<FileMetadata> = {}) {
 	return {
 		name: "test-file.txt",
