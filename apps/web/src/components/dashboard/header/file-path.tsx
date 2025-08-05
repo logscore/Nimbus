@@ -45,6 +45,8 @@ export function FileBreadcrumb() {
 	// Handle clicking the home icon to remove folderId
 	async function handleHomeClick() {
 		const params = new URLSearchParams(searchParams);
+		const folderId = params.get("folderId");
+		if (!folderId) return;
 		params.delete("folderId");
 		router.push(`?${params.toString()}`);
 	}
