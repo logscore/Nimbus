@@ -268,17 +268,17 @@ export class DropboxProvider implements Provider {
 	}
 
 	private mapToFile(dropboxItem: DropboxMetadata): File {
-		const isFolder = dropboxItem[".tag"] === "folder";
-		const path = dropboxItem.path_display || dropboxItem.path_lower || "";
-		const name = dropboxItem.name || "";
+		// Handle both the expected structure and potential variations
+		const itemData = dropboxItem as any;
+		const tag = itemData[".tag"] || itemData.tag;
+		const isFolder = tag === "folder";
 
-		const size = isFolder ? 0 : dropboxItem[".tag"] === "file" ? dropboxItem.size || 0 : 0;
-		const createdTime = isFolder ? undefined : dropboxItem[".tag"] === "file" ? dropboxItem.client_modified : undefined;
-		const modifiedTime = isFolder
-			? undefined
-			: dropboxItem[".tag"] === "file"
-				? dropboxItem.server_modified
-				: undefined;
+		const path = itemData.path_display || itemData.path_lower || itemData.path || "";
+		const name = itemData.name || "";
+
+		const size = isFolder ? 0 : tag === "file" ? itemData.size || 0 : 0;
+		const createdTime = isFolder ? undefined : tag === "file" ? itemData.client_modified : undefined;
+		const modifiedTime = isFolder ? undefined : tag === "file" ? itemData.server_modified : undefined;
 
 		return {
 			id: path,
