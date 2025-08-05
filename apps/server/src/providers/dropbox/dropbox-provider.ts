@@ -37,16 +37,12 @@ export class DropboxProvider implements Provider {
 			metadata.mimeType === "application/x-directory";
 
 		if (isFolder) {
-			console.log("DEBUG: Creating folder with path:", fullPath);
 			const folderData = await this.client.filesCreateFolderV2({
 				path: fullPath,
 				autorename: false,
 			});
-			console.log("DEBUG: Dropbox API raw response:", JSON.stringify(folderData, null, 2));
-			console.log("DEBUG: Metadata being passed to mapToFile:", JSON.stringify(folderData.result.metadata, null, 2));
-			const result = this.mapToFile(folderData.result.metadata as files.FolderMetadataReference, "folder");
-			console.log("DEBUG: Final mapped result:", JSON.stringify(result, null, 2));
-			return result;
+			// Force folder type since filesCreateFolderV2 response doesn't include .tag
+			return this.mapToFile(folderData.result.metadata as files.FolderMetadataReference, "folder");
 		}
 
 		if (!content) {
@@ -62,7 +58,8 @@ export class DropboxProvider implements Provider {
 			autorename: false,
 		});
 
-		return this.mapToFile(fileData.result as files.FileMetadataReference);
+		// Force file type since filesUpload response may not include .tag consistently
+		return this.mapToFile(fileData.result as files.FileMetadataReference, "file");
 	}
 
 	async getById(id: string): Promise<File | null> {
@@ -276,15 +273,12 @@ export class DropboxProvider implements Provider {
 		// Handle both the expected structure and potential variations
 		const itemData = dropboxItem as any;
 
-		// Debug: Log the actual structure to understand the API response
-		console.log("DEBUG: Raw Dropbox item:", JSON.stringify(itemData, null, 2));
-
 		const tag = itemData[".tag"] || itemData.tag;
-		console.log("DEBUG: Extracted tag:", tag);
 
-		// Use forceType if provided, otherwise try to detect from tag
+		// Determine if this is a folder:
+		// 1. If forceType is specified, use it (for API calls where .tag is missing)
+		// 2. Otherwise, detect from .tag field (for API calls that include it)
 		const isFolder = forceType === "folder" || (forceType !== "file" && tag === "folder");
-		console.log("DEBUG: isFolder:", isFolder, "forceType:", forceType);
 
 		const path = itemData.path_display || itemData.path_lower || itemData.path || "";
 		const name = itemData.name || "";
