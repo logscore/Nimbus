@@ -8,7 +8,7 @@ import {
 import { BoxIcon, DropboxIcon, GoogleDriveIcon, LogoIcon, OneDriveIcon, S3Icon } from "@/components/icons";
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useAccountProvider } from "@/components/providers/account-provider";
-import { useAuth } from "@/components/providers/auth-context";
+import { useAuth } from "@/components/providers/auth-provider";
 import type { LimitedAccessAccount } from "@nimbus/shared";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";

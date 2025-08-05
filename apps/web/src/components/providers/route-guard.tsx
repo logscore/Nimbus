@@ -34,7 +34,7 @@ export function RouteGuard({ children, requireAuth = false, redirectTo = "/signi
 	// Show loading state while checking auth
 	if (isPending) {
 		return (
-			<div className="flex min-h-screen w-full items-center justify-center">
+			<div className="flex h-full w-full items-center justify-center">
 				<div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
 			</div>
 		);
