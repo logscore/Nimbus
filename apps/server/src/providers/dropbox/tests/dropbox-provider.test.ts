@@ -17,6 +17,8 @@ describe("DropboxProvider", () => {
 	beforeEach(() => {
 		resetAllMocks();
 		provider = createProviderWithMockClient();
+		// Ensure mock client is properly set
+		restoreMockClient(provider);
 	});
 
 	describe("Constructor", () => {
@@ -174,10 +176,11 @@ describe("DropboxProvider", () => {
 
 	describe("update", () => {
 		it("should rename/move file", async () => {
+			const testProvider = createProviderWithMockClient();
 			const updateMetadata = { name: "renamed-file.txt", parentId: "", mimeType: "text/plain" };
 			mockDropboxClient.filesMoveV2.mockResolvedValue(mockResponses.moveFile);
 
-			const result = await provider.update("/test-file.txt", updateMetadata);
+			const result = await testProvider.update("/test-file.txt", updateMetadata);
 
 			expect(mockDropboxClient.filesMoveV2).toHaveBeenCalledWith({
 				from_path: "/test-file.txt",
