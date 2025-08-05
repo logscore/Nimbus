@@ -91,7 +91,6 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 		},
 
 		socialProviders: {
-			// prompt can be "none", "consent", "select_account", "select_account+consent"
 			google: {
 				clientId: env.GOOGLE_CLIENT_ID,
 				clientSecret: env.GOOGLE_CLIENT_SECRET,
@@ -101,8 +100,8 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 					"https://www.googleapis.com/auth/userinfo.email",
 				],
 				accessType: "offline",
+				// https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow#request-parameter-prompt
 				prompt: "consent",
-				// prompt: "none" // doesn't work
 			},
 
 			microsoft: {
@@ -117,15 +116,14 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 					"offline_access",
 				],
 				tenantId: "common",
+				// https://learn.microsoft.com/en-us/dynamics365/business-central/application/system-application/enum/system.security.authentication.prompt-interaction
 				prompt: "select_account",
-				// prompt: "none" // doesn't work
 			},
 
 			dropbox: {
 				clientId: env.DROPBOX_CLIENT_ID as string,
 				clientSecret: env.DROPBOX_CLIENT_SECRET as string,
 				scope: ["files.metadata.read", "files.content.read", "files.content.write", "sharing.read"],
-				prompt: "consent",
 			},
 		},
 
@@ -145,7 +143,6 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 							email: profile.login,
 						}),
 						scopes: ["root_readwrite", "manage_app_users"],
-						prompt: "consent",
 					},
 				],
 			}),
