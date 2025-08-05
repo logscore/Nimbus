@@ -46,7 +46,6 @@ export function createMockDropboxProvider(): DropboxProvider {
 }
 
 export function restoreMockClient(provider: DropboxProvider): void {
-	// Restore mock client instance after setAccessToken instantiates new client
 	(provider as any).client = mockDropboxClient;
 }
 
