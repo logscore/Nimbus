@@ -37,11 +37,16 @@ export class DropboxProvider implements Provider {
 			metadata.mimeType === "application/x-directory";
 
 		if (isFolder) {
+			console.log("DEBUG: Creating folder with path:", fullPath);
 			const folderData = await this.client.filesCreateFolderV2({
 				path: fullPath,
 				autorename: false,
 			});
-			return this.mapToFile(folderData.result.metadata as files.FolderMetadataReference);
+			console.log("DEBUG: Dropbox API raw response:", JSON.stringify(folderData, null, 2));
+			console.log("DEBUG: Metadata being passed to mapToFile:", JSON.stringify(folderData.result.metadata, null, 2));
+			const result = this.mapToFile(folderData.result.metadata as files.FolderMetadataReference, "folder");
+			console.log("DEBUG: Final mapped result:", JSON.stringify(result, null, 2));
+			return result;
 		}
 
 		if (!content) {
@@ -267,7 +272,7 @@ export class DropboxProvider implements Provider {
 		this.client = new Dropbox({ accessToken: token });
 	}
 
-	private mapToFile(dropboxItem: DropboxMetadata): File {
+	private mapToFile(dropboxItem: DropboxMetadata, forceType?: "folder" | "file"): File {
 		// Handle both the expected structure and potential variations
 		const itemData = dropboxItem as any;
 
@@ -276,8 +281,10 @@ export class DropboxProvider implements Provider {
 
 		const tag = itemData[".tag"] || itemData.tag;
 		console.log("DEBUG: Extracted tag:", tag);
-		const isFolder = tag === "folder";
-		console.log("DEBUG: isFolder:", isFolder);
+
+		// Use forceType if provided, otherwise try to detect from tag
+		const isFolder = forceType === "folder" || (forceType !== "file" && tag === "folder");
+		console.log("DEBUG: isFolder:", isFolder, "forceType:", forceType);
 
 		const path = itemData.path_display || itemData.path_lower || itemData.path || "";
 		const name = itemData.name || "";
