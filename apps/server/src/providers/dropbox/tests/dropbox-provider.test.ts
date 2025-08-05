@@ -1,14 +1,14 @@
 import {
-	createProviderWithMockClient,
-	createProviderWithFreshMockClient,
 	createFileMetadata,
 	createFolderMetadata,
+	createProviderWithFreshMockClient,
+	createProviderWithMockClient,
 	mockDropboxClient,
 	mockResponses,
 	resetAllMocks,
 	restoreMockClient,
 } from "./test-utils";
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { DropboxProvider } from "../dropbox-provider";
 import { Readable } from "node:stream";
 
