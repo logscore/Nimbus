@@ -270,8 +270,14 @@ export class DropboxProvider implements Provider {
 	private mapToFile(dropboxItem: DropboxMetadata): File {
 		// Handle both the expected structure and potential variations
 		const itemData = dropboxItem as any;
+
+		// Debug: Log the actual structure to understand the API response
+		console.log("DEBUG: Raw Dropbox item:", JSON.stringify(itemData, null, 2));
+
 		const tag = itemData[".tag"] || itemData.tag;
+		console.log("DEBUG: Extracted tag:", tag);
 		const isFolder = tag === "folder";
+		console.log("DEBUG: isFolder:", isFolder);
 
 		const path = itemData.path_display || itemData.path_lower || itemData.path || "";
 		const name = itemData.name || "";
