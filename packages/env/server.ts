@@ -42,6 +42,8 @@ export function createEnv(runtimeEnv: NodeJS.ProcessEnv) {
 			MICROSOFT_CLIENT_SECRET: z.string(),
 			BOX_CLIENT_ID: z.string(),
 			BOX_CLIENT_SECRET: z.string(),
+			DROPBOX_CLIENT_ID: z.string(),
+			DROPBOX_CLIENT_SECRET: z.string(),
 
 			// Server Configuration
 			BACKEND_URL: z.string(),

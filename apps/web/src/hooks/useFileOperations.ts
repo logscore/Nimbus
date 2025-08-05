@@ -205,6 +205,8 @@ export function useUploadFile() {
 	});
 }
 
+// TODO(feat): add upload folder
+
 export function useUploadFolder() {}
 
 export function useDownloadFile() {

@@ -74,6 +74,8 @@ Follow the instructions on the first step of this [guide](https://www.better-aut
 <summary>How to setup Microsoft keys?</summary>
 <br>
 
+Official Guide: [Microsoft Register App](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)
+
 - Go to the <a href="https://portal.azure.com/" target="_blank">**Microsoft Azure Portal**</a>.
 
 - Navigate to [**Microsoft Entra ID**](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade) → Click **Add** → Click **App registrations**.
@@ -132,6 +134,34 @@ Official Guide: [Box Create OAuth 2.0 App](https://developer.box.com/guides/auth
 - Add **CORS Domains** as `http://localhost:3000`.
 
 - Click **Save Changes**.
+</details>
+
+<details>
+
+Official Guide: [Dropbox OAuth Guide](https://developers.dropbox.com/oauth-guide)
+
+<summary>How to setup Dropbox keys?</summary>
+<br>
+
+- Navigate to [Dropbox App Console](https://www.dropbox.com/developers/apps).
+
+- Click **Create App**.
+  - Select: _Scoped Access_
+  - Select: _Full Dropbox Access_
+  - Name: _Nimbus_
+
+- Copy the **App key** and **App secret**.
+
+- Add _OAuth 2 Redirect URIs_ as `http://localhost:1284/api/auth/callback/dropbox`.
+
+- Navigate to **Permission** and add **Scopes**.
+  - `account_info.read`
+  - `files.metadata.read`
+  - `files.content.read`
+  - `files.content.write`
+  - `sharing.read`
+
+- Click **Submit** in the pop up bar.
 </details>
 
 ```bash
