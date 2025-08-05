@@ -41,7 +41,8 @@ export class DropboxProvider implements Provider {
 				path: fullPath,
 				autorename: false,
 			});
-			return this.mapToFile(folderData.result.metadata as files.FolderMetadataReference);
+			// Force folder type since filesCreateFolderV2 response doesn't include .tag
+			return this.mapToFile(folderData.result.metadata as files.FolderMetadataReference, "folder");
 		}
 
 		if (!content) {
@@ -57,7 +58,8 @@ export class DropboxProvider implements Provider {
 			autorename: false,
 		});
 
-		return this.mapToFile(fileData.result as files.FileMetadataReference);
+		// Force file type since filesUpload response may not include .tag consistently
+		return this.mapToFile(fileData.result as files.FileMetadataReference, "file");
 	}
 
 	async getById(id: string): Promise<File | null> {
@@ -267,17 +269,16 @@ export class DropboxProvider implements Provider {
 		this.client = new Dropbox({ accessToken: token });
 	}
 
-	private mapToFile(dropboxItem: DropboxMetadata): File {
+	private mapToFile(dropboxItem: DropboxMetadata, forceType?: "folder" | "file"): File {
 		// Handle both the expected structure and potential variations
 		const itemData = dropboxItem as any;
 
-		// Debug: Log the actual structure to understand the API response
-		console.log("DEBUG: Raw Dropbox item:", JSON.stringify(itemData, null, 2));
-
 		const tag = itemData[".tag"] || itemData.tag;
-		console.log("DEBUG: Extracted tag:", tag);
-		const isFolder = tag === "folder";
-		console.log("DEBUG: isFolder:", isFolder);
+
+		// Determine if this is a folder:
+		// 1. If forceType is specified, use it (for API calls where .tag is missing)
+		// 2. Otherwise, detect from .tag field (for API calls that include it)
+		const isFolder = forceType === "folder" || (forceType !== "file" && tag === "folder");
 
 		const path = itemData.path_display || itemData.path_lower || itemData.path || "";
 		const name = itemData.name || "";
