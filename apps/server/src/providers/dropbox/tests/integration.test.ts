@@ -5,6 +5,10 @@ import { DropboxProvider } from "../dropbox-provider";
 // Tests will be automatically skipped if DROPBOX_TEST_ACCESS_TOKEN is not set
 const testAccessToken = process.env.DROPBOX_TEST_ACCESS_TOKEN;
 
+if (testAccessToken) {
+	console.log("Running integration tests if DROPBOX_TEST_ACCESS_TOKEN is set");
+}
+
 (testAccessToken ? describe : describe.skip)("DropboxProvider Integration Tests", () => {
 	let provider: DropboxProvider;
 
