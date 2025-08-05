@@ -1,5 +1,6 @@
 import {
 	createProviderWithMockClient,
+	createProviderWithFreshMockClient,
 	createFileMetadata,
 	createFolderMetadata,
 	mockDropboxClient,
@@ -176,12 +177,15 @@ describe("DropboxProvider", () => {
 
 	describe("update", () => {
 		it("should rename/move file", async () => {
+			const isolatedProvider = createProviderWithFreshMockClient();
+			const isolatedMockClient = (isolatedProvider as any).client;
 			const updateMetadata = { name: "renamed-file.txt", parentId: "", mimeType: "text/plain" };
-			mockDropboxClient.filesMoveV2.mockResolvedValue(mockResponses.moveFile);
 
-			const result = await provider.update("/test-file.txt", updateMetadata);
+			isolatedMockClient.filesMoveV2.mockResolvedValue(mockResponses.moveFile);
 
-			expect(mockDropboxClient.filesMoveV2).toHaveBeenCalledWith({
+			const result = await isolatedProvider.update("/test-file.txt", updateMetadata);
+
+			expect(isolatedMockClient.filesMoveV2).toHaveBeenCalledWith({
 				from_path: "/test-file.txt",
 				to_path: "/renamed-file.txt",
 				autorename: false,

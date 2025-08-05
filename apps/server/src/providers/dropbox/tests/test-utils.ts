@@ -22,24 +22,35 @@ const MOCK_FOLDER_RESPONSE = {
 	path_display: "/test-folder",
 };
 
-export const mockDropboxClient = {
-	filesCreateFolderV2: vi.fn(),
-	filesUpload: vi.fn(),
-	filesGetMetadata: vi.fn(),
-	filesMoveV2: vi.fn(),
-	filesDeleteV2: vi.fn(),
-	filesListFolder: vi.fn(),
-	filesListFolderContinue: vi.fn(),
-	filesDownload: vi.fn(),
-	filesCopyV2: vi.fn(),
-	usersGetSpaceUsage: vi.fn(),
-	sharingCreateSharedLinkWithSettings: vi.fn(),
-	filesSearchV2: vi.fn(),
-};
+export function createMockDropboxClient() {
+	return {
+		filesCreateFolderV2: vi.fn(),
+		filesUpload: vi.fn(),
+		filesGetMetadata: vi.fn(),
+		filesMoveV2: vi.fn(),
+		filesDeleteV2: vi.fn(),
+		filesListFolder: vi.fn(),
+		filesListFolderContinue: vi.fn(),
+		filesDownload: vi.fn(),
+		filesCopyV2: vi.fn(),
+		usersGetSpaceUsage: vi.fn(),
+		sharingCreateSharedLinkWithSettings: vi.fn(),
+		filesSearchV2: vi.fn(),
+	};
+}
+
+export const mockDropboxClient = createMockDropboxClient();
 
 export function createProviderWithMockClient(): DropboxProvider {
 	const provider = new DropboxProvider("mock-access-token");
 	(provider as any).client = mockDropboxClient;
+	return provider;
+}
+
+export function createProviderWithFreshMockClient(): DropboxProvider {
+	const provider = new DropboxProvider("mock-access-token");
+	const freshMockClient = createMockDropboxClient();
+	(provider as any).client = freshMockClient;
 	return provider;
 }
 
