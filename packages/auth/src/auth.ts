@@ -100,8 +100,7 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 					"https://www.googleapis.com/auth/userinfo.email",
 				],
 				accessType: "offline",
-				prompt: "none",
-				// prompt: "consent",
+				prompt: "consent",
 			},
 
 			microsoft: {
@@ -116,8 +115,7 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 					"offline_access",
 				],
 				tenantId: "common",
-				prompt: "none",
-				// prompt: "select_account",
+				prompt: "select_account",
 			},
 
 			dropbox: {
