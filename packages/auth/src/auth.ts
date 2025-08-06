@@ -122,7 +122,6 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 				clientId: env.DROPBOX_CLIENT_ID as string,
 				clientSecret: env.DROPBOX_CLIENT_SECRET as string,
 				scope: ["files.metadata.read", "files.content.read", "files.content.write", "sharing.read"],
-				prompt: "none",
 			},
 		},
 
@@ -142,7 +141,6 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 							email: profile.login,
 						}),
 						scopes: ["root_readwrite", "manage_app_users"],
-						prompt: "none",
 					},
 				],
 			}),

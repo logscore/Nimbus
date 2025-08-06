@@ -485,10 +485,7 @@ export class GoogleDriveProvider implements Provider {
 
 	private normalizeContent(content: Buffer | NodeJS.ReadableStream): NodeJS.ReadableStream {
 		if (Buffer.isBuffer(content)) {
-			const readable = new Readable();
-			readable.push(content);
-			readable.push(null);
-			return readable;
+			return Readable.from(content);
 		}
 		return content;
 	}
