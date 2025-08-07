@@ -244,7 +244,8 @@ export class OneDriveProvider implements Provider {
 			}
 
 			// For OneDrive, we can use the download URL directly
-			const downloadUrl = (fileMetadata as any)["@microsoft.graph.downloadUrl"];
+			const downloadUrl =
+				fileMetadata.webContentLink || (fileMetadata.providerMetadata as any)?.["@microsoft.graph.downloadUrl"];
 			if (!downloadUrl) {
 				return null;
 			}
