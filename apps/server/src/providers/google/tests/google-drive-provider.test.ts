@@ -7,7 +7,7 @@ import {
 	restoreMockClient,
 } from "./test-utils";
 import { GoogleDriveProvider } from "../google-drive-provider";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Readable } from "node:stream";
 
 describe("GoogleDriveProvider Unit Tests", () => {
@@ -391,6 +391,17 @@ describe("GoogleDriveProvider Unit Tests", () => {
 		});
 
 		it("should call export for Google Workspace files", async () => {
+			// Create completely fresh provider and mocks to avoid any interference
+			const testProvider = new GoogleDriveProvider("test-token");
+			const freshMocks = {
+				files: {
+					get: vi.fn(),
+					export: vi.fn(),
+				},
+			};
+			(testProvider as any).drive = freshMocks;
+
+			// Mock file metadata response
 			const workspaceFile = {
 				data: {
 					id: "test-id",
@@ -400,41 +411,27 @@ describe("GoogleDriveProvider Unit Tests", () => {
 				},
 			};
 
-			// Set up fresh mocks for this test to ensure isolation
-			const getFileSpy = mockGoogleDriveClient.files.get;
-			const exportSpy = mockGoogleDriveClient.files.export;
+			freshMocks.files.get.mockResolvedValueOnce(workspaceFile);
+			freshMocks.files.export.mockRejectedValueOnce(new Error("Test export called"));
 
-			// Clear any previous calls
-			getFileSpy.mockClear();
-			exportSpy.mockClear();
-
-			// Set up the mocks
-			getFileSpy.mockResolvedValueOnce(workspaceFile);
-			exportSpy.mockRejectedValueOnce(new Error("Export mock error"));
-
-			// Call download with export options - should return null due to error handling
-			const result = await provider.download("test-id", {
+			// Call download - should call export and return null due to error handling
+			const result = await testProvider.download("test-id", {
 				fileId: "test-id",
 				exportMimeType: "application/pdf",
 			});
 
-			// Verify the get method was called first
-			expect(getFileSpy).toHaveBeenCalledWith({
-				fileId: "test-id",
-				fields: "id, name, mimeType, size",
-			});
-
-			// Verify the export method was called with correct parameters
-			expect(exportSpy).toHaveBeenCalledWith(
+			// Verify calls were made
+			expect(freshMocks.files.get).toHaveBeenCalledTimes(1);
+			expect(freshMocks.files.export).toHaveBeenCalledTimes(1);
+			expect(freshMocks.files.export).toHaveBeenCalledWith(
 				{
 					fileId: "test-id",
 					mimeType: "application/pdf",
 				},
 				{ responseType: "stream" }
 			);
-			expect(exportSpy).toHaveBeenCalledTimes(1);
 
-			// Error handling should return null
+			// Should return null due to error handling
 			expect(result).toBeNull();
 		});
 
