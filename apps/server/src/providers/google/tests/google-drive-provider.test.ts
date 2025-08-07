@@ -398,18 +398,23 @@ describe("GoogleDriveProvider Unit Tests", () => {
 			};
 			mockGoogleDriveClient.files.get.mockResolvedValueOnce(workspaceFile);
 
-			// Mock export to throw an error immediately to avoid async iteration
-			mockGoogleDriveClient.files.export.mockRejectedValueOnce(new Error("Async iteration not supported in tests"));
+			// Create a mock async iterable for the stream response
+			const mockBuffer = Buffer.from("exported pdf content");
+			const mockAsyncIterable = {
+				async *[Symbol.asyncIterator]() {
+					yield mockBuffer;
+				},
+			};
 
-			// Call download with export options - should fail but export should be called
-			try {
-				await provider.download("test-id", {
-					fileId: "test-id",
-					exportMimeType: "application/pdf",
-				});
-			} catch {
-				// Expected to fail due to async iteration issues
-			}
+			mockGoogleDriveClient.files.export.mockResolvedValueOnce({
+				data: mockAsyncIterable,
+			});
+
+			// Call download with export options
+			const result = await provider.download("test-id", {
+				fileId: "test-id",
+				exportMimeType: "application/pdf",
+			});
 
 			// Verify the export method was called with correct parameters
 			expect(mockGoogleDriveClient.files.export).toHaveBeenCalledWith(
@@ -419,6 +424,12 @@ describe("GoogleDriveProvider Unit Tests", () => {
 				},
 				{ responseType: "stream" }
 			);
+
+			// Verify the result
+			expect(result).not.toBeNull();
+			expect(result?.filename).toBe("test-doc.pdf");
+			expect(result?.mimeType).toBe("application/pdf");
+			expect(result?.data).toEqual(mockBuffer);
 		});
 
 		it("should return null when file not found", async () => {
