@@ -9,12 +9,17 @@ import {
 	type FileMetadata,
 } from "@nimbus/shared";
 import type { DownloadResult, ListFilesOptions, ListFilesResult } from "../interface/types";
+import { OAuth2Client, JWT } from "google-auth-library";
 import type { Provider } from "../interface/provider";
-import { OAuth2Client } from "google-auth-library";
 import { drive_v3 } from "@googleapis/drive";
 import { Readable } from "node:stream";
 
 // commented fields for Google API performance
+
+interface ServiceAccountCredentials {
+	email: string;
+	privateKey: string;
+}
 
 export class GoogleDriveProvider implements Provider {
 	private drive: drive_v3.Drive;
@@ -27,6 +32,24 @@ export class GoogleDriveProvider implements Provider {
 		this.drive = new drive_v3.Drive({
 			auth: oauth2Client,
 		});
+	}
+
+	// Factory method for service account authentication (for testing)
+	static fromServiceAccount(credentials: ServiceAccountCredentials): GoogleDriveProvider {
+		const jwtClient = new JWT({
+			email: credentials.email,
+			key: credentials.privateKey,
+			scopes: ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.file"],
+		});
+
+		// Create instance with placeholder token
+		const provider = Object.create(GoogleDriveProvider.prototype);
+		provider.accessToken = "service-account";
+		provider.drive = new drive_v3.Drive({
+			auth: jwtClient,
+		});
+
+		return provider;
 	}
 
 	// ------------------------------------------------------------------------
@@ -375,10 +398,9 @@ export class GoogleDriveProvider implements Provider {
 
 	async search(query: string, options: Omit<ListFilesOptions, "filter"> = {}): Promise<ListFilesResult> {
 		try {
-			const queryParts = [
-				`name contains '${query.replace(/'/g, "''")}'`,
-				...(!options.includeTrashed ? ["trashed = false"] : []),
-			];
+			// Escape single quotes and wrap the query in single quotes
+			const escapedQuery = query.replace(/'/g, "\\'");
+			const queryParts = [`name contains '${escapedQuery}'`, ...(!options.includeTrashed ? ["trashed = false"] : [])];
 
 			const response = await this.drive.files.list({
 				q: queryParts.join(" and "),
