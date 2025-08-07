@@ -15,7 +15,11 @@ describe("GoogleDriveProvider Unit Tests", () => {
 	let provider: GoogleDriveProvider;
 
 	beforeEach(() => {
-		resetAllMocks();
+		// Reset mocks individually to avoid clearing test-specific mocks
+		Object.values(mockGoogleDriveClient.files).forEach(mock => mock.mockReset?.());
+		mockGoogleDriveClient.about.get.mockReset?.();
+		mockGoogleDriveClient.permissions.create.mockReset?.();
+
 		provider = createProviderWithMockClient();
 		restoreMockClient(provider);
 	});
