@@ -1,0 +1,16 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(rm:*)",
+			"WebFetch(domain:github.com)",
+			"Bash(git checkout:*)",
+			"Bash(mkdir:*)",
+			"Bash(git add:*)",
+			"Bash(timeout 30 bun test \"apps/server/src/providers/google/tests/google-drive-provider.test.ts\")",
+			"Bash(timeout 45 bun test:*)",
+			"Bash(nvm list:*)",
+			"Bash(cat:*)"
+		],
+		"deny": []
+	}
+}

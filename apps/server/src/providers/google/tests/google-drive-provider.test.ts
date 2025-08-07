@@ -4,7 +4,6 @@ import {
 	createProviderWithMockClient,
 	mockGoogleDriveClient,
 	mockResponses,
-	resetAllMocks,
 	restoreMockClient,
 } from "./test-utils";
 import { GoogleDriveProvider } from "../google-drive-provider";
@@ -400,16 +399,29 @@ describe("GoogleDriveProvider Unit Tests", () => {
 					size: undefined,
 				},
 			};
-			mockGoogleDriveClient.files.get.mockResolvedValueOnce(workspaceFile);
 
-			// Mock export to throw error after being called - error handling returns null
+			// Set up fresh mocks for this test to ensure isolation
+			const getFileSpy = mockGoogleDriveClient.files.get;
 			const exportSpy = mockGoogleDriveClient.files.export;
+
+			// Clear any previous calls
+			getFileSpy.mockClear();
+			exportSpy.mockClear();
+
+			// Set up the mocks
+			getFileSpy.mockResolvedValueOnce(workspaceFile);
 			exportSpy.mockRejectedValueOnce(new Error("Export mock error"));
 
 			// Call download with export options - should return null due to error handling
 			const result = await provider.download("test-id", {
 				fileId: "test-id",
 				exportMimeType: "application/pdf",
+			});
+
+			// Verify the get method was called first
+			expect(getFileSpy).toHaveBeenCalledWith({
+				fileId: "test-id",
+				fields: "id, name, mimeType, size",
 			});
 
 			// Verify the export method was called with correct parameters
