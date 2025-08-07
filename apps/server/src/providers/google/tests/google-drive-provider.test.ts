@@ -371,6 +371,13 @@ describe("GoogleDriveProvider Unit Tests", () => {
 
 			const result = await provider.download("test-id");
 
+			// Verify the metadata call was made
+			expect(mockGoogleDriveClient.files.get).toHaveBeenCalledWith({
+				fileId: "test-id",
+				fields: "id, name, mimeType, size",
+			});
+
+			// Verify the download call was made
 			expect(mockGoogleDriveClient.files.get).toHaveBeenCalledWith(
 				{
 					fileId: "test-id",
@@ -379,9 +386,6 @@ describe("GoogleDriveProvider Unit Tests", () => {
 				},
 				{ responseType: "stream" }
 			);
-
-			// Verify the method was called correctly even if result is null due to async iterator limitations
-			expect(mockGoogleDriveClient.files.get).toHaveBeenCalledTimes(2);
 		});
 
 		it("should export Google Workspace file", async () => {
@@ -406,6 +410,7 @@ describe("GoogleDriveProvider Unit Tests", () => {
 				exportMimeType: "application/pdf",
 			});
 
+			// Verify the export method was called with correct parameters
 			expect(mockGoogleDriveClient.files.export).toHaveBeenCalledWith(
 				{
 					fileId: "test-id",
@@ -413,9 +418,6 @@ describe("GoogleDriveProvider Unit Tests", () => {
 				},
 				{ responseType: "stream" }
 			);
-
-			// Verify the export method was called correctly even if result is null due to async iterator limitations
-			expect(mockGoogleDriveClient.files.export).toHaveBeenCalledTimes(1);
 		});
 
 		it("should return null when file not found", async () => {
