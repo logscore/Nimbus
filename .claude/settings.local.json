@@ -1,6 +1,0 @@
-{
-	"permissions": {
-		"allow": ["Bash(gh run list:*)", "Bash(grep:*)"],
-		"deny": []
-	}
-}
