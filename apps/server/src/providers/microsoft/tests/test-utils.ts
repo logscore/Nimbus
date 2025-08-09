@@ -12,6 +12,7 @@ export interface MockMicrosoftGraphClient {
 	put: MockedFunction<any>;
 	patch: MockedFunction<any>;
 	delete: MockedFunction<any>;
+	_isMockClient?: boolean;
 }
 
 // Factory function to create fresh mock client for each test
@@ -25,7 +26,9 @@ export function createFreshMockClient(): MockMicrosoftGraphClient {
 		put: vi.fn(),
 		patch: vi.fn(),
 		delete: vi.fn(),
-	};
+		// Mark this as a mock client to prevent setAccessToken from recreating it
+		_isMockClient: true,
+	} as MockMicrosoftGraphClient;
 
 	// Ensure chaining methods return the mock client
 	mockClient.api.mockReturnValue(mockClient);
