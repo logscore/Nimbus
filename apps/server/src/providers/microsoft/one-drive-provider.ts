@@ -12,13 +12,26 @@ export class OneDriveProvider implements Provider {
 
 	constructor(accessToken: string, client?: Client) {
 		this.accessToken = accessToken;
-		this.client =
-			client ||
-			Client.init({
+
+		// Use provided client (for testing/mocking) or create real client
+		if (client) {
+			this.client = client;
+		} else {
+			// Prevent real client creation in test environments
+			const isTestEnv = process.env.NODE_ENV === "test" || process.env.VITEST === "true" || process.env.CI === "true";
+
+			if (isTestEnv) {
+				throw new Error(
+					"Microsoft Graph Client should not be instantiated in test environment without explicit client injection"
+				);
+			}
+
+			this.client = Client.init({
 				authProvider: done => {
 					done(null, accessToken);
 				},
 			});
+		}
 	}
 
 	// ------------------------------------------------------------------------
