@@ -2,7 +2,7 @@ import { type RateLimiter, type RedisClient, UpstashRateLimit, ValkeyRateLimit }
 import { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { Redis as ValkeyRedis } from "iovalkey";
 
-interface RateLimiterConfig {
+export interface RateLimiterConfig {
 	points: number;
 	duration: number;
 	blockDuration?: number;
