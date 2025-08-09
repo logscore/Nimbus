@@ -84,12 +84,10 @@ describe("OneDriveProvider", () => {
 			const largeContent = generateTestBuffer(15 * 1024 * 1024); // 15MB - large file
 
 			// Mock upload session creation
-			mockMicrosoftGraphClient.post
-				.mockResolvedValueOnce(mockResponses.uploadSession) // createUploadSession
-				.mockResolvedValueOnce({}); // chunk uploads
+			mockMicrosoftGraphClient.post.mockResolvedValueOnce(mockResponses.uploadSession);
 
-			// Mock chunk uploads
-			mockMicrosoftGraphClient.put.mockResolvedValueOnce({});
+			// Mock chunk uploads (multiple PUT calls for chunks)
+			mockMicrosoftGraphClient.put.mockResolvedValue({});
 
 			// Mock final get requests
 			mockMicrosoftGraphClient.get
@@ -122,12 +120,18 @@ describe("OneDriveProvider", () => {
 					this.push(null);
 				},
 			});
-			mockMicrosoftGraphClient.put.mockResolvedValueOnce(mockResponses.createFile);
+
+			// Mock for large file upload since streams might trigger this path
+			mockMicrosoftGraphClient.post.mockResolvedValueOnce(mockResponses.uploadSession);
+			mockMicrosoftGraphClient.put.mockResolvedValueOnce({});
+			mockMicrosoftGraphClient.get
+				.mockResolvedValueOnce({ file: { hashes: { sha1Hash: "mock-hash" } } })
+				.mockResolvedValueOnce(mockResponses.createFile);
 
 			const result = await provider.create(fileMetadata, stream);
 
 			expect(result).not.toBeNull();
-			expect(mockMicrosoftGraphClient.put).toHaveBeenCalled();
+			expect(result?.name).toBe("test-file.txt");
 		});
 
 		it("should handle creation errors", async () => {
