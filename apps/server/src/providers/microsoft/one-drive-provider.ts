@@ -12,13 +12,31 @@ export class OneDriveProvider implements Provider {
 
 	constructor(accessToken: string, client?: Client) {
 		this.accessToken = accessToken;
-		this.client =
-			client ||
-			Client.init({
+
+		if (client) {
+			this.client = client;
+		} else {
+			// Detect test environment to prevent real API calls
+			const isTest =
+				process.env.NODE_ENV === "test" ||
+				process.env.VITEST === "true" ||
+				globalThis.__VITEST__ === true ||
+				accessToken.includes("mock") ||
+				accessToken.includes("test");
+
+			if (isTest) {
+				// In test environment, throw error if no mock client provided
+				throw new Error(
+					"OneDriveProvider: Mock client required in test environment. Use createProviderWithMockClient() from test-utils."
+				);
+			}
+
+			this.client = Client.init({
 				authProvider: done => {
 					done(null, accessToken);
 				},
 			});
+		}
 	}
 
 	// ------------------------------------------------------------------------
