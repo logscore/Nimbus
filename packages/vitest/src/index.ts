@@ -9,6 +9,7 @@ export default defineConfig({
 	plugins: [tsconfigPaths()],
 	test: {
 		globals: true,
+		setupFiles: ["./test-setup.ts"],
 		sequence: {
 			concurrent: true,
 		},
