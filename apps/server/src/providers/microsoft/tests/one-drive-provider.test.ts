@@ -89,9 +89,9 @@ describe("OneDriveProvider", () => {
 			// Mock chunk uploads (multiple PUT calls for chunks)
 			mockMicrosoftGraphClient.put.mockResolvedValue({});
 
-			// Mock final get requests
+			// Mock final get requests - first returns upload status check, second returns the final item
 			mockMicrosoftGraphClient.get
-				.mockResolvedValueOnce({ file: { hashes: { sha1Hash: "mock-hash" } } }) // upload completion check
+				.mockResolvedValueOnce({ id: "large-file-id", file: { hashes: { sha1Hash: "mock-hash" } } }) // upload completion check with ID
 				.mockResolvedValueOnce(mockResponses.uploadComplete); // final item retrieval
 
 			const result = await provider.create(fileMetadata, largeContent);
@@ -125,8 +125,8 @@ describe("OneDriveProvider", () => {
 			mockMicrosoftGraphClient.post.mockResolvedValueOnce(mockResponses.uploadSession);
 			mockMicrosoftGraphClient.put.mockResolvedValueOnce({});
 			mockMicrosoftGraphClient.get
-				.mockResolvedValueOnce({ file: { hashes: { sha1Hash: "mock-hash" } } })
-				.mockResolvedValueOnce(mockResponses.createFile);
+				.mockResolvedValueOnce({ id: "test-file-id", file: { hashes: { sha1Hash: "mock-hash" } } }) // upload completion check with ID
+				.mockResolvedValueOnce(mockResponses.createFile); // final item retrieval
 
 			const result = await provider.create(fileMetadata, stream);
 
@@ -537,6 +537,9 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should create shareable link with edit permission", async () => {
+			// Reset mocks specifically for this test
+			resetAllMocks();
+
 			// Explicit mock setup for this test
 			mockMicrosoftGraphClient.post.mockResolvedValueOnce({});
 			mockMicrosoftGraphClient.get.mockResolvedValueOnce({
