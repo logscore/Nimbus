@@ -2,22 +2,21 @@ import { type RateLimiter, type RedisClient, UpstashRateLimit, ValkeyRateLimit }
 import { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { Redis as ValkeyRedis } from "iovalkey";
 
-interface RateLimiterConfig {
+export interface RateLimiterConfig {
 	points: number;
 	duration: number;
 	blockDuration?: number;
 	keyPrefix: string;
 }
 
-interface RateLimiterFactory<T extends RateLimiter> {
-	(identifier: string): T;
+export interface RateLimiterFactory<T extends RateLimiter> {
+	(): T;
 }
 
 export interface CreateRateLimiterContext {
 	isEdgeRuntime: boolean;
 	redisClient: RedisClient;
 	config: RateLimiterConfig;
-	identifier: string;
 }
 
 // Create Upstash rate limiter factory
@@ -25,11 +24,13 @@ function createUpstashRateLimiter(
 	redisClient: UpstashRedis,
 	config: RateLimiterConfig
 ): RateLimiterFactory<UpstashRateLimit> {
-	return (identifier: string) =>
+	return () =>
 		new UpstashRateLimit({
 			redis: redisClient,
-			prefix: `${config.keyPrefix}${identifier}`,
-			limiter: UpstashRateLimit.slidingWindow(config.points, `${Math.ceil(config.duration / 60)} s`),
+			// Do not include the identifier in the prefix; it's passed to limit() per request
+			prefix: `${config.keyPrefix}`,
+			// config.duration is in seconds (to match Valkey). Upstash accepts duration strings like "10 s".
+			limiter: UpstashRateLimit.slidingWindow(config.points, `${config.duration} s`),
 			analytics: true,
 		});
 }
@@ -39,10 +40,11 @@ function createValkeyRateLimiter(
 	redisClient: ValkeyRedis,
 	config: RateLimiterConfig
 ): RateLimiterFactory<ValkeyRateLimit> {
-	return (identifier: string) =>
+	return () =>
 		new ValkeyRateLimit({
 			storeClient: redisClient,
-			keyPrefix: `${config.keyPrefix}${identifier}`,
+			// Keep prefix stable and pass identifier to consume()
+			keyPrefix: `${config.keyPrefix}`,
 			points: config.points,
 			duration: config.duration,
 			blockDuration: config.blockDuration,
@@ -51,10 +53,10 @@ function createValkeyRateLimiter(
 		});
 }
 
-export function createRateLimiter(ctx: CreateRateLimiterContext): RateLimiter {
+export function createRateLimiter(ctx: CreateRateLimiterContext): RateLimiterFactory<RateLimiter> {
 	if (ctx.isEdgeRuntime) {
-		return createUpstashRateLimiter(ctx.redisClient as UpstashRedis, ctx.config)(ctx.identifier);
+		return createUpstashRateLimiter(ctx.redisClient as UpstashRedis, ctx.config) as RateLimiterFactory<RateLimiter>;
 	} else {
-		return createValkeyRateLimiter(ctx.redisClient as ValkeyRedis, ctx.config)(ctx.identifier);
+		return createValkeyRateLimiter(ctx.redisClient as ValkeyRedis, ctx.config) as RateLimiterFactory<RateLimiter>;
 	}
 }

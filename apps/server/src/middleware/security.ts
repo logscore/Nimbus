@@ -1,4 +1,6 @@
-import { createRateLimiter, type CreateRateLimiterContext } from "@nimbus/cache/rate-limiters";
+import { createRateLimiter, type RateLimiterConfig } from "@nimbus/cache/rate-limiters";
+import { UpstashRateLimit, ValkeyRateLimit } from "@nimbus/cache";
+import type { PublicRouterContext } from "../hono";
 import type { RateLimiter } from "@nimbus/cache";
 import { sendError } from "../routes/utils";
 import type { Context, Next } from "hono";
@@ -10,16 +12,21 @@ import { webcrypto } from "node:crypto";
 interface SecurityOptions {
 	rateLimiting?: {
 		enabled: boolean;
-		rateLimiter: (c: Context) => RateLimiter;
+		// Returns a factory that accepts an identifier and returns a RateLimiter instance
+		rateLimiter: () => RateLimiter;
 	};
 	securityHeaders?: boolean;
 }
 
-export function buildSecurityMiddleware(ctx: CreateRateLimiterContext) {
+export function buildSecurityMiddleware(ctx: PublicRouterContext, config: RateLimiterConfig) {
 	return securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: _c => createRateLimiter(ctx),
+			rateLimiter: createRateLimiter({
+				isEdgeRuntime: ctx.var.env.IS_EDGE_RUNTIME,
+				redisClient: ctx.var.redisClient,
+				config,
+			}),
 		},
 		securityHeaders: true,
 	});
@@ -46,7 +53,9 @@ const getClientIp = (c: Context): string => {
 		return realIp.trim();
 	}
 
-	return `unidentifiable-${webcrypto.randomUUID()}`;
+	return "unidentifiable";
+	// Gotta block for now, can't let unknown IP addresses through
+	// return `unidentifiable-${webcrypto.randomUUID()}`;
 };
 
 const securityMiddleware = (options: SecurityOptions = {}) => {
@@ -114,9 +123,10 @@ const securityMiddleware = (options: SecurityOptions = {}) => {
 			const identifier = user?.id || ip;
 
 			try {
-				const limiter = rateLimiting.rateLimiter(c);
-				if ("limit" in limiter) {
-					// Handle Upstash limit
+				const limiterFactory = rateLimiting.rateLimiter;
+				const limiter = limiterFactory();
+				if (limiter instanceof UpstashRateLimit) {
+					// Upstash
 					const result = await limiter.limit(identifier);
 					if (!result.success) {
 						const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
@@ -130,8 +140,8 @@ const securityMiddleware = (options: SecurityOptions = {}) => {
 							429
 						);
 					}
-				} else {
-					// Handle Valkey limit
+				} else if (limiter instanceof ValkeyRateLimit) {
+					// Valkey
 					await limiter.consume(identifier);
 				}
 			} catch (error: any) {
