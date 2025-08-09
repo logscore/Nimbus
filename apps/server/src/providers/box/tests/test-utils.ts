@@ -1,5 +1,7 @@
+import { BoxProvider } from "../box-provider";
 import type { File } from "@nimbus/shared";
 import { vi } from "vitest";
+
 export const mockBoxClient = {
 	files: {
 		get: vi.fn(),
@@ -35,7 +37,6 @@ export const createProviderWithMockClient = (
 	clientId = "test-client",
 	clientSecret = "test-secret"
 ) => {
-	const { BoxProvider } = require("../box-provider");
 	const provider = new BoxProvider(accessToken, clientId, clientSecret);
 	(provider as any).client = mockBoxClient;
 	return provider;

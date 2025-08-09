@@ -2,7 +2,6 @@ import { OneDriveProvider } from "../one-drive-provider";
 import type { FileMetadata } from "@nimbus/shared";
 import { vi } from "vitest";
 
-// Mock Microsoft Graph Client
 export const mockMicrosoftGraphClient = {
 	api: vi.fn().mockReturnThis(),
 	query: vi.fn().mockReturnThis(),
@@ -14,9 +13,7 @@ export const mockMicrosoftGraphClient = {
 	delete: vi.fn(),
 };
 
-// Mock responses for OneDrive operations
 export const mockResponses = {
-	// File creation response
 	createFile: {
 		id: "mock-file-id",
 		name: "test-file.txt",
@@ -29,7 +26,6 @@ export const mockResponses = {
 		"@microsoft.graph.downloadUrl": "https://download.example.com/test-file",
 	},
 
-	// Folder creation response
 	createFolder: {
 		id: "mock-folder-id",
 		name: "Test Folder",
@@ -41,7 +37,6 @@ export const mockResponses = {
 		webUrl: "https://onedrive.live.com/test-folder",
 	},
 
-	// List children response
 	listChildren: {
 		value: [
 			{
@@ -68,7 +63,6 @@ export const mockResponses = {
 		"@odata.nextLink": null,
 	},
 
-	// Drive info response
 	driveInfo: {
 		id: "mock-drive-id",
 		driveType: "personal",
@@ -80,7 +74,6 @@ export const mockResponses = {
 		},
 	},
 
-	// Search results response
 	searchResults: {
 		value: [
 			{
@@ -97,14 +90,12 @@ export const mockResponses = {
 		"@odata.nextLink": null,
 	},
 
-	// Upload session response
 	uploadSession: {
 		uploadUrl: "https://upload.onedrive.com/session-url",
 		expirationDateTime: "2023-01-01T01:00:00Z",
 		nextExpectedRanges: ["0-"],
 	},
 
-	// Large file upload completion response
 	uploadComplete: {
 		id: "large-file-id",
 		name: "large-file.bin",
@@ -144,7 +135,6 @@ export function createFolderMetadata(overrides: Partial<FileMetadata> = {}): Fil
 // Provider creation utilities
 export function createProviderWithMockClient(): OneDriveProvider {
 	const provider = new OneDriveProvider("mock-access-token");
-	// Replace the client with our mock
 	(provider as any).client = mockMicrosoftGraphClient;
 	return provider;
 }
@@ -153,7 +143,6 @@ export function createProviderWithMockClient(): OneDriveProvider {
 export function resetAllMocks(): void {
 	vi.clearAllMocks();
 
-	// Reset mock implementations to default behavior
 	mockMicrosoftGraphClient.api.mockReturnThis();
 	mockMicrosoftGraphClient.query.mockReturnThis();
 	mockMicrosoftGraphClient.header.mockReturnThis();

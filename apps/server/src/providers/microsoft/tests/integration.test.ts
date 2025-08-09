@@ -1,9 +1,6 @@
 import { OneDriveProvider } from "../one-drive-provider";
 import type { File, FileMetadata } from "@nimbus/shared";
 import { beforeAll, describe, expect, it } from "vitest";
-
-// Integration tests for OneDrive provider
-// These tests run against the actual OneDrive API and require a valid access token
 describe("OneDriveProvider Integration Tests", () => {
 	let provider: OneDriveProvider;
 	let testFolderId: string | undefined;
@@ -56,7 +53,6 @@ describe("OneDriveProvider Integration Tests", () => {
 			expect(folder).toBeTruthy();
 			expect(folder?.type).toBe("folder");
 			expect(folder?.name).toBe(folderMetadata.name);
-			// OneDrive returns actual drive root ID, not "root" string
 			expect(folder?.parentId).toBeTruthy();
 
 			testFolderId = folder?.id;
@@ -83,7 +79,6 @@ describe("OneDriveProvider Integration Tests", () => {
 		});
 
 		it.skipIf(!isIntegrationEnabled)("should list children of test folder", async () => {
-			// Skip if test folder creation failed
 			if (!isIntegrationEnabled || !testFolderId) {
 				return;
 			}
@@ -92,14 +87,12 @@ describe("OneDriveProvider Integration Tests", () => {
 
 			expect(result).toBeTruthy();
 			expect(result.items).toBeInstanceOf(Array);
-			// New folder should be empty
 			expect(result.items.length).toBe(0);
 		});
 	});
 
 	describe("File Operations", () => {
 		it.skipIf(!isIntegrationEnabled)("should create a small text file", async () => {
-			// Skip if test folder creation failed
 			if (!isIntegrationEnabled || !testFolderId) {
 				return;
 			}
@@ -128,7 +121,6 @@ describe("OneDriveProvider Integration Tests", () => {
 		});
 
 		it.skipIf(!isIntegrationEnabled)("should get file by ID", async () => {
-			// Skip if test file creation failed
 			if (!isIntegrationEnabled || !testFileId) {
 				return;
 			}
@@ -142,7 +134,6 @@ describe("OneDriveProvider Integration Tests", () => {
 		});
 
 		it.skipIf(!isIntegrationEnabled)("should download the test file", async () => {
-			// Skip if test file creation failed
 			if (!isIntegrationEnabled || !testFileId) {
 				return;
 			}
@@ -161,7 +152,6 @@ describe("OneDriveProvider Integration Tests", () => {
 		});
 
 		it.skipIf(!isIntegrationEnabled)("should update file metadata", async () => {
-			// Skip if test file creation failed
 			if (!isIntegrationEnabled || !testFileId) {
 				return;
 			}
@@ -176,21 +166,17 @@ describe("OneDriveProvider Integration Tests", () => {
 
 			expect(updatedFile).toBeTruthy();
 			expect(updatedFile?.name).toBe(newName);
-			// Note: OneDrive API may not always return custom description field
-			// expect(updatedFile?.description).toBe(newDescription);
 		});
 
 		it.skipIf(!isIntegrationEnabled)(
 			"should copy the test file",
 			async () => {
-				// Skip if test file or folder creation failed
 				if (!isIntegrationEnabled || !testFileId || !testFolderId) {
 					return;
 				}
 
 				const copyName = `copied-test-file-${Date.now()}.txt`;
 
-				// Note: OneDrive copy operation has API inconsistencies, skip for now
 				try {
 					const copiedFile = await provider.copy(testFileId, testFolderId, copyName);
 					expect(copiedFile).toBeTruthy();
@@ -226,7 +212,6 @@ describe("OneDriveProvider Integration Tests", () => {
 
 	describe("Cleanup", () => {
 		it.skipIf(!isIntegrationEnabled)("should clean up test files and folders", async () => {
-			// Delete test files and folders in reverse order (files first, then folders)
 			const filesToDelete = [...testFiles].reverse();
 
 			for (const file of filesToDelete) {
