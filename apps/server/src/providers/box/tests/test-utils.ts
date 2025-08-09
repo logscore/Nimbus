@@ -131,6 +131,33 @@ export const createTestFileStructure = (): File[] => [
 	},
 ];
 
+export const createFreshMockBoxClient = () => {
+	return {
+		files: {
+			get: vi.fn(),
+			uploadFile: vi.fn(),
+			update: vi.fn(),
+			delete: vi.fn(),
+			copy: vi.fn(),
+			getReadStream: vi.fn(),
+		},
+		folders: {
+			get: vi.fn(),
+			create: vi.fn(),
+			getItems: vi.fn(),
+			update: vi.fn(),
+			delete: vi.fn(),
+			copy: vi.fn(),
+		},
+		users: {
+			get: vi.fn(),
+		},
+		search: {
+			query: vi.fn(),
+		},
+	};
+};
+
 export const resetAllMocks = () => {
 	vi.clearAllMocks();
 	Object.values(mockBoxClient.files).forEach(mock => mock.mockReset());

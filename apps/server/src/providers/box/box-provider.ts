@@ -62,9 +62,18 @@ export class BoxProvider implements Provider {
 
 	constructor(accessToken: string, clientID: string, clientSecret: string, client?: BoxClient) {
 		this.accessToken = accessToken;
+
+		// Use provided client (for testing/mocking) or create real SDK client
 		if (client) {
 			this.client = client;
 		} else {
+			// Prevent real SDK instantiation in test environments
+			const isTestEnv = process.env.NODE_ENV === "test" || process.env.VITEST === "true" || process.env.CI === "true";
+
+			if (isTestEnv) {
+				throw new Error("Box SDK should not be instantiated in test environment without explicit client injection");
+			}
+
 			this.sdk = new BoxSDK({
 				clientID,
 				clientSecret,
@@ -359,7 +368,9 @@ export class BoxProvider implements Provider {
 
 	setAccessToken(token: string): void {
 		this.accessToken = token;
-		this.client = this.sdk.getBasicClient(token) as BoxClient;
+		if (this.sdk) {
+			this.client = this.sdk.getBasicClient(token) as BoxClient;
+		}
 	}
 
 	private normalizeParentId(id: string | null | undefined): string {
