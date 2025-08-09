@@ -1,4 +1,5 @@
 import { createRateLimiter, type RateLimiterConfig } from "@nimbus/cache/rate-limiters";
+import { UpstashRateLimit, ValkeyRateLimit } from "@nimbus/cache";
 import type { PublicRouterContext } from "../hono";
 import type { RateLimiter } from "@nimbus/cache";
 import { sendError } from "../routes/utils";
@@ -123,8 +124,8 @@ const securityMiddleware = (options: SecurityOptions = {}) => {
 			try {
 				const limiterFactory = rateLimiting.rateLimiter;
 				const limiter = limiterFactory();
-				if ("limit" in limiter) {
-					// Handle Upstash limit
+				if (limiter instanceof UpstashRateLimit) {
+					// Upstash
 					const result = await limiter.limit(identifier);
 					if (!result.success) {
 						const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
@@ -138,8 +139,8 @@ const securityMiddleware = (options: SecurityOptions = {}) => {
 							429
 						);
 					}
-				} else {
-					// Handle Valkey limit
+				} else if (limiter instanceof ValkeyRateLimit) {
+					// Valkey
 					await limiter.consume(identifier);
 				}
 			} catch (error: any) {
