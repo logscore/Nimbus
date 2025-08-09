@@ -120,7 +120,7 @@ describe("BoxProvider", () => {
 		it("should handle creation errors", async () => {
 			const fileMetadata = createFileMetadata();
 			const content = Buffer.from("test");
-			mockBoxClient.files.uploadFile.mockRejectedValue(new Error("Upload failed"));
+			mockBoxClient.files.uploadFile.mockRejectedValueOnce(new Error("Upload failed"));
 
 			await expect(provider.create(fileMetadata, content)).rejects.toThrow("Upload failed");
 		});
@@ -152,7 +152,7 @@ describe("BoxProvider", () => {
 
 		it("should get folder by ID when file fetch fails", async () => {
 			const mockFolder = createBoxFolderItem();
-			mockBoxClient.files.get.mockRejectedValue(new Error("Not a file"));
+			mockBoxClient.files.get.mockRejectedValueOnce(new Error("Not a file"));
 			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
 
 			const result = await provider.getById("folder123");
@@ -170,8 +170,8 @@ describe("BoxProvider", () => {
 		it("should return null for non-existent file", async () => {
 			const error = new Error("Not found") as Error & { statusCode: number };
 			error.statusCode = 404;
-			mockBoxClient.files.get.mockRejectedValue(error);
-			mockBoxClient.folders.get.mockRejectedValue(error);
+			mockBoxClient.files.get.mockRejectedValueOnce(error);
+			mockBoxClient.folders.get.mockRejectedValueOnce(error);
 
 			const result = await provider.getById("nonexistent");
 
@@ -181,8 +181,8 @@ describe("BoxProvider", () => {
 		it("should throw error for other failures", async () => {
 			const error = new Error("Server error") as Error & { statusCode: number };
 			error.statusCode = 500;
-			mockBoxClient.files.get.mockRejectedValue(error);
-			mockBoxClient.folders.get.mockRejectedValue(error);
+			mockBoxClient.files.get.mockRejectedValueOnce(error);
+			mockBoxClient.folders.get.mockRejectedValueOnce(error);
 
 			await expect(provider.getById("file123")).rejects.toThrow("Server error");
 		});
@@ -212,7 +212,7 @@ describe("BoxProvider", () => {
 			const mockFolder = createBoxFolderItem();
 			const updatedFolder = createBoxFolderItem({ name: "updated-folder" });
 
-			mockBoxClient.files.get.mockRejectedValue(new Error("Not a file"));
+			mockBoxClient.files.get.mockRejectedValueOnce(new Error("Not a file"));
 			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
 			mockBoxClient.folders.update.mockResolvedValueOnce(updatedFolder);
 
@@ -229,8 +229,8 @@ describe("BoxProvider", () => {
 		it("should return null for non-existent file", async () => {
 			const error = new Error("Not found") as Error & { statusCode: number };
 			error.statusCode = 404;
-			mockBoxClient.files.get.mockRejectedValue(error);
-			mockBoxClient.folders.get.mockRejectedValue(error);
+			mockBoxClient.files.get.mockRejectedValueOnce(error);
+			mockBoxClient.folders.get.mockRejectedValueOnce(error);
 
 			const result = await provider.update("nonexistent", { name: "new-name" });
 
@@ -240,7 +240,7 @@ describe("BoxProvider", () => {
 		it("should handle update errors", async () => {
 			const mockFile = createBoxFileItem();
 			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
-			mockBoxClient.files.update.mockRejectedValue(new Error("Update failed"));
+			mockBoxClient.files.update.mockRejectedValueOnce(new Error("Update failed"));
 
 			await expect(provider.update("file123", { name: "new-name" })).rejects.toThrow("Update failed");
 		});
@@ -260,7 +260,7 @@ describe("BoxProvider", () => {
 
 		it("should delete folder permanently", async () => {
 			const mockFolder = createBoxFolderItem();
-			mockBoxClient.files.get.mockRejectedValue(new Error("Not a file"));
+			mockBoxClient.files.get.mockRejectedValueOnce(new Error("Not a file"));
 			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
 			mockBoxClient.folders.delete.mockResolvedValueOnce(undefined);
 
@@ -284,8 +284,8 @@ describe("BoxProvider", () => {
 		it("should throw error for non-existent file", async () => {
 			const error = new Error("Not found") as Error & { statusCode: number };
 			error.statusCode = 404;
-			mockBoxClient.files.get.mockRejectedValue(error);
-			mockBoxClient.folders.get.mockRejectedValue(error);
+			mockBoxClient.files.get.mockRejectedValueOnce(error);
+			mockBoxClient.folders.get.mockRejectedValueOnce(error);
 
 			await expect(provider.delete("nonexistent")).rejects.toThrow("File with id nonexistent not found");
 		});
@@ -293,7 +293,7 @@ describe("BoxProvider", () => {
 		it("should handle deletion errors", async () => {
 			const mockFile = createBoxFileItem();
 			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
-			mockBoxClient.files.delete.mockRejectedValue(new Error("Delete failed"));
+			mockBoxClient.files.delete.mockRejectedValueOnce(new Error("Delete failed"));
 
 			await expect(provider.delete("file123")).rejects.toThrow("Delete failed");
 		});
@@ -372,7 +372,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should handle listing errors", async () => {
-			mockBoxClient.folders.getItems.mockRejectedValue(new Error("List failed"));
+			mockBoxClient.folders.getItems.mockRejectedValueOnce(new Error("List failed"));
 
 			await expect(provider.listChildren("0")).rejects.toThrow("List failed");
 		});
@@ -403,7 +403,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should return null when file not found", async () => {
-			mockBoxClient.files.get.mockRejectedValue(new Error("Not found"));
+			mockBoxClient.files.get.mockRejectedValueOnce(new Error("Not found"));
 
 			const result = await provider.download("nonexistent");
 
@@ -413,7 +413,7 @@ describe("BoxProvider", () => {
 		it("should handle download errors gracefully", async () => {
 			const mockFile = createBoxFileItem();
 			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
-			mockBoxClient.files.getReadStream.mockRejectedValue(new Error("Stream failed"));
+			mockBoxClient.files.getReadStream.mockRejectedValueOnce(new Error("Stream failed"));
 
 			const result = await provider.download("file123");
 
@@ -467,7 +467,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should return null on error", async () => {
-			mockBoxClient.files.getReadStream.mockRejectedValue(new Error("Stream failed"));
+			mockBoxClient.files.getReadStream.mockRejectedValueOnce(new Error("Stream failed"));
 
 			const result = await provider.downloadStream("file123");
 
@@ -495,7 +495,7 @@ describe("BoxProvider", () => {
 			const mockFolder = createBoxFolderItem();
 			const copiedFolder = createBoxFolderItem({ name: "Copy of test-folder" });
 
-			mockBoxClient.files.get.mockRejectedValue(new Error("Not a file"));
+			mockBoxClient.files.get.mockRejectedValueOnce(new Error("Not a file"));
 			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
 			mockBoxClient.folders.copy.mockResolvedValueOnce(copiedFolder);
 
@@ -524,8 +524,8 @@ describe("BoxProvider", () => {
 		it("should return null for non-existent source", async () => {
 			const error = new Error("Not found") as Error & { statusCode: number };
 			error.statusCode = 404;
-			mockBoxClient.files.get.mockRejectedValue(error);
-			mockBoxClient.folders.get.mockRejectedValue(error);
+			mockBoxClient.files.get.mockRejectedValueOnce(error);
+			mockBoxClient.folders.get.mockRejectedValueOnce(error);
 
 			const result = await provider.copy("nonexistent", "target456");
 
@@ -535,7 +535,7 @@ describe("BoxProvider", () => {
 		it("should handle copy errors", async () => {
 			const mockFile = createBoxFileItem();
 			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
-			mockBoxClient.files.copy.mockRejectedValue(new Error("Copy failed"));
+			mockBoxClient.files.copy.mockRejectedValueOnce(new Error("Copy failed"));
 
 			await expect(provider.copy("file123", "target456")).rejects.toThrow("Copy failed");
 		});
@@ -561,7 +561,7 @@ describe("BoxProvider", () => {
 			const mockFolder = createBoxFolderItem();
 			const movedFolder = createBoxFolderItem({ parent: { id: "target456" } });
 
-			mockBoxClient.files.get.mockRejectedValue(new Error("Not a file"));
+			mockBoxClient.files.get.mockRejectedValueOnce(new Error("Not a file"));
 			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
 			mockBoxClient.folders.update.mockResolvedValueOnce(movedFolder);
 
@@ -593,8 +593,8 @@ describe("BoxProvider", () => {
 		it("should return null for non-existent source", async () => {
 			const error = new Error("Not found") as Error & { statusCode: number };
 			error.statusCode = 404;
-			mockBoxClient.files.get.mockRejectedValue(error);
-			mockBoxClient.folders.get.mockRejectedValue(error);
+			mockBoxClient.files.get.mockRejectedValueOnce(error);
+			mockBoxClient.folders.get.mockRejectedValueOnce(error);
 
 			const result = await provider.move("nonexistent", "target456");
 
@@ -604,7 +604,7 @@ describe("BoxProvider", () => {
 		it("should handle move errors", async () => {
 			const mockFile = createBoxFileItem();
 			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
-			mockBoxClient.files.update.mockRejectedValue(new Error("Move failed"));
+			mockBoxClient.files.update.mockRejectedValueOnce(new Error("Move failed"));
 
 			await expect(provider.move("file123", "target456")).rejects.toThrow("Move failed");
 		});
@@ -627,7 +627,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should return null on error", async () => {
-			mockBoxClient.users.get.mockRejectedValue(new Error("User info failed"));
+			mockBoxClient.users.get.mockRejectedValueOnce(new Error("User info failed"));
 
 			const result = await provider.getDriveInfo();
 
@@ -700,7 +700,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should handle errors", async () => {
-			mockBoxClient.files.update.mockRejectedValue(new Error("Link creation failed"));
+			mockBoxClient.files.update.mockRejectedValueOnce(new Error("Link creation failed"));
 
 			const result = await provider.getShareableLink("file123");
 
@@ -762,7 +762,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should handle search errors", async () => {
-			mockBoxClient.search.query.mockRejectedValue(new Error("Search failed"));
+			mockBoxClient.search.query.mockRejectedValueOnce(new Error("Search failed"));
 
 			await expect(provider.search("query")).rejects.toThrow("Search failed");
 		});
