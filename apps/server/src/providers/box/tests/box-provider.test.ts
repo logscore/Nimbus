@@ -561,6 +561,7 @@ describe("BoxProvider", () => {
 			const mockFolder = createBoxFolderItem();
 			const movedFolder = createBoxFolderItem({ parent: { id: "target456" } });
 
+			// Mock the getById call sequence for folder
 			mockBoxClient.files.get.mockRejectedValueOnce(new Error("Not a file"));
 			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
 			mockBoxClient.folders.update.mockResolvedValueOnce(movedFolder);
@@ -570,6 +571,8 @@ describe("BoxProvider", () => {
 			expect(mockBoxClient.folders.update).toHaveBeenCalledWith("folder123", {
 				parent: { id: "target456" },
 			});
+			expect(result).toBeTruthy();
+			expect(result?.id).toBe("folder123");
 		});
 
 		it("should move with renaming", async () => {
