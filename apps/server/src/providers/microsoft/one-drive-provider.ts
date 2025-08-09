@@ -10,13 +10,15 @@ export class OneDriveProvider implements Provider {
 	private accessToken: string;
 	private readonly CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
 
-	constructor(accessToken: string) {
+	constructor(accessToken: string, client?: Client) {
 		this.accessToken = accessToken;
-		this.client = Client.init({
-			authProvider: done => {
-				done(null, accessToken);
-			},
-		});
+		this.client =
+			client ||
+			Client.init({
+				authProvider: done => {
+					done(null, accessToken);
+				},
+			});
 	}
 
 	// ------------------------------------------------------------------------

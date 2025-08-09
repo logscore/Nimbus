@@ -541,6 +541,7 @@ describe("OneDriveProvider", () => {
 
 			await provider.getShareableLink("mock-file-id", "edit");
 
+			expect(mockMicrosoftGraphClient.api).toHaveBeenCalledWith("/me/drive/items/mock-file-id/createLink");
 			expect(mockMicrosoftGraphClient.post).toHaveBeenCalledWith({
 				type: "view",
 				scope: "anonymous",
