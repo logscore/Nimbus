@@ -17,9 +17,27 @@ describe("OneDriveProvider", () => {
 	let mockClient: MockMicrosoftGraphClient;
 
 	beforeEach(() => {
+		// Aggressively clean up before each test
+		cleanupAllMocks();
+
 		// Create fresh mock client for each test to ensure complete isolation
 		mockClient = createFreshMockClient();
 		provider = createProviderWithMockClient(mockClient);
+
+		// Explicitly reset all mock implementations to ensure clean state
+		mockClient.api.mockClear();
+		mockClient.query.mockClear();
+		mockClient.header.mockClear();
+		mockClient.post.mockClear();
+		mockClient.get.mockClear();
+		mockClient.put.mockClear();
+		mockClient.patch.mockClear();
+		mockClient.delete.mockClear();
+
+		// Ensure chaining methods return the mock client
+		mockClient.api.mockReturnValue(mockClient);
+		mockClient.query.mockReturnValue(mockClient);
+		mockClient.header.mockReturnValue(mockClient);
 	});
 
 	afterEach(() => {
