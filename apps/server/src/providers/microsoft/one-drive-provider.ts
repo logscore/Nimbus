@@ -20,9 +20,15 @@ export class OneDriveProvider implements Provider {
 			const isTest =
 				process.env.NODE_ENV === "test" ||
 				process.env.VITEST === "true" ||
+				process.env.CI === "true" ||
+				process.env.GITHUB_ACTIONS === "true" ||
 				globalThis.__VITEST__ === true ||
 				accessToken.includes("mock") ||
-				accessToken.includes("test");
+				accessToken.includes("test") ||
+				// Additional CI environment detection
+				!!process.env.CI ||
+				!!process.env.CONTINUOUS_INTEGRATION ||
+				!!process.env.BUILD_NUMBER;
 
 			if (isTest) {
 				// In test environment, throw error if no mock client provided
