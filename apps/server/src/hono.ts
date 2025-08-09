@@ -3,10 +3,12 @@ import { Hono, type Context, type Env as HonoEnv } from "hono";
 import type { Auth, SessionUser } from "@nimbus/auth/auth";
 import { getContext } from "hono/context-storage";
 import type { RedisClient } from "@nimbus/cache";
+import type { ContextManager } from "./context";
 import type { Env } from "@nimbus/env/server";
 import type { DB } from "@nimbus/db";
 
 export interface BaseRouterVars {
+	contextManager: ContextManager;
 	env: Env;
 }
 

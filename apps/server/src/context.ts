@@ -2,7 +2,6 @@ import { createRedisClient, type RedisClient } from "@nimbus/cache";
 import { createAuth, type Auth } from "@nimbus/auth/auth";
 import { createEnv, type Env } from "@nimbus/env/server";
 import { createDb, type DB } from "@nimbus/db";
-import type { PublicRouterVars } from "./hono";
 import type { Context } from "hono";
 import { Resend } from "resend";
 
@@ -69,7 +68,7 @@ export class ContextManager {
 		}
 	}
 
-	public async createContext(): Promise<PublicRouterVars> {
+	public async createContext() {
 		const env = this.env;
 
 		const [db, redisClient] = await Promise.all([this.initializeDatabase(env), this.initializeRedis(env)]);

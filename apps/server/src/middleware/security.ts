@@ -120,7 +120,6 @@ const securityMiddleware = (options: SecurityOptions = {}) => {
 			const user = c.var.user;
 			const ip = getClientIp(c);
 			const identifier = user?.id || ip;
-			console.log("Rate limiter identifier:", identifier);
 
 			try {
 				const limiter = rateLimiting.rateLimiter(c, identifier);
