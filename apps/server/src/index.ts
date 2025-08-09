@@ -8,7 +8,9 @@ import routes from "./routes";
 const app = createPublicRouter()
 	.use(contextStorage())
 	.use("*", async (c, next) => {
-		const env = ContextManager.getInstance().env;
+		const contextManager = ContextManager.getInstance();
+		const env = contextManager.env;
+		c.set("contextManager", contextManager);
 		c.set("env", env);
 		await next();
 	})
@@ -23,7 +25,7 @@ const app = createPublicRouter()
 	)
 	.use("*", async (c, next) => {
 		const env = c.var.env;
-		const { db, redisClient, auth } = await ContextManager.getInstance().createContext();
+		const { db, redisClient, auth } = await c.var.contextManager.createContext();
 		c.set("db", db);
 		c.set("redisClient", redisClient);
 		c.set("auth", auth);
@@ -33,7 +35,7 @@ const app = createPublicRouter()
 			// WARNING: make sure to add WRANGLER_DEV to .dev.vars for wrangler dev
 			// for local dev, always keep context open UNLESS wrangler dev, close context
 			if (env.IS_EDGE_RUNTIME && (env.NODE_ENV === "production" || env.WRANGLER_DEV)) {
-				await ContextManager.getInstance().close();
+				await c.var.contextManager.close();
 			}
 		}
 	})

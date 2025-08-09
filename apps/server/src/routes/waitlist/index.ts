@@ -1,12 +1,22 @@
+import { createPublicRouter, type PublicRouterContext } from "../../hono";
 import { emailObjectSchema, type WaitlistCount } from "@nimbus/shared";
+import { buildSecurityMiddleware } from "../../middleware/security";
 import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
-import { createPublicRouter } from "../../hono";
 import { waitlist } from "@nimbus/db/schema";
 import { count } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
+const rateLimiter = (c: PublicRouterContext) =>
+	buildSecurityMiddleware(c, {
+		points: 3,
+		duration: 120, // 2 minutes
+		blockDuration: 60, // 1 minute
+		keyPrefix: "rl:waitlist",
+	});
+
 const waitlistRouter = createPublicRouter()
+	.use("*", (c, next) => rateLimiter(c)(c, next))
 	.get("/count", async c => {
 		try {
 			const result = await c.var.db.select({ count: count() }).from(waitlist);
