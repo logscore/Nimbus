@@ -1,9 +1,6 @@
 import type { File, FileMetadata } from "@nimbus/shared";
 import { beforeAll, describe, expect, it } from "vitest";
 import { BoxProvider } from "../box-provider";
-
-// Integration tests for Box provider
-// These tests run against the actual Box API and require valid credentials
 describe("BoxProvider Integration Tests", () => {
 	let provider: BoxProvider;
 	let testFolderId: string | undefined;
@@ -206,7 +203,6 @@ describe("BoxProvider Integration Tests", () => {
 					testFiles.push(copiedFile);
 				}
 			} catch (error) {
-				// Box API sometimes has restrictions on copying, so we'll log and continue
 				console.log("Note: Box copy operation failed (may be API restriction):", error);
 			}
 		});
@@ -223,9 +219,7 @@ describe("BoxProvider Integration Tests", () => {
 				if (shareableLink) {
 					expect(shareableLink).toMatch(/^https:\/\/(app\.box\.com|box\.com)/);
 				}
-				// If null, it may be due to Box account restrictions
 			} catch (error) {
-				// Some Box accounts may not allow sharing, so we'll log and continue
 				console.log("Note: Box sharing operation failed (may be account restriction):", error);
 			}
 		});
@@ -238,7 +232,6 @@ describe("BoxProvider Integration Tests", () => {
 
 			expect(result).toBeTruthy();
 			expect(result.items).toBeInstanceOf(Array);
-			// Search may or may not return results depending on account content
 
 			if (result.items.length > 0) {
 				const item = result.items[0];
@@ -251,25 +244,22 @@ describe("BoxProvider Integration Tests", () => {
 
 	describe("Cleanup", () => {
 		it.skipIf(!isIntegrationEnabled)("should clean up test files and folders", async () => {
-			// Clean up in reverse order (files first, then folders)
 			const filesToDelete = [...testFiles].reverse();
 
 			for (const file of filesToDelete) {
 				try {
-					await provider.delete(file.id, true); // Permanent delete
+					await provider.delete(file.id, true);
 				} catch (error) {
 					console.log(`Warning: Could not delete ${file.name}:`, error);
 				}
 			}
 
-			// Clear the test files array
 			testFiles = [];
 			testFileId = undefined;
 			testFolderId = undefined;
 		});
 
 		it.skipIf(!isIntegrationEnabled)("should verify cleanup completed", async () => {
-			// This test just ensures the cleanup ran without major errors
 			expect(testFiles).toHaveLength(0);
 			expect(testFileId).toBeUndefined();
 			expect(testFolderId).toBeUndefined();
