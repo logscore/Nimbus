@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertCircle, Check, Edit, Loader2, Plus, X } from "lucide-react";
 import { nicknameSchema, type DriveProvider } from "@nimbus/shared";
-import { useAuth } from "@/components/providers/auth-context";
+import { useAuth } from "@/components/providers/auth-provider";
 import type { LimitedAccessAccount } from "@nimbus/shared";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";

@@ -54,15 +54,6 @@ const tagsRouter = createDriveProviderRouter()
 		return sendSuccess(c, { data: updatedTag });
 	})
 
-	// Update an existing tag
-	.put("/:id", zValidator("param", updateTagParamSchema), zValidator("json", updateTagJsonSchema), async c => {
-		const user = c.var.user;
-		const paramData = c.req.valid("param");
-		const bodyData = c.req.valid("json");
-		const updatedTag = await tagService.updateTag(paramData.id, user.id, bodyData);
-		return sendSuccess(c, { data: updatedTag });
-	})
-
 	// Delete a tag
 	.delete("/:id", zValidator("param", deleteTagSchema), async c => {
 		const user = c.var.user;
