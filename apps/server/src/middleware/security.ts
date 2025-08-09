@@ -11,7 +11,8 @@ import { webcrypto } from "node:crypto";
 interface SecurityOptions {
 	rateLimiting?: {
 		enabled: boolean;
-		rateLimiter: (c: Context, identifier: string) => RateLimiter;
+		// Returns a factory that accepts an identifier and returns a RateLimiter instance
+		rateLimiter: () => RateLimiter;
 	};
 	securityHeaders?: boolean;
 }
@@ -20,13 +21,11 @@ export function buildSecurityMiddleware(ctx: PublicRouterContext, config: RateLi
 	return securityMiddleware({
 		rateLimiting: {
 			enabled: true,
-			rateLimiter: (_c, identifier) =>
-				createRateLimiter({
-					isEdgeRuntime: ctx.var.env.IS_EDGE_RUNTIME,
-					redisClient: ctx.var.redisClient,
-					config,
-					identifier,
-				}),
+			rateLimiter: createRateLimiter({
+				isEdgeRuntime: ctx.var.env.IS_EDGE_RUNTIME,
+				redisClient: ctx.var.redisClient,
+				config,
+			}),
 		},
 		securityHeaders: true,
 	});
@@ -122,7 +121,8 @@ const securityMiddleware = (options: SecurityOptions = {}) => {
 			const identifier = user?.id || ip;
 
 			try {
-				const limiter = rateLimiting.rateLimiter(c, identifier);
+				const limiterFactory = rateLimiting.rateLimiter;
+				const limiter = limiterFactory();
 				if ("limit" in limiter) {
 					// Handle Upstash limit
 					const result = await limiter.limit(identifier);
