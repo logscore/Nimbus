@@ -94,7 +94,6 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should create a small file with content", async () => {
-			// Create completely isolated test instance
 			const isolatedMockClient = createFreshMockClient();
 			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
 
@@ -110,7 +109,6 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should create a large file with chunked upload", async () => {
-			// Create completely isolated test instance
 			const isolatedMockClient = createFreshMockClient();
 			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
 
@@ -130,7 +128,7 @@ describe("OneDriveProvider", () => {
 
 			const result = await isolatedProvider.create(fileMetadata, largeContent);
 
-			// Focus on functional correctness rather than spy assertions
+			// Verify functional correctness
 			expect(result).not.toBeNull();
 			expect(result?.name).toBe("large-file.bin");
 			expect(result?.id).toBe("large-file-id");
@@ -165,7 +163,6 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should handle creation errors", async () => {
-			// Create completely isolated test instance
 			const isolatedMockClient = createFreshMockClient();
 			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
 
@@ -238,7 +235,6 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should handle root parent ID correctly", async () => {
-			// Create completely isolated test instance
 			const isolatedMockClient = createFreshMockClient();
 			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
 
