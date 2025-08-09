@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun run:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(bun test src/providers/microsoft/tests/one-drive-provider.test.ts --reporter=verbose)",
+      "Bash(bun test:*)",
+      "Bash(npm run:*)",
+      "Bash(git add:*)",
+      "Bash(gh run view:*)"
+    ],
+    "deny": []
+  }
+}

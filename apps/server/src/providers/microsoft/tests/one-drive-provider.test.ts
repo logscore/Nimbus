@@ -94,37 +94,45 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should create a small file with content", async () => {
+			// Create completely isolated test instance
+			const isolatedMockClient = createFreshMockClient();
+			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
+			
 			const fileMetadata = createFileMetadata();
 			const content = generateTestBuffer(1024); // 1KB - small file
-			mockClient.put.mockResolvedValueOnce(mockResponses.createFile);
+			isolatedMockClient.put.mockResolvedValueOnce(mockResponses.createFile);
 
-			const result = await provider.create(fileMetadata, content);
+			const result = await isolatedProvider.create(fileMetadata, content);
 
 			expect(result).not.toBeNull();
 			expect(result?.name).toBe("test-file.txt");
-			expect(mockClient.put).toHaveBeenCalled();
+			expect(isolatedMockClient.put).toHaveBeenCalled();
 		});
 
 		it("should create a large file with chunked upload", async () => {
+			// Create completely isolated test instance
+			const isolatedMockClient = createFreshMockClient();
+			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
+			
 			const fileMetadata = createFileMetadata({ name: "large-file.bin" });
 			const largeContent = generateTestBuffer(15 * 1024 * 1024); // 15MB - large file
 
 			// Mock upload session creation
-			mockClient.post.mockResolvedValueOnce(mockResponses.uploadSession);
+			isolatedMockClient.post.mockResolvedValueOnce(mockResponses.uploadSession);
 
 			// Mock chunk uploads (multiple PUT calls for chunks)
-			mockClient.put.mockResolvedValue({});
+			isolatedMockClient.put.mockResolvedValue({});
 
 			// Mock final get requests - first returns upload status check, second returns the final item
-			mockClient.get
+			isolatedMockClient.get
 				.mockResolvedValueOnce({ id: "large-file-id", file: { hashes: { sha1Hash: "mock-hash" } } }) // upload completion check with ID
 				.mockResolvedValueOnce(mockResponses.uploadComplete); // final item retrieval
 
-			const result = await provider.create(fileMetadata, largeContent);
+			const result = await isolatedProvider.create(fileMetadata, largeContent);
 
 			expect(result).not.toBeNull();
 			expect(result?.name).toBe("large-file.bin");
-			expect(mockClient.post).toHaveBeenCalledWith({
+			expect(isolatedMockClient.post).toHaveBeenCalledWith({
 				item: { name: "large-file.bin" },
 			});
 		});
@@ -157,10 +165,14 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should handle creation errors", async () => {
+			// Create completely isolated test instance
+			const isolatedMockClient = createFreshMockClient();
+			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
+			
 			const fileMetadata = createFileMetadata();
-			mockClient.post.mockRejectedValueOnce(new Error("Creation failed"));
+			isolatedMockClient.post.mockRejectedValueOnce(new Error("Creation failed"));
 
-			await expect(provider.create(fileMetadata)).rejects.toThrow("Creation failed");
+			await expect(isolatedProvider.create(fileMetadata)).rejects.toThrow("Creation failed");
 		});
 	});
 
@@ -226,14 +238,18 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should handle root parent ID correctly", async () => {
+			// Create completely isolated test instance
+			const isolatedMockClient = createFreshMockClient();
+			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
+			
 			const updateData = { parentId: "root" };
-			mockClient.patch
+			isolatedMockClient.patch
 				.mockResolvedValueOnce({}) // parent change
 				.mockResolvedValueOnce(mockResponses.createFile); // final update
 
-			await provider.update("mock-file-id", updateData);
+			await isolatedProvider.update("mock-file-id", updateData);
 
-			expect(mockClient.patch).toHaveBeenCalledWith({
+			expect(isolatedMockClient.patch).toHaveBeenCalledWith({
 				parentReference: { id: "root" },
 			});
 		});
