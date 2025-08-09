@@ -16,7 +16,6 @@ describe("BoxProvider", () => {
 
 	beforeEach(() => {
 		resetAllMocks();
-		// Create completely fresh provider and mocks to avoid any interference
 		provider = createProviderWithMockClient();
 	});
 
@@ -383,11 +382,10 @@ describe("BoxProvider", () => {
 		it("should download file successfully", async () => {
 			const mockFile = createBoxFileItem({ name: "download.txt", size: "100" });
 
-			// Create a readable stream that can be consumed
 			const mockStream = new Readable({
 				read() {
 					this.push("file content");
-					this.push(null); // End the stream
+					this.push(null);
 				},
 			});
 
@@ -426,7 +424,7 @@ describe("BoxProvider", () => {
 			const mockFile = createBoxFileItem({ name: undefined, size: "0" });
 			const mockStream = new Readable({
 				read() {
-					this.push(null); // Empty stream
+					this.push(null);
 				},
 			});
 
@@ -444,7 +442,7 @@ describe("BoxProvider", () => {
 			const mockStream = new Readable({
 				read() {
 					this.push(content);
-					this.push(null); // End the stream
+					this.push(null);
 				},
 			});
 
@@ -729,7 +727,7 @@ describe("BoxProvider", () => {
 		it("should search with options", async () => {
 			mockBoxClient.search.query.mockResolvedValue({
 				entries: [createBoxFileItem()],
-				total_count: 75, // More than offset + limit (25 + 25 = 50)
+				total_count: 75,
 			});
 
 			const result = await provider.search("query", {
