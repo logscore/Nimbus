@@ -397,7 +397,7 @@ describe("BoxProvider", () => {
 
 	describe("download", () => {
 		it("should download file successfully", async () => {
-			// Nuclear isolation for CI compatibility  
+			// Nuclear isolation for CI compatibility
 			const isolatedMockClient = createFreshMockBoxClient();
 			const isolatedProvider = createProviderWithFreshMockClient(isolatedMockClient);
 
@@ -534,7 +534,7 @@ describe("BoxProvider", () => {
 			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
 			mockBoxClient.files.copy.mockResolvedValueOnce(copiedFile);
 
-			const result = await provider.copy("file123", "target456", "Custom Name.txt");
+			const _result = await provider.copy("file123", "target456", "Custom Name.txt");
 
 			expect(mockBoxClient.files.copy).toHaveBeenCalledWith("file123", "target456", {
 				name: "Custom Name.txt",
@@ -605,7 +605,7 @@ describe("BoxProvider", () => {
 			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
 			mockBoxClient.files.update.mockResolvedValueOnce(movedFile);
 
-			const result = await provider.move("file123", "target456", "new-name.txt");
+			const _result = await provider.move("file123", "target456", "new-name.txt");
 
 			expect(mockBoxClient.files.update).toHaveBeenCalledWith("file123", {
 				parent: { id: "target456" },
@@ -699,7 +699,7 @@ describe("BoxProvider", () => {
 			});
 			mockBoxClient.files.update.mockResolvedValueOnce(mockFile);
 
-			const result = await provider.getShareableLink("file123", "edit");
+			const _result = await provider.getShareableLink("file123", "edit");
 
 			expect(mockBoxClient.files.update).toHaveBeenCalledWith("file123", {
 				shared_link: {
