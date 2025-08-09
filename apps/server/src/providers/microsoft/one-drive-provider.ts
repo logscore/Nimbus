@@ -10,13 +10,30 @@ export class OneDriveProvider implements Provider {
 	private accessToken: string;
 	private readonly CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
 
-	constructor(accessToken: string) {
+	constructor(accessToken: string, client?: Client) {
 		this.accessToken = accessToken;
-		this.client = Client.init({
-			authProvider: done => {
-				done(null, accessToken);
-			},
-		});
+
+		// Use provided client (for testing/mocking) or create real client
+		if (client) {
+			this.client = client;
+		} else {
+			// Prevent real client creation in unit test environments (but allow integration tests)
+			const isUnitTestEnv =
+				(process.env.NODE_ENV === "test" || process.env.VITEST === "true" || process.env.CI === "true") &&
+				!process.env.MICROSOFT_TEST_ACCESS_TOKEN;
+
+			if (isUnitTestEnv) {
+				throw new Error(
+					"Microsoft Graph Client should not be instantiated in test environment without explicit client injection"
+				);
+			}
+
+			this.client = Client.init({
+				authProvider: done => {
+					done(null, accessToken);
+				},
+			});
+		}
 	}
 
 	// ------------------------------------------------------------------------
@@ -244,7 +261,8 @@ export class OneDriveProvider implements Provider {
 			}
 
 			// For OneDrive, we can use the download URL directly
-			const downloadUrl = (fileMetadata as any)["@microsoft.graph.downloadUrl"];
+			const downloadUrl =
+				fileMetadata.webContentLink || (fileMetadata.providerMetadata as any)?.["@microsoft.graph.downloadUrl"];
 			if (!downloadUrl) {
 				return null;
 			}

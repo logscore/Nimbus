@@ -58,18 +58,30 @@ interface BoxClient {
 export class BoxProvider implements Provider {
 	private client: BoxClient;
 	private accessToken: string;
-	private sdk: BoxSDK;
+	private sdk?: BoxSDK;
 
-	constructor(accessToken: string, clientID: string, clientSecret: string) {
+	constructor(accessToken: string, clientID: string, clientSecret: string, client?: BoxClient) {
 		this.accessToken = accessToken;
-		this.sdk = new BoxSDK({
-			clientID,
-			clientSecret,
-			// request: {
-			// 	strictSSL: false,
-			// },
-		});
-		this.client = this.sdk.getBasicClient(accessToken) as BoxClient;
+
+		// Use provided client (for testing/mocking) or create real SDK client
+		if (client) {
+			this.client = client;
+		} else {
+			// Prevent real SDK instantiation in unit test environments (but allow integration tests)
+			const isUnitTestEnv =
+				(process.env.NODE_ENV === "test" || process.env.VITEST === "true" || process.env.CI === "true") &&
+				!process.env.BOX_TEST_ACCESS_TOKEN;
+
+			if (isUnitTestEnv) {
+				throw new Error("Box SDK should not be instantiated in test environment without explicit client injection");
+			}
+
+			this.sdk = new BoxSDK({
+				clientID,
+				clientSecret,
+			});
+			this.client = this.sdk.getBasicClient(accessToken) as BoxClient;
+		}
 	}
 
 	async create(metadata: FileMetadata, content?: Buffer | Readable): Promise<File | null> {
@@ -358,7 +370,9 @@ export class BoxProvider implements Provider {
 
 	setAccessToken(token: string): void {
 		this.accessToken = token;
-		this.client = this.sdk.getBasicClient(token) as BoxClient;
+		if (this.sdk) {
+			this.client = this.sdk.getBasicClient(token) as BoxClient;
+		}
 	}
 
 	private normalizeParentId(id: string | null | undefined): string {
