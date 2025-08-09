@@ -1,18 +1,42 @@
 import { OneDriveProvider } from "../one-drive-provider";
 import type { FileMetadata } from "@nimbus/shared";
-import { vi } from "vitest";
+import { vi, type MockedFunction } from "vitest";
 
-// Mock Microsoft Graph Client
-export const mockMicrosoftGraphClient = {
-	api: vi.fn().mockReturnThis(),
-	query: vi.fn().mockReturnThis(),
-	header: vi.fn().mockReturnThis(),
-	post: vi.fn(),
-	get: vi.fn(),
-	put: vi.fn(),
-	patch: vi.fn(),
-	delete: vi.fn(),
-};
+// Mock Microsoft Graph Client Interface
+export interface MockMicrosoftGraphClient {
+	api: MockedFunction<any>;
+	query: MockedFunction<any>;
+	header: MockedFunction<any>;
+	post: MockedFunction<any>;
+	get: MockedFunction<any>;
+	put: MockedFunction<any>;
+	patch: MockedFunction<any>;
+	delete: MockedFunction<any>;
+}
+
+// Factory function to create fresh mock client for each test
+export function createFreshMockClient(): MockMicrosoftGraphClient {
+	const mockClient = {
+		api: vi.fn().mockReturnThis(),
+		query: vi.fn().mockReturnThis(),
+		header: vi.fn().mockReturnThis(),
+		post: vi.fn(),
+		get: vi.fn(),
+		put: vi.fn(),
+		patch: vi.fn(),
+		delete: vi.fn(),
+	};
+
+	// Ensure chaining methods return the mock client
+	mockClient.api.mockReturnValue(mockClient);
+	mockClient.query.mockReturnValue(mockClient);
+	mockClient.header.mockReturnValue(mockClient);
+
+	return mockClient;
+}
+
+// Legacy export for backwards compatibility (will be deprecated)
+export const mockMicrosoftGraphClient = createFreshMockClient();
 
 // Mock responses for OneDrive operations
 export const mockResponses = {
@@ -141,12 +165,23 @@ export function createFolderMetadata(overrides: Partial<FileMetadata> = {}): Fil
 	};
 }
 
-// Provider creation utilities
-export function createProviderWithMockClient(): OneDriveProvider {
+// Provider creation utilities with proper isolation
+export function createProviderWithMockClient(mockClient?: MockMicrosoftGraphClient): OneDriveProvider {
+	const client = mockClient || createFreshMockClient();
+	return new OneDriveProvider("mock-access-token", client as any);
+}
+
+// Legacy function for backwards compatibility (deprecated)
+export function createProviderWithMockClient_Legacy(): OneDriveProvider {
 	return new OneDriveProvider("mock-access-token", mockMicrosoftGraphClient as any);
 }
 
-// Mock reset utility
+// Global mock cleanup utility for afterEach hooks
+export function cleanupAllMocks(): void {
+	vi.clearAllMocks();
+}
+
+// Legacy reset function (deprecated - use cleanupAllMocks instead)
 export function resetAllMocks(): void {
 	vi.clearAllMocks();
 
