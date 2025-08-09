@@ -1,4 +1,4 @@
 import { vi } from "vitest";
 
-// Mock fetch globally for any HTTP requests
-global.fetch = vi.fn();
+// Set up global test environment
+// Note: Individual tests should set up their own fetch mocks as needed

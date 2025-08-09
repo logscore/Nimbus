@@ -35,6 +35,17 @@ export function createFreshMockClient(): MockMicrosoftGraphClient {
 	return mockClient;
 }
 
+// Helper to wrap DriveItem responses in proper HTTP response format
+export function createMockHttpResponse(data: any, status = 200) {
+	return {
+		status,
+		ok: status >= 200 && status < 300,
+		statusText: status === 200 ? "OK" : "Error",
+		headers: new Map(),
+		...data, // The actual DriveItem data
+	};
+}
+
 // Legacy export for backwards compatibility (will be deprecated)
 export const mockMicrosoftGraphClient = createFreshMockClient();
 

@@ -306,9 +306,17 @@ describe("OneDriveProvider", () => {
 	});
 
 	describe("download", () => {
+		let originalFetch: any;
+
 		beforeEach(() => {
-			// Mock global fetch
+			// Save original fetch and mock it
+			originalFetch = global.fetch;
 			global.fetch = vi.fn();
+		});
+
+		afterEach(() => {
+			// Restore original fetch
+			global.fetch = originalFetch;
 		});
 
 		it("should download file successfully", async () => {
