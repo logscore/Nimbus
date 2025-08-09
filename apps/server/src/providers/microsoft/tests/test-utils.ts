@@ -134,9 +134,7 @@ export function createFolderMetadata(overrides: Partial<FileMetadata> = {}): Fil
 
 // Provider creation utilities
 export function createProviderWithMockClient(): OneDriveProvider {
-	const provider = new OneDriveProvider("mock-access-token");
-	(provider as any).client = mockMicrosoftGraphClient;
-	return provider;
+	return new OneDriveProvider("mock-access-token", mockMicrosoftGraphClient as any);
 }
 
 // Mock reset utility

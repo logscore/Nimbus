@@ -21,7 +21,15 @@ describe("OneDriveProvider", () => {
 
 	describe("Constructor", () => {
 		it("should create OneDriveProvider with access token", () => {
-			const oneDriveProvider = new OneDriveProvider("test-token");
+			const mockClient = {
+				api: vi.fn().mockReturnThis(),
+				get: vi.fn(),
+				post: vi.fn(),
+				put: vi.fn(),
+				patch: vi.fn(),
+				delete: vi.fn(),
+			};
+			const oneDriveProvider = new OneDriveProvider("test-token", mockClient as any);
 			expect(oneDriveProvider).toBeInstanceOf(OneDriveProvider);
 			expect(oneDriveProvider.getAccessToken()).toBe("test-token");
 		});
@@ -305,12 +313,11 @@ describe("OneDriveProvider", () => {
 
 		it("should download file successfully", async () => {
 			// Create a fresh provider to avoid mock interference
-			const testProvider = new OneDriveProvider("test-token");
 			const freshMocks = {
 				api: vi.fn().mockReturnThis(),
 				get: vi.fn(),
 			};
-			(testProvider as any).client = freshMocks;
+			const testProvider = new OneDriveProvider("test-token", freshMocks as any);
 
 			// Mock the raw DriveItem response that includes @microsoft.graph.downloadUrl
 			const rawDriveItem = {
@@ -389,12 +396,11 @@ describe("OneDriveProvider", () => {
 
 		it("should handle fetch exceptions", async () => {
 			// Create a fresh provider to avoid mock interference
-			const testProvider = new OneDriveProvider("test-token");
 			const freshMocks = {
 				api: vi.fn().mockReturnThis(),
 				get: vi.fn(),
 			};
-			(testProvider as any).client = freshMocks;
+			const testProvider = new OneDriveProvider("test-token", freshMocks as any);
 
 			// Mock the raw DriveItem response that includes @microsoft.graph.downloadUrl
 			const rawDriveItem = {
