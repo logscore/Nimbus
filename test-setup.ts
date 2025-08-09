@@ -15,7 +15,7 @@ vi.mock("box-node-sdk", () => {
 	const BoxSDK = vi.fn(() => ({
 		getBasicClient: mockGetBasicClient,
 	}));
-	
+
 	return {
 		default: BoxSDK,
 		__esModule: true,
