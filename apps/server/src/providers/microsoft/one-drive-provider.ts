@@ -16,27 +16,6 @@ export class OneDriveProvider implements Provider {
 		if (client) {
 			this.client = client;
 		} else {
-			// Detect test environment to prevent real API calls
-			const isTest =
-				process.env.NODE_ENV === "test" ||
-				process.env.VITEST === "true" ||
-				process.env.CI === "true" ||
-				process.env.GITHUB_ACTIONS === "true" ||
-				globalThis.__VITEST__ === true ||
-				accessToken.includes("mock") ||
-				accessToken.includes("test") ||
-				// Additional CI environment detection
-				!!process.env.CI ||
-				!!process.env.CONTINUOUS_INTEGRATION ||
-				!!process.env.BUILD_NUMBER;
-
-			if (isTest) {
-				// In test environment, throw error if no mock client provided
-				throw new Error(
-					"OneDriveProvider: Mock client required in test environment. Use createProviderWithMockClient() from test-utils."
-				);
-			}
-
 			this.client = Client.init({
 				authProvider: done => {
 					done(null, accessToken);
