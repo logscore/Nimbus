@@ -11,8 +11,13 @@ vi.mock("@microsoft/microsoft-graph-client", () => ({
 }));
 
 vi.mock("box-node-sdk", () => {
-	const BoxSDK = vi.fn();
+	const mockGetBasicClient = vi.fn();
+	const BoxSDK = vi.fn(() => ({
+		getBasicClient: mockGetBasicClient,
+	}));
+	
 	return {
 		default: BoxSDK,
+		__esModule: true,
 	};
 });
