@@ -1,26 +1,23 @@
 import { vi } from "vitest";
 
-// Mock Microsoft Graph Client only when called directly (not through dependency injection)
-vi.mock("@microsoft/microsoft-graph-client", async () => {
-	const actual = await vi.importActual("@microsoft/microsoft-graph-client");
-
-	// Create a mock client that provides safe fallback behavior
-	const mockClient = {
-		api: vi.fn().mockReturnThis(),
-		query: vi.fn().mockReturnThis(),
-		header: vi.fn().mockReturnThis(),
-		post: vi.fn().mockResolvedValue({ id: "fallback-id", name: "Test Item" }),
-		get: vi.fn().mockResolvedValue({ id: "fallback-id", name: "Test Item" }),
-		put: vi.fn().mockResolvedValue({ id: "fallback-id", name: "Test Item" }),
-		patch: vi.fn().mockResolvedValue({ id: "fallback-id", name: "Test Item" }),
-		delete: vi.fn().mockResolvedValue({}),
-	};
-
+// Mock Microsoft Graph Client to prevent real API calls in CI environments
+// This mock is designed to be transparent to dependency injection
+vi.mock("@microsoft/microsoft-graph-client", () => {
 	return {
-		...actual,
 		Client: {
-			init: vi.fn(() => mockClient),
-			initWithMiddleware: vi.fn(() => mockClient),
+			init: vi.fn(() => {
+				// Throw an error with helpful message - this should never be called in proper tests
+				throw new Error(
+					"Real Microsoft Graph Client.init() called in test environment. " +
+						"Tests should use dependency injection via createProviderWithMockClient() from test-utils."
+				);
+			}),
+			initWithMiddleware: vi.fn(() => {
+				throw new Error(
+					"Real Microsoft Graph Client.initWithMiddleware() called in test environment. " +
+						"Tests should use dependency injection via createProviderWithMockClient() from test-utils."
+				);
+			}),
 		},
 	};
 });
