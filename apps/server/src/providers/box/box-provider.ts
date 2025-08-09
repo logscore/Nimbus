@@ -67,10 +67,12 @@ export class BoxProvider implements Provider {
 		if (client) {
 			this.client = client;
 		} else {
-			// Prevent real SDK instantiation in test environments
-			const isTestEnv = process.env.NODE_ENV === "test" || process.env.VITEST === "true" || process.env.CI === "true";
+			// Prevent real SDK instantiation in unit test environments (but allow integration tests)
+			const isUnitTestEnv =
+				(process.env.NODE_ENV === "test" || process.env.VITEST === "true" || process.env.CI === "true") &&
+				!process.env.BOX_TEST_ACCESS_TOKEN;
 
-			if (isTestEnv) {
+			if (isUnitTestEnv) {
 				throw new Error("Box SDK should not be instantiated in test environment without explicit client injection");
 			}
 
