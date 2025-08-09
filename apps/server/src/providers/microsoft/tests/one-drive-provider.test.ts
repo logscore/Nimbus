@@ -97,7 +97,7 @@ describe("OneDriveProvider", () => {
 			// Create completely isolated test instance
 			const isolatedMockClient = createFreshMockClient();
 			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
-			
+
 			const fileMetadata = createFileMetadata();
 			const content = generateTestBuffer(1024); // 1KB - small file
 			isolatedMockClient.put.mockResolvedValueOnce(mockResponses.createFile);
@@ -113,7 +113,7 @@ describe("OneDriveProvider", () => {
 			// Create completely isolated test instance
 			const isolatedMockClient = createFreshMockClient();
 			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
-			
+
 			const fileMetadata = createFileMetadata({ name: "large-file.bin" });
 			const largeContent = generateTestBuffer(15 * 1024 * 1024); // 15MB - large file
 
@@ -168,7 +168,7 @@ describe("OneDriveProvider", () => {
 			// Create completely isolated test instance
 			const isolatedMockClient = createFreshMockClient();
 			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
-			
+
 			const fileMetadata = createFileMetadata();
 			isolatedMockClient.post.mockRejectedValueOnce(new Error("Creation failed"));
 
@@ -241,7 +241,7 @@ describe("OneDriveProvider", () => {
 			// Create completely isolated test instance
 			const isolatedMockClient = createFreshMockClient();
 			const isolatedProvider = createProviderWithMockClient(isolatedMockClient);
-			
+
 			const updateData = { parentId: "root" };
 			isolatedMockClient.patch
 				.mockResolvedValueOnce({}) // parent change
