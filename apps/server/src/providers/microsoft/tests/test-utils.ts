@@ -154,6 +154,13 @@ export function resetAllMocks(): void {
 	mockMicrosoftGraphClient.api.mockReturnThis();
 	mockMicrosoftGraphClient.query.mockReturnThis();
 	mockMicrosoftGraphClient.header.mockReturnThis();
+
+	// Reset all mock functions to avoid interference between tests
+	mockMicrosoftGraphClient.post.mockReset();
+	mockMicrosoftGraphClient.get.mockReset();
+	mockMicrosoftGraphClient.put.mockReset();
+	mockMicrosoftGraphClient.patch.mockReset();
+	mockMicrosoftGraphClient.delete.mockReset();
 }
 
 // Test data generators

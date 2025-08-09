@@ -21,9 +21,9 @@ describe("OneDriveProvider", () => {
 
 	describe("Constructor", () => {
 		it("should create OneDriveProvider with access token", () => {
-			const oneDriveProvider = new OneDriveProvider("test-token");
+			const oneDriveProvider = createProviderWithMockClient();
 			expect(oneDriveProvider).toBeInstanceOf(OneDriveProvider);
-			expect(oneDriveProvider.getAccessToken()).toBe("test-token");
+			expect(oneDriveProvider.getAccessToken()).toBe("mock-access-token");
 		});
 	});
 
@@ -39,7 +39,7 @@ describe("OneDriveProvider", () => {
 	describe("create", () => {
 		it("should create a folder", async () => {
 			const folderMetadata = createFolderMetadata();
-			mockMicrosoftGraphClient.post.mockResolvedValue(mockResponses.createFolder);
+			mockMicrosoftGraphClient.post.mockResolvedValueOnce(mockResponses.createFolder);
 
 			const result = await provider.create(folderMetadata);
 
@@ -57,7 +57,7 @@ describe("OneDriveProvider", () => {
 
 		it("should create a file without content", async () => {
 			const fileMetadata = createFileMetadata();
-			mockMicrosoftGraphClient.post.mockResolvedValue(mockResponses.createFile);
+			mockMicrosoftGraphClient.post.mockResolvedValueOnce(mockResponses.createFile);
 
 			const result = await provider.create(fileMetadata);
 
@@ -70,7 +70,7 @@ describe("OneDriveProvider", () => {
 		it("should create a small file with content", async () => {
 			const fileMetadata = createFileMetadata();
 			const content = generateTestBuffer(1024); // 1KB - small file
-			mockMicrosoftGraphClient.put.mockResolvedValue(mockResponses.createFile);
+			mockMicrosoftGraphClient.put.mockResolvedValueOnce(mockResponses.createFile);
 
 			const result = await provider.create(fileMetadata, content);
 
@@ -86,10 +86,10 @@ describe("OneDriveProvider", () => {
 			// Mock upload session creation
 			mockMicrosoftGraphClient.post
 				.mockResolvedValueOnce(mockResponses.uploadSession) // createUploadSession
-				.mockResolvedValue({}); // chunk uploads
+				.mockResolvedValueOnce({}); // chunk uploads
 
 			// Mock chunk uploads
-			mockMicrosoftGraphClient.put.mockResolvedValue({});
+			mockMicrosoftGraphClient.put.mockResolvedValueOnce({});
 
 			// Mock final get requests
 			mockMicrosoftGraphClient.get
@@ -107,7 +107,7 @@ describe("OneDriveProvider", () => {
 
 		it("should handle folder creation with custom parent", async () => {
 			const folderMetadata = createFolderMetadata({ parentId: "custom-parent-id" });
-			mockMicrosoftGraphClient.post.mockResolvedValue(mockResponses.createFolder);
+			mockMicrosoftGraphClient.post.mockResolvedValueOnce(mockResponses.createFolder);
 
 			await provider.create(folderMetadata);
 
@@ -122,7 +122,7 @@ describe("OneDriveProvider", () => {
 					this.push(null);
 				},
 			});
-			mockMicrosoftGraphClient.put.mockResolvedValue(mockResponses.createFile);
+			mockMicrosoftGraphClient.put.mockResolvedValueOnce(mockResponses.createFile);
 
 			const result = await provider.create(fileMetadata, stream);
 
@@ -132,7 +132,7 @@ describe("OneDriveProvider", () => {
 
 		it("should handle creation errors", async () => {
 			const fileMetadata = createFileMetadata();
-			mockMicrosoftGraphClient.post.mockRejectedValue(new Error("Creation failed"));
+			mockMicrosoftGraphClient.post.mockRejectedValueOnce(new Error("Creation failed"));
 
 			await expect(provider.create(fileMetadata)).rejects.toThrow("Creation failed");
 		});
@@ -140,7 +140,7 @@ describe("OneDriveProvider", () => {
 
 	describe("getById", () => {
 		it("should get file by ID", async () => {
-			mockMicrosoftGraphClient.get.mockResolvedValue(mockResponses.createFile);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(mockResponses.createFile);
 
 			const result = await provider.getById("mock-file-id");
 
@@ -153,7 +153,7 @@ describe("OneDriveProvider", () => {
 		it("should return null for non-existent file", async () => {
 			const error = new Error("Not found");
 			(error as any).statusCode = 404;
-			mockMicrosoftGraphClient.get.mockRejectedValue(error);
+			mockMicrosoftGraphClient.get.mockRejectedValueOnce(error);
 
 			const result = await provider.getById("non-existent-id");
 
@@ -161,7 +161,7 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should throw error for other failures", async () => {
-			mockMicrosoftGraphClient.get.mockRejectedValue(new Error("Server error"));
+			mockMicrosoftGraphClient.get.mockRejectedValueOnce(new Error("Server error"));
 
 			await expect(provider.getById("mock-file-id")).rejects.toThrow("Server error");
 		});
@@ -170,7 +170,7 @@ describe("OneDriveProvider", () => {
 	describe("update", () => {
 		it("should update file metadata", async () => {
 			const updatedData = { name: "updated-file.txt", description: "Updated description" };
-			mockMicrosoftGraphClient.patch.mockResolvedValue({
+			mockMicrosoftGraphClient.patch.mockResolvedValueOnce({
 				...mockResponses.createFile,
 				...updatedData,
 			});
@@ -215,7 +215,7 @@ describe("OneDriveProvider", () => {
 
 	describe("delete", () => {
 		it("should delete file permanently", async () => {
-			mockMicrosoftGraphClient.delete.mockResolvedValue(undefined);
+			mockMicrosoftGraphClient.delete.mockResolvedValueOnce(undefined);
 
 			const result = await provider.delete("mock-file-id", true);
 
@@ -224,7 +224,7 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should move file to trash (soft delete)", async () => {
-			mockMicrosoftGraphClient.patch.mockResolvedValue(undefined);
+			mockMicrosoftGraphClient.patch.mockResolvedValueOnce(undefined);
 
 			const result = await provider.delete("mock-file-id", false);
 
@@ -253,7 +253,7 @@ describe("OneDriveProvider", () => {
 
 	describe("listChildren", () => {
 		it("should list children of root folder", async () => {
-			mockMicrosoftGraphClient.get.mockResolvedValue(mockResponses.listChildren);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(mockResponses.listChildren);
 
 			const result = await provider.listChildren("root");
 
@@ -264,7 +264,7 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should list children of specific folder", async () => {
-			mockMicrosoftGraphClient.get.mockResolvedValue(mockResponses.listChildren);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(mockResponses.listChildren);
 
 			const result = await provider.listChildren("folder-id");
 
@@ -274,7 +274,7 @@ describe("OneDriveProvider", () => {
 
 		it("should handle pagination options", async () => {
 			const options = { pageSize: 50, pageToken: "next-token", orderBy: "lastModifiedDateTime" };
-			mockMicrosoftGraphClient.get.mockResolvedValue(mockResponses.listChildren);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(mockResponses.listChildren);
 
 			await provider.listChildren("root", options);
 
@@ -286,7 +286,7 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should use default options when none provided", async () => {
-			mockMicrosoftGraphClient.get.mockResolvedValue(mockResponses.listChildren);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(mockResponses.listChildren);
 
 			await provider.listChildren("root", {});
 
@@ -304,13 +304,11 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should download file successfully", async () => {
-			// Create a fresh provider to avoid mock interference
-			const testProvider = new OneDriveProvider("test-token");
 			const freshMocks = {
 				api: vi.fn().mockReturnThis(),
 				get: vi.fn(),
 			};
-			(testProvider as any).client = freshMocks;
+			const testProvider = new OneDriveProvider("test-token", freshMocks as any);
 
 			// Mock the raw DriveItem response that includes @microsoft.graph.downloadUrl
 			const rawDriveItem = {
@@ -349,7 +347,7 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should return null when file not found", async () => {
-			mockMicrosoftGraphClient.get.mockResolvedValue(null);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(null);
 
 			const result = await provider.download("non-existent-id");
 
@@ -360,7 +358,7 @@ describe("OneDriveProvider", () => {
 			const fileWithoutDownloadUrl = { ...mockResponses.createFile };
 			delete (fileWithoutDownloadUrl as any)["@microsoft.graph.downloadUrl"];
 
-			mockMicrosoftGraphClient.get.mockResolvedValue(fileWithoutDownloadUrl);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(fileWithoutDownloadUrl);
 
 			const result = await provider.download("mock-file-id");
 
@@ -373,7 +371,7 @@ describe("OneDriveProvider", () => {
 				"@microsoft.graph.downloadUrl": "https://download.example.com/test-file",
 			};
 
-			mockMicrosoftGraphClient.get.mockResolvedValue(fileWithDownloadUrl);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(fileWithDownloadUrl);
 
 			const mockResponse = {
 				ok: false,
@@ -388,13 +386,11 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should handle fetch exceptions", async () => {
-			// Create a fresh provider to avoid mock interference
-			const testProvider = new OneDriveProvider("test-token");
 			const freshMocks = {
 				api: vi.fn().mockReturnThis(),
 				get: vi.fn(),
 			};
-			(testProvider as any).client = freshMocks;
+			const testProvider = new OneDriveProvider("test-token", freshMocks as any);
 
 			// Mock the raw DriveItem response that includes @microsoft.graph.downloadUrl
 			const rawDriveItem = {
@@ -423,7 +419,7 @@ describe("OneDriveProvider", () => {
 			const mockHeaders = {
 				"content-location": "https://api.onedrive.com/operations/mock-operation-id",
 			};
-			mockMicrosoftGraphClient.post.mockResolvedValue({ headers: mockHeaders });
+			mockMicrosoftGraphClient.post.mockResolvedValueOnce({ headers: mockHeaders });
 
 			// Mock async operation completion
 			mockMicrosoftGraphClient.get
@@ -443,7 +439,7 @@ describe("OneDriveProvider", () => {
 			const mockHeaders = {
 				"content-location": "https://api.onedrive.com/operations/mock-operation-id",
 			};
-			mockMicrosoftGraphClient.post.mockResolvedValue({ headers: mockHeaders });
+			mockMicrosoftGraphClient.post.mockResolvedValueOnce({ headers: mockHeaders });
 
 			mockMicrosoftGraphClient.get
 				.mockResolvedValueOnce({ status: "completed" })
@@ -460,7 +456,7 @@ describe("OneDriveProvider", () => {
 
 	describe("move", () => {
 		it("should move file to target parent", async () => {
-			mockMicrosoftGraphClient.patch.mockResolvedValue(mockResponses.createFile);
+			mockMicrosoftGraphClient.patch.mockResolvedValueOnce(mockResponses.createFile);
 
 			const result = await provider.move("source-id", "target-parent-id", "new-name");
 
@@ -472,7 +468,7 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should move without renaming", async () => {
-			mockMicrosoftGraphClient.patch.mockResolvedValue(mockResponses.createFile);
+			mockMicrosoftGraphClient.patch.mockResolvedValueOnce(mockResponses.createFile);
 
 			await provider.move("source-id", "target-parent-id");
 
@@ -482,7 +478,7 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should handle root as target parent", async () => {
-			mockMicrosoftGraphClient.patch.mockResolvedValue(mockResponses.createFile);
+			mockMicrosoftGraphClient.patch.mockResolvedValueOnce(mockResponses.createFile);
 
 			await provider.move("source-id", "root");
 
@@ -494,7 +490,7 @@ describe("OneDriveProvider", () => {
 
 	describe("getDriveInfo", () => {
 		it("should get drive information", async () => {
-			mockMicrosoftGraphClient.get.mockResolvedValue(mockResponses.driveInfo);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(mockResponses.driveInfo);
 
 			const result = await provider.getDriveInfo();
 
@@ -510,7 +506,7 @@ describe("OneDriveProvider", () => {
 			const driveWithoutQuota = { ...mockResponses.driveInfo };
 			const { quota, ...driveWithoutQuotaData } = driveWithoutQuota;
 			const finalDriveData = driveWithoutQuotaData;
-			mockMicrosoftGraphClient.get.mockResolvedValue(finalDriveData);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(finalDriveData);
 
 			await expect(provider.getDriveInfo()).rejects.toThrow("Drive quota information not available");
 		});
@@ -518,14 +514,17 @@ describe("OneDriveProvider", () => {
 
 	describe("getShareableLink", () => {
 		it("should create shareable link with view permission", async () => {
-			mockMicrosoftGraphClient.post.mockResolvedValue({});
-			mockMicrosoftGraphClient.get.mockResolvedValue({
+			// Explicit mock setup for this test
+			mockMicrosoftGraphClient.post.mockResolvedValueOnce({});
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce({
 				webUrl: "https://onedrive.live.com/shared-link",
 			});
 
 			const result = await provider.getShareableLink("mock-file-id", "view");
 
 			expect(result).toBe("https://onedrive.live.com/shared-link");
+			expect(mockMicrosoftGraphClient.api).toHaveBeenCalledWith("/me/drive/items/mock-file-id/createLink");
+			expect(mockMicrosoftGraphClient.api).toHaveBeenCalledWith("/me/drive/items/mock-file-id?select=webUrl");
 			expect(mockMicrosoftGraphClient.post).toHaveBeenCalledWith({
 				type: "view",
 				scope: "anonymous",
@@ -534,14 +533,17 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should create shareable link with edit permission", async () => {
-			mockMicrosoftGraphClient.post.mockResolvedValue({});
-			mockMicrosoftGraphClient.get.mockResolvedValue({
+			// Explicit mock setup for this test
+			mockMicrosoftGraphClient.post.mockResolvedValueOnce({});
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce({
 				webUrl: "https://onedrive.live.com/shared-link",
 			});
 
-			await provider.getShareableLink("mock-file-id", "edit");
+			const result = await provider.getShareableLink("mock-file-id", "edit");
 
+			expect(result).toBe("https://onedrive.live.com/shared-link");
 			expect(mockMicrosoftGraphClient.api).toHaveBeenCalledWith("/me/drive/items/mock-file-id/createLink");
+			expect(mockMicrosoftGraphClient.api).toHaveBeenCalledWith("/me/drive/items/mock-file-id?select=webUrl");
 			expect(mockMicrosoftGraphClient.post).toHaveBeenCalledWith({
 				type: "view",
 				scope: "anonymous",
@@ -550,8 +552,9 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should return null when webUrl is not available", async () => {
-			mockMicrosoftGraphClient.post.mockResolvedValue({});
-			mockMicrosoftGraphClient.get.mockResolvedValue({});
+			// Explicit mock setup for this test
+			mockMicrosoftGraphClient.post.mockResolvedValueOnce({});
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce({});
 
 			const result = await provider.getShareableLink("mock-file-id");
 
@@ -561,7 +564,7 @@ describe("OneDriveProvider", () => {
 
 	describe("search", () => {
 		it("should search for files", async () => {
-			mockMicrosoftGraphClient.get.mockResolvedValue(mockResponses.searchResults);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(mockResponses.searchResults);
 
 			const result = await provider.search("test query");
 
@@ -572,7 +575,7 @@ describe("OneDriveProvider", () => {
 
 		it("should handle search with options", async () => {
 			const options = { pageSize: 50, pageToken: "next-token", orderBy: "lastModifiedDateTime" };
-			mockMicrosoftGraphClient.get.mockResolvedValue(mockResponses.searchResults);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(mockResponses.searchResults);
 
 			await provider.search("test query", options);
 
@@ -584,7 +587,7 @@ describe("OneDriveProvider", () => {
 		});
 
 		it("should use default search options", async () => {
-			mockMicrosoftGraphClient.get.mockResolvedValue(mockResponses.searchResults);
+			mockMicrosoftGraphClient.get.mockResolvedValueOnce(mockResponses.searchResults);
 
 			await provider.search("test query", {});
 
