@@ -37,9 +37,7 @@ export const createProviderWithMockClient = (
 	clientId = "test-client",
 	clientSecret = "test-secret"
 ) => {
-	const provider = new BoxProvider(accessToken, clientId, clientSecret);
-	(provider as any).client = mockBoxClient;
-	return provider;
+	return new BoxProvider(accessToken, clientId, clientSecret, mockBoxClient as any);
 };
 export const createBoxFileItem = (overrides: Record<string, any> = {}) => ({
 	id: "file123",

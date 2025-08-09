@@ -58,18 +58,19 @@ interface BoxClient {
 export class BoxProvider implements Provider {
 	private client: BoxClient;
 	private accessToken: string;
-	private sdk: BoxSDK;
+	private sdk?: BoxSDK;
 
-	constructor(accessToken: string, clientID: string, clientSecret: string) {
+	constructor(accessToken: string, clientID: string, clientSecret: string, client?: BoxClient) {
 		this.accessToken = accessToken;
-		this.sdk = new BoxSDK({
-			clientID,
-			clientSecret,
-			// request: {
-			// 	strictSSL: false,
-			// },
-		});
-		this.client = this.sdk.getBasicClient(accessToken) as BoxClient;
+		if (client) {
+			this.client = client;
+		} else {
+			this.sdk = new BoxSDK({
+				clientID,
+				clientSecret,
+			});
+			this.client = this.sdk.getBasicClient(accessToken) as BoxClient;
+		}
 	}
 
 	async create(metadata: FileMetadata, content?: Buffer | Readable): Promise<File | null> {

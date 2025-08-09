@@ -46,7 +46,7 @@ describe("BoxProvider", () => {
 				parent: { id: "0" },
 			});
 
-			mockBoxClient.folders.create.mockResolvedValue(mockFolder);
+			mockBoxClient.folders.create.mockResolvedValueOnce(mockFolder);
 
 			const result = await provider.create(folderMetadata);
 
@@ -67,7 +67,7 @@ describe("BoxProvider", () => {
 			const content = Buffer.from("Hello, World!");
 			const mockFile = createBoxFileItem();
 
-			mockBoxClient.files.uploadFile.mockResolvedValue(mockBoxResponses.fileUpload());
+			mockBoxClient.files.uploadFile.mockResolvedValueOnce(mockBoxResponses.fileUpload());
 
 			const result = await provider.create(fileMetadata, content);
 
@@ -85,7 +85,7 @@ describe("BoxProvider", () => {
 			const content = Readable.from("Hello, World!");
 			const mockFile = createBoxFileItem();
 
-			mockBoxClient.files.uploadFile.mockResolvedValue(mockBoxResponses.fileUpload());
+			mockBoxClient.files.uploadFile.mockResolvedValueOnce(mockBoxResponses.fileUpload());
 
 			const result = await provider.create(fileMetadata, content);
 
@@ -109,7 +109,7 @@ describe("BoxProvider", () => {
 				parent: { id: "parent123" },
 			});
 
-			mockBoxClient.folders.create.mockResolvedValue(mockFolder);
+			mockBoxClient.folders.create.mockResolvedValueOnce(mockFolder);
 
 			const result = await provider.create(folderMetadata);
 
@@ -129,7 +129,7 @@ describe("BoxProvider", () => {
 			const fileMetadata = createFileMetadata();
 			const content = Buffer.from("test");
 
-			mockBoxClient.files.uploadFile.mockResolvedValue({ entries: [] });
+			mockBoxClient.files.uploadFile.mockResolvedValueOnce({ entries: [] });
 
 			await expect(provider.create(fileMetadata, content)).rejects.toThrow("No file entry returned from Box upload");
 		});
@@ -138,7 +138,7 @@ describe("BoxProvider", () => {
 	describe("getById", () => {
 		it("should get file by ID", async () => {
 			const mockFile = createBoxFileItem();
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
 
 			const result = await provider.getById("file123");
 
@@ -153,7 +153,7 @@ describe("BoxProvider", () => {
 		it("should get folder by ID when file fetch fails", async () => {
 			const mockFolder = createBoxFolderItem();
 			mockBoxClient.files.get.mockRejectedValue(new Error("Not a file"));
-			mockBoxClient.folders.get.mockResolvedValue(mockFolder);
+			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
 
 			const result = await provider.getById("folder123");
 
@@ -193,8 +193,8 @@ describe("BoxProvider", () => {
 			const mockFile = createBoxFileItem();
 			const updatedFile = createBoxFileItem({ name: "updated-file.txt" });
 
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
-			mockBoxClient.files.update.mockResolvedValue(updatedFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
+			mockBoxClient.files.update.mockResolvedValueOnce(updatedFile);
 
 			const result = await provider.update("file123", {
 				name: "updated-file.txt",
@@ -213,8 +213,8 @@ describe("BoxProvider", () => {
 			const updatedFolder = createBoxFolderItem({ name: "updated-folder" });
 
 			mockBoxClient.files.get.mockRejectedValue(new Error("Not a file"));
-			mockBoxClient.folders.get.mockResolvedValue(mockFolder);
-			mockBoxClient.folders.update.mockResolvedValue(updatedFolder);
+			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
+			mockBoxClient.folders.update.mockResolvedValueOnce(updatedFolder);
 
 			const result = await provider.update("folder123", {
 				name: "updated-folder",
@@ -239,7 +239,7 @@ describe("BoxProvider", () => {
 
 		it("should handle update errors", async () => {
 			const mockFile = createBoxFileItem();
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
 			mockBoxClient.files.update.mockRejectedValue(new Error("Update failed"));
 
 			await expect(provider.update("file123", { name: "new-name" })).rejects.toThrow("Update failed");
@@ -249,8 +249,8 @@ describe("BoxProvider", () => {
 	describe("delete", () => {
 		it("should delete file permanently", async () => {
 			const mockFile = createBoxFileItem();
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
-			mockBoxClient.files.delete.mockResolvedValue(undefined);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
+			mockBoxClient.files.delete.mockResolvedValueOnce(undefined);
 
 			const result = await provider.delete("file123", true);
 
@@ -261,8 +261,8 @@ describe("BoxProvider", () => {
 		it("should delete folder permanently", async () => {
 			const mockFolder = createBoxFolderItem();
 			mockBoxClient.files.get.mockRejectedValue(new Error("Not a file"));
-			mockBoxClient.folders.get.mockResolvedValue(mockFolder);
-			mockBoxClient.folders.delete.mockResolvedValue(undefined);
+			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
+			mockBoxClient.folders.delete.mockResolvedValueOnce(undefined);
 
 			const result = await provider.delete("folder123", true);
 
@@ -272,8 +272,8 @@ describe("BoxProvider", () => {
 
 		it("should move file to trash (soft delete)", async () => {
 			const mockFile = createBoxFileItem();
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
-			mockBoxClient.files.delete.mockResolvedValue(undefined);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
+			mockBoxClient.files.delete.mockResolvedValueOnce(undefined);
 
 			const result = await provider.delete("file123", false);
 
@@ -292,7 +292,7 @@ describe("BoxProvider", () => {
 
 		it("should handle deletion errors", async () => {
 			const mockFile = createBoxFileItem();
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
 			mockBoxClient.files.delete.mockRejectedValue(new Error("Delete failed"));
 
 			await expect(provider.delete("file123")).rejects.toThrow("Delete failed");
@@ -301,7 +301,7 @@ describe("BoxProvider", () => {
 
 	describe("listChildren", () => {
 		it("should list children of root folder", async () => {
-			mockBoxClient.folders.getItems.mockResolvedValue(mockBoxResponses.listChildren());
+			mockBoxClient.folders.getItems.mockResolvedValueOnce(mockBoxResponses.listChildren());
 
 			const result = await provider.listChildren("0");
 
@@ -316,7 +316,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should list children of specific folder", async () => {
-			mockBoxClient.folders.getItems.mockResolvedValue(mockBoxResponses.listChildren());
+			mockBoxClient.folders.getItems.mockResolvedValueOnce(mockBoxResponses.listChildren());
 
 			const result = await provider.listChildren("folder123");
 
@@ -329,7 +329,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should handle pagination options", async () => {
-			mockBoxClient.folders.getItems.mockResolvedValue({
+			mockBoxClient.folders.getItems.mockResolvedValueOnce({
 				entries: [createBoxFileItem()],
 				total_count: 150,
 			});
@@ -348,7 +348,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should use default options when none provided", async () => {
-			mockBoxClient.folders.getItems.mockResolvedValue({
+			mockBoxClient.folders.getItems.mockResolvedValueOnce({
 				entries: [createBoxFileItem()],
 				total_count: 50,
 			});
@@ -364,7 +364,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should normalize root parentId", async () => {
-			mockBoxClient.folders.getItems.mockResolvedValue(mockBoxResponses.listChildren());
+			mockBoxClient.folders.getItems.mockResolvedValueOnce(mockBoxResponses.listChildren());
 
 			await provider.listChildren("root");
 
@@ -389,8 +389,8 @@ describe("BoxProvider", () => {
 				},
 			});
 
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
-			mockBoxClient.files.getReadStream.mockResolvedValue(mockStream);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
+			mockBoxClient.files.getReadStream.mockResolvedValueOnce(mockStream);
 
 			const result = await provider.download("file123");
 
@@ -412,7 +412,7 @@ describe("BoxProvider", () => {
 
 		it("should handle download errors gracefully", async () => {
 			const mockFile = createBoxFileItem();
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
 			mockBoxClient.files.getReadStream.mockRejectedValue(new Error("Stream failed"));
 
 			const result = await provider.download("file123");
@@ -428,8 +428,8 @@ describe("BoxProvider", () => {
 				},
 			});
 
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
-			mockBoxClient.files.getReadStream.mockResolvedValue(mockStream);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
+			mockBoxClient.files.getReadStream.mockResolvedValueOnce(mockStream);
 
 			const result = await provider.download("file123");
 
@@ -446,8 +446,8 @@ describe("BoxProvider", () => {
 				},
 			});
 
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
-			mockBoxClient.files.getReadStream.mockResolvedValue(mockStream);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
+			mockBoxClient.files.getReadStream.mockResolvedValueOnce(mockStream);
 
 			const result = await provider.download("file123");
 
@@ -458,7 +458,7 @@ describe("BoxProvider", () => {
 	describe("downloadStream", () => {
 		it("should return file stream", async () => {
 			const mockStream = Readable.from("stream content");
-			mockBoxClient.files.getReadStream.mockResolvedValue(mockStream);
+			mockBoxClient.files.getReadStream.mockResolvedValueOnce(mockStream);
 
 			const result = await provider.downloadStream("file123");
 
@@ -480,8 +480,8 @@ describe("BoxProvider", () => {
 			const mockFile = createBoxFileItem();
 			const copiedFile = createBoxFileItem({ name: "Copy of test-file.txt" });
 
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
-			mockBoxClient.files.copy.mockResolvedValue(copiedFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
+			mockBoxClient.files.copy.mockResolvedValueOnce(copiedFile);
 
 			const result = await provider.copy("file123", "target456");
 
@@ -496,8 +496,8 @@ describe("BoxProvider", () => {
 			const copiedFolder = createBoxFolderItem({ name: "Copy of test-folder" });
 
 			mockBoxClient.files.get.mockRejectedValue(new Error("Not a file"));
-			mockBoxClient.folders.get.mockResolvedValue(mockFolder);
-			mockBoxClient.folders.copy.mockResolvedValue(copiedFolder);
+			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
+			mockBoxClient.folders.copy.mockResolvedValueOnce(copiedFolder);
 
 			const result = await provider.copy("folder123", "target456");
 
@@ -511,8 +511,8 @@ describe("BoxProvider", () => {
 			const mockFile = createBoxFileItem();
 			const copiedFile = createBoxFileItem({ name: "Custom Name.txt" });
 
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
-			mockBoxClient.files.copy.mockResolvedValue(copiedFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
+			mockBoxClient.files.copy.mockResolvedValueOnce(copiedFile);
 
 			const result = await provider.copy("file123", "target456", "Custom Name.txt");
 
@@ -534,7 +534,7 @@ describe("BoxProvider", () => {
 
 		it("should handle copy errors", async () => {
 			const mockFile = createBoxFileItem();
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
 			mockBoxClient.files.copy.mockRejectedValue(new Error("Copy failed"));
 
 			await expect(provider.copy("file123", "target456")).rejects.toThrow("Copy failed");
@@ -546,8 +546,8 @@ describe("BoxProvider", () => {
 			const mockFile = createBoxFileItem();
 			const movedFile = createBoxFileItem({ parent: { id: "target456" } });
 
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
-			mockBoxClient.files.update.mockResolvedValue(movedFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
+			mockBoxClient.files.update.mockResolvedValueOnce(movedFile);
 
 			const result = await provider.move("file123", "target456");
 
@@ -562,8 +562,8 @@ describe("BoxProvider", () => {
 			const movedFolder = createBoxFolderItem({ parent: { id: "target456" } });
 
 			mockBoxClient.files.get.mockRejectedValue(new Error("Not a file"));
-			mockBoxClient.folders.get.mockResolvedValue(mockFolder);
-			mockBoxClient.folders.update.mockResolvedValue(movedFolder);
+			mockBoxClient.folders.get.mockResolvedValueOnce(mockFolder);
+			mockBoxClient.folders.update.mockResolvedValueOnce(movedFolder);
 
 			const result = await provider.move("folder123", "target456");
 
@@ -579,8 +579,8 @@ describe("BoxProvider", () => {
 				parent: { id: "target456" },
 			});
 
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
-			mockBoxClient.files.update.mockResolvedValue(movedFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
+			mockBoxClient.files.update.mockResolvedValueOnce(movedFile);
 
 			const result = await provider.move("file123", "target456", "new-name.txt");
 
@@ -603,7 +603,7 @@ describe("BoxProvider", () => {
 
 		it("should handle move errors", async () => {
 			const mockFile = createBoxFileItem();
-			mockBoxClient.files.get.mockResolvedValue(mockFile);
+			mockBoxClient.files.get.mockResolvedValueOnce(mockFile);
 			mockBoxClient.files.update.mockRejectedValue(new Error("Move failed"));
 
 			await expect(provider.move("file123", "target456")).rejects.toThrow("Move failed");
@@ -613,7 +613,7 @@ describe("BoxProvider", () => {
 	describe("getDriveInfo", () => {
 		it("should get drive information", async () => {
 			const mockUser = createBoxUserInfo();
-			mockBoxClient.users.get.mockResolvedValue(mockUser);
+			mockBoxClient.users.get.mockResolvedValueOnce(mockUser);
 
 			const result = await provider.getDriveInfo();
 
@@ -639,7 +639,7 @@ describe("BoxProvider", () => {
 				space_amount: undefined,
 				space_used: undefined,
 			});
-			mockBoxClient.users.get.mockResolvedValue(mockUser);
+			mockBoxClient.users.get.mockResolvedValueOnce(mockUser);
 
 			const result = await provider.getDriveInfo();
 
@@ -653,7 +653,7 @@ describe("BoxProvider", () => {
 			const mockFile = createBoxFileItem({
 				shared_link: { url: "https://app.box.com/s/view123" },
 			});
-			mockBoxClient.files.update.mockResolvedValue(mockFile);
+			mockBoxClient.files.update.mockResolvedValueOnce(mockFile);
 
 			const result = await provider.getShareableLink("file123", "view");
 
@@ -674,7 +674,7 @@ describe("BoxProvider", () => {
 			const mockFile = createBoxFileItem({
 				shared_link: { url: "https://app.box.com/s/edit123" },
 			});
-			mockBoxClient.files.update.mockResolvedValue(mockFile);
+			mockBoxClient.files.update.mockResolvedValueOnce(mockFile);
 
 			const result = await provider.getShareableLink("file123", "edit");
 
@@ -692,7 +692,7 @@ describe("BoxProvider", () => {
 
 		it("should return null when shared link is not available", async () => {
 			const mockFile = createBoxFileItem({ shared_link: undefined });
-			mockBoxClient.files.update.mockResolvedValue(mockFile);
+			mockBoxClient.files.update.mockResolvedValueOnce(mockFile);
 
 			const result = await provider.getShareableLink("file123");
 
@@ -710,7 +710,7 @@ describe("BoxProvider", () => {
 
 	describe("search", () => {
 		it("should search for files", async () => {
-			mockBoxClient.search.query.mockResolvedValue(mockBoxResponses.searchResults());
+			mockBoxClient.search.query.mockResolvedValueOnce(mockBoxResponses.searchResults());
 
 			const result = await provider.search("test query");
 
@@ -725,7 +725,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should search with options", async () => {
-			mockBoxClient.search.query.mockResolvedValue({
+			mockBoxClient.search.query.mockResolvedValueOnce({
 				entries: [createBoxFileItem()],
 				total_count: 75,
 			});
@@ -745,7 +745,7 @@ describe("BoxProvider", () => {
 		});
 
 		it("should use default search options", async () => {
-			mockBoxClient.search.query.mockResolvedValue({
+			mockBoxClient.search.query.mockResolvedValueOnce({
 				entries: [createBoxFileItem()],
 				total_count: 10,
 			});
