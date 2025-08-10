@@ -19,9 +19,11 @@ import { Readable } from "node:stream";
 export class GoogleDriveProvider implements Provider {
 	private drive: drive_v3.Drive;
 	private accessToken: string;
+	private isEdgeRuntime: boolean;
 
-	constructor(accessToken: string) {
+	constructor(accessToken: string, isEdgeRuntime: boolean = false) {
 		this.accessToken = accessToken;
+		this.isEdgeRuntime = isEdgeRuntime;
 		const oauth2Client = new OAuth2Client();
 		oauth2Client.setCredentials({ access_token: accessToken });
 		this.drive = new drive_v3.Drive({
@@ -58,16 +60,77 @@ export class GoogleDriveProvider implements Provider {
 				});
 			} else {
 				// For files with content
-				const media = {
-					mimeType,
-					body: this.normalizeContent(content),
-				};
+				if (this.isEdgeRuntime) {
+					// Cloudflare Workers: use HTTP resumable upload (SDK multipart relies on Node streams)
+					const initRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable", {
+						method: "POST",
+						headers: {
+							Authorization: `Bearer ${this.accessToken}`,
+							"Content-Type": "application/json; charset=UTF-8",
+						},
+						body: JSON.stringify(fileMetadata),
+					});
 
-				response = await this.drive.files.create({
-					requestBody: fileMetadata,
-					media,
-					// fields: this.getFileFields(),
-				});
+					if (!initRes.ok) {
+						const details = await initRes.text().catch(() => initRes.statusText);
+						throw new Error(`Failed to initiate resumable upload. Status: ${initRes.status}. ${details}`);
+					}
+
+					const uploadUrl = initRes.headers.get("Location");
+					if (!uploadUrl) {
+						throw new Error("Resumable upload URL was not returned by Google Drive API");
+					}
+
+					// Normalize content to Uint8Array
+					let contentBuffer: Uint8Array;
+					if (typeof Buffer !== "undefined" && Buffer.isBuffer(content)) {
+						contentBuffer = new Uint8Array(content as Buffer);
+					} else if (content instanceof Uint8Array) {
+						contentBuffer = content;
+					} else {
+						// Best-effort: read any iterable/stream-like input
+						const chunks: Uint8Array[] = [];
+						for await (const chunk of content as NodeJS.ReadableStream) {
+							chunks.push(typeof chunk === "string" ? new TextEncoder().encode(chunk) : new Uint8Array(chunk));
+						}
+						const total = chunks.reduce((n, c) => n + c.byteLength, 0);
+						contentBuffer = new Uint8Array(total);
+						let offset = 0;
+						for (const c of chunks) {
+							contentBuffer.set(c, offset);
+							offset += c.byteLength;
+						}
+					}
+
+					const uploadRes = await fetch(uploadUrl, {
+						method: "PUT",
+						headers: {
+							"Content-Type": mimeType,
+							"Content-Length": String(contentBuffer.byteLength),
+						},
+						body: contentBuffer,
+					});
+
+					if (!uploadRes.ok) {
+						const details = await uploadRes.text().catch(() => uploadRes.statusText);
+						throw new Error(`Resumable upload failed. Status: ${uploadRes.status}. ${details}`);
+					}
+
+					const created: drive_v3.Schema$File = await uploadRes.json();
+					return created ? this.mapToFile(created) : null;
+				} else {
+					// Uses drive sdk in a Node server environment
+					const media = {
+						mimeType,
+						body: this.normalizeContent(content),
+					};
+
+					response = await this.drive.files.create({
+						requestBody: fileMetadata,
+						media,
+						// fields: this.getFileFields(),
+					});
+				}
 			}
 
 			return response.data ? this.mapToFile(response.data) : null;
@@ -485,7 +548,10 @@ export class GoogleDriveProvider implements Provider {
 
 	private normalizeContent(content: Buffer | NodeJS.ReadableStream): NodeJS.ReadableStream {
 		if (Buffer.isBuffer(content)) {
-			return Readable.from(content);
+			const readable = new Readable();
+			readable.push(content);
+			readable.push(null);
+			return readable;
 		}
 		return content;
 	}

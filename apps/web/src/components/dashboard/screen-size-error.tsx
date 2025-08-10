@@ -23,12 +23,11 @@ export default function SmallScreenError() {
 
 				{/* Main Message */}
 				<div className="space-y-4">
-					<h1 className="text-5xl leading-tight font-bold text-white md:text-6xl">Your screen is too small!</h1>
+					<h1 className="text-5xl leading-tight font-bold text-white md:text-6xl">Use desktop</h1>
 
 					<p className="mx-auto max-w-lg text-lg text-neutral-400">
-						We don&apos;t support mobile because it looks and feels terrible.
+						I don&apos;t have time for mobile because I have a life.
 						<br />
-						Please use a larger screen or desktop device.
 					</p>
 				</div>
 			</div>

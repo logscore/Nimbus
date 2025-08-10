@@ -83,7 +83,7 @@ const driveProviderRouter = createDriveProviderRouter()
 				}
 
 				if (parsedProviderName.data === "google") {
-					provider = new GoogleDriveProvider(accessToken);
+					provider = new GoogleDriveProvider(accessToken, c.var.env.IS_EDGE_RUNTIME);
 				} else if (parsedProviderName.data === "microsoft") {
 					provider = new OneDriveProvider(accessToken);
 				} else if (parsedProviderName.data === "box") {

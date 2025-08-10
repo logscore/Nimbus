@@ -83,7 +83,7 @@ export class FileService {
 		return drive.delete(options.fileId);
 	}
 
-	async createFile(options: CreateFileOptions, fileStream?: Readable) {
+	async createFile(options: CreateFileOptions, fileStream?: Buffer<ArrayBuffer>) {
 		const drive = this.c.var.provider;
 		return drive.create(options, fileStream);
 	}
