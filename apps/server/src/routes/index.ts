@@ -1,6 +1,5 @@
 import { createDriveProviderRouter, createProtectedRouter, createPublicRouter } from "../hono";
 import type { Provider } from "../providers/interface/provider";
-import { OneDriveProvider } from "../providers/microsoft";
 import { GoogleDriveProvider } from "../providers/google";
 import { sendForbidden, sendUnauthorized } from "./utils";
 import { DropboxProvider } from "../providers/dropbox";
@@ -85,7 +84,7 @@ const driveProviderRouter = createDriveProviderRouter()
 				if (parsedProviderName.data === "google") {
 					provider = new GoogleDriveProvider(accessToken);
 				} else if (parsedProviderName.data === "microsoft") {
-					provider = new OneDriveProvider(accessToken);
+					return sendForbidden(c, "Microsoft provider not supported");
 				} else if (parsedProviderName.data === "box") {
 					provider = new BoxProvider(accessToken, c.var.env.BOX_CLIENT_ID, c.var.env.BOX_CLIENT_SECRET);
 				} else if (parsedProviderName.data === "dropbox") {

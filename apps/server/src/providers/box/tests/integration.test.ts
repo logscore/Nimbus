@@ -15,7 +15,7 @@ describe("BoxProvider Integration Tests", () => {
 
 	beforeAll(() => {
 		if (!isIntegrationEnabled) {
-			console.log("⚠️ Skipping Box integration tests - BOX_TEST_* credentials not provided");
+			// Integration tests skipped - BOX_TEST_* credentials not provided
 			return;
 		}
 
@@ -202,8 +202,8 @@ describe("BoxProvider Integration Tests", () => {
 				if (copiedFile?.id) {
 					testFiles.push(copiedFile);
 				}
-			} catch (error) {
-				console.log("Note: Box copy operation failed (may be API restriction):", error);
+			} catch {
+				// Note: Box copy operation failed (may be API restriction)
 			}
 		});
 
@@ -219,8 +219,8 @@ describe("BoxProvider Integration Tests", () => {
 				if (shareableLink) {
 					expect(shareableLink).toMatch(/^https:\/\/(app\.box\.com|box\.com)/);
 				}
-			} catch (error) {
-				console.log("Note: Box sharing operation failed (may be account restriction):", error);
+			} catch {
+				// Note: Box sharing operation failed (may be account restriction)
 			}
 		});
 	});
@@ -249,8 +249,8 @@ describe("BoxProvider Integration Tests", () => {
 			for (const file of filesToDelete) {
 				try {
 					await provider.delete(file.id, true);
-				} catch (error) {
-					console.log(`Warning: Could not delete ${file.name}:`, error);
+				} catch {
+					// Warning: Could not delete test file during cleanup
 				}
 			}
 
