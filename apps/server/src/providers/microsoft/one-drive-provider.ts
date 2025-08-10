@@ -30,11 +30,11 @@ export class OneDriveProvider implements Provider {
 					patch: () => Promise.resolve({ id: "mock-id", name: "mock-file" }),
 					put: () => Promise.resolve({ id: "mock-id", name: "mock-file" }),
 					delete: () => Promise.resolve({}),
-					query: (queryParams?: any) => mockApiChain, // Allow chaining after query()
+					query: (_queryParams?: any) => mockApiChain, // Allow chaining after query()
 				};
 
 				this.client = {
-					api: (endpoint: string) => mockApiChain,
+					api: (_endpoint: string) => mockApiChain,
 				} as any;
 				return;
 			}
