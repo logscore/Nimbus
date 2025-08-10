@@ -23,22 +23,18 @@ export class OneDriveProvider implements Provider {
 				!process.env.MICROSOFT_TEST_ACCESS_TOKEN;
 
 			if (isUnitTestEnv) {
-				// Create a basic mock client instead of throwing an error
+				// Create a comprehensive mock client that matches Microsoft Graph Client API
+				const mockApiChain = {
+					get: () => Promise.resolve({ id: "mock-id", name: "mock-file" }),
+					post: () => Promise.resolve({ id: "mock-id", name: "mock-file" }),
+					patch: () => Promise.resolve({ id: "mock-id", name: "mock-file" }),
+					put: () => Promise.resolve({ id: "mock-id", name: "mock-file" }),
+					delete: () => Promise.resolve({}),
+					query: (queryParams?: any) => mockApiChain, // Allow chaining after query()
+				};
+				
 				this.client = {
-					api: () => ({
-						query: () => ({
-							post: () => Promise.resolve({}),
-							get: () => Promise.resolve({}),
-							put: () => Promise.resolve({}),
-							patch: () => Promise.resolve({}),
-							delete: () => Promise.resolve({}),
-						}),
-						post: () => Promise.resolve({}),
-						get: () => Promise.resolve({}),
-						put: () => Promise.resolve({}),
-						patch: () => Promise.resolve({}),
-						delete: () => Promise.resolve({}),
-					}),
+					api: (endpoint: string) => mockApiChain,
 				} as any;
 				return;
 			}

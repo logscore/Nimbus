@@ -514,7 +514,7 @@ describe("OneDriveProvider", () => {
 
 		it("should handle missing quota information", async () => {
 			const driveWithoutQuota = { ...mockResponses.driveInfo };
-			const { quota, ...driveWithoutQuotaData } = driveWithoutQuota;
+			const { quota: _quota, ...driveWithoutQuotaData } = driveWithoutQuota;
 			const finalDriveData = driveWithoutQuotaData;
 			mockMicrosoftGraphClient.get.mockResolvedValue(finalDriveData);
 
