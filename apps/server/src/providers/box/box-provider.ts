@@ -67,11 +67,11 @@ export class BoxProvider implements Provider {
 		if (client) {
 			this.client = client;
 		} else {
-			// Only create fallback mock client in CI without integration test tokens
-			// This ensures unit tests with explicit mocks work properly
-			const isCI = process.env.CI === "true";
+			// Only create fallback mock client in test environments without integration tokens
+			// This ensures unit tests with explicit mocks work properly but prevents real API calls in tests
+			const isTestEnv = process.env.NODE_ENV === "test" || process.env.VITEST === "true" || process.env.CI === "true";
 			const hasIntegrationToken = !!process.env.BOX_TEST_ACCESS_TOKEN;
-			const needsFallbackMock = isCI && !hasIntegrationToken;
+			const needsFallbackMock = isTestEnv && !hasIntegrationToken;
 
 			if (needsFallbackMock) {
 				// Create a basic mock client instead of throwing an error
