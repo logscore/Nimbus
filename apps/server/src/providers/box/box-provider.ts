@@ -67,12 +67,13 @@ export class BoxProvider implements Provider {
 		if (client) {
 			this.client = client;
 		} else {
-			// Prevent real SDK instantiation in unit test environments (but allow integration tests)
-			const isUnitTestEnv =
-				(process.env.NODE_ENV === "test" || process.env.VITEST === "true" || process.env.CI === "true") &&
-				!process.env.BOX_TEST_ACCESS_TOKEN;
+			// Only create fallback mock client in CI without integration test tokens
+			// This ensures unit tests with explicit mocks work properly
+			const isCI = process.env.CI === "true";
+			const hasIntegrationToken = !!process.env.BOX_TEST_ACCESS_TOKEN;
+			const needsFallbackMock = isCI && !hasIntegrationToken;
 
-			if (isUnitTestEnv) {
+			if (needsFallbackMock) {
 				// Create a basic mock client instead of throwing an error
 				this.client = {
 					files: {

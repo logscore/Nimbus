@@ -17,12 +17,13 @@ export class OneDriveProvider implements Provider {
 		if (client) {
 			this.client = client;
 		} else {
-			// Prevent real client creation in unit test environments (but allow integration tests)
-			const isUnitTestEnv =
-				(process.env.NODE_ENV === "test" || process.env.VITEST === "true" || process.env.CI === "true") &&
-				!process.env.MICROSOFT_TEST_ACCESS_TOKEN;
+			// Only create fallback mock client in CI without integration test tokens
+			// This ensures unit tests with explicit mocks work properly
+			const isCI = process.env.CI === "true";
+			const hasIntegrationToken = !!process.env.MICROSOFT_TEST_ACCESS_TOKEN;
+			const needsFallbackMock = isCI && !hasIntegrationToken;
 
-			if (isUnitTestEnv) {
+			if (needsFallbackMock) {
 				// Create a comprehensive mock client that matches Microsoft Graph Client API
 				const mockApiChain = {
 					get: () => Promise.resolve({ id: "mock-id", name: "mock-file" }),
