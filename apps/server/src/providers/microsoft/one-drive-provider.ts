@@ -32,7 +32,7 @@ export class OneDriveProvider implements Provider {
 					delete: () => Promise.resolve({}),
 					query: (queryParams?: any) => mockApiChain, // Allow chaining after query()
 				};
-				
+
 				this.client = {
 					api: (endpoint: string) => mockApiChain,
 				} as any;
