@@ -59,9 +59,9 @@ export class GoogleDriveProvider implements Provider {
 					// fields: this.getFileFields(),
 				});
 			} else {
-				// For files with content
+				// ! Note: when attempting to use the sdk, cloudflare envrionments error on upload. Using the api via fetch directly allows for uploads on cloudflare environments
+				// ! Also, this code was made with AI
 				if (this.isEdgeRuntime) {
-					// Cloudflare Workers: use HTTP resumable upload (SDK multipart relies on Node streams)
 					const initRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable", {
 						method: "POST",
 						headers: {
@@ -81,14 +81,12 @@ export class GoogleDriveProvider implements Provider {
 						throw new Error("Resumable upload URL was not returned by Google Drive API");
 					}
 
-					// Normalize content to Uint8Array
 					let contentBuffer: Uint8Array;
 					if (typeof Buffer !== "undefined" && Buffer.isBuffer(content)) {
 						contentBuffer = new Uint8Array(content as Buffer);
 					} else if (content instanceof Uint8Array) {
 						contentBuffer = content;
 					} else {
-						// Best-effort: read any iterable/stream-like input
 						const chunks: Uint8Array[] = [];
 						for await (const chunk of content as NodeJS.ReadableStream) {
 							chunks.push(typeof chunk === "string" ? new TextEncoder().encode(chunk) : new Uint8Array(chunk));
@@ -119,7 +117,6 @@ export class GoogleDriveProvider implements Provider {
 					const created: drive_v3.Schema$File = await uploadRes.json();
 					return created ? this.mapToFile(created) : null;
 				} else {
-					// Uses drive sdk in a Node server environment
 					const media = {
 						mimeType,
 						body: this.normalizeContent(content),

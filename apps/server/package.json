@@ -14,7 +14,7 @@
 		"start": "bun dist/index.js",
 		"cf:dev": "sudo wrangler dev",
 		"cf:deploy:preview": "wrangler deploy --env preview --keep-vars",
-		"cf:deploy:staging": "wrangler deploy --env staging",
+		"cf:deploy:staging": "wrangler deploy --env staging --keep-vars",
 		"cf:deploy:production": "wrangler deploy --env production --keep-vars",
 		"sync-wrangler-secrets": "bun run scripts/sync-wrangler-secrets.ts",
 		"docker:build": "bun run build && docker build -t nimbus-server-manual .",
