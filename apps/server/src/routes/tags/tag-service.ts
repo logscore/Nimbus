@@ -261,6 +261,48 @@ export class TagService {
 		}));
 	}
 
+	// Get tags for multiple files in one batched query
+	async getTagsByFileIds(fileIds: string[], userId: string): Promise<Record<string, Tag[]>> {
+		if (fileIds.length === 0) return {};
+
+		// Fetch all file->tag associations for these files
+		const associations = await this.c.var.db.query.fileTag.findMany({
+			where: (table, { and, inArray, eq }) => and(inArray(table.fileId, fileIds), eq(table.userId, userId)),
+		});
+
+		if (associations.length === 0) return {};
+
+		// Fetch all tags referenced by these associations
+		const uniqueTagIds = Array.from(new Set(associations.map(a => a.tagId)));
+		const tags = await this.c.var.db.query.tag.findMany({
+			where: (table, { and, inArray, eq }) => and(inArray(table.id, uniqueTagIds), eq(table.userId, userId)),
+		});
+
+		// Map tagId -> Tag
+		const tagById = new Map<string, Tag>(
+			tags.map(t => [
+				t.id,
+				{
+					...t,
+					parentId: t.parentId || undefined,
+					createdAt: t.createdAt.toISOString(),
+					updatedAt: t.updatedAt.toISOString(),
+				} as Tag,
+			])
+		);
+
+		// Build fileId -> Tag[] map
+		const result: Record<string, Tag[]> = {};
+		for (const assoc of associations) {
+			const t = tagById.get(assoc.tagId);
+			if (!t) continue;
+			const list = result[assoc.fileId] ?? (result[assoc.fileId] = []);
+			list.push(t);
+		}
+
+		return result;
+	}
+
 	// Get all child tag IDs recursively
 	private async getAllChildTagIds(parentId: string, userId: string): Promise<string[]> {
 		const childTags = await this.c.var.db.query.tag.findMany({

@@ -57,19 +57,20 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 				showBackButton={viewMode === "s3-form"}
 				onBack={() => setViewMode("select")}
 			>
+				{/*
 				{viewMode === "s3-form" && (
 					<DialogHeader className="py-2 text-center">
 						<DialogTitle>Add S3 Account</DialogTitle>
 						<DialogDescription>Enter your S3 credentials to connect your bucket.</DialogDescription>
 					</DialogHeader>
 				)}
+				*/}
 				{viewMode === "select" && (
 					<DialogHeader>
 						<DialogTitle>Sign in with an account</DialogTitle>
 						<DialogDescription>Connect a social account to sign in with it later.</DialogDescription>
 					</DialogHeader>
 				)}
-
 				{viewMode === "select" ? (
 					<div className="flex flex-col gap-4 py-4">
 						<AuthProviderButtons

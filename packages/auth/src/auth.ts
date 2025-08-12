@@ -59,7 +59,7 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 		}),
 
 		emailAndPassword: {
-			enabled: true,
+			enabled: false,
 			autoSignIn: true,
 			minPasswordLength: 8,
 			maxPasswordLength: 100,
@@ -100,7 +100,6 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 					"https://www.googleapis.com/auth/userinfo.email",
 				],
 				accessType: "offline",
-				// https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow#request-parameter-prompt
 				prompt: "consent",
 			},
 
@@ -116,37 +115,36 @@ export const createAuth = (env: AuthEnv, db: DB, redisClient: RedisClient, resen
 					"offline_access",
 				],
 				tenantId: "common",
-				// https://learn.microsoft.com/en-us/dynamics365/business-central/application/system-application/enum/system.security.authentication.prompt-interaction
 				prompt: "select_account",
 			},
 
-			dropbox: {
-				clientId: env.DROPBOX_CLIENT_ID as string,
-				clientSecret: env.DROPBOX_CLIENT_SECRET as string,
-				scope: ["files.metadata.read", "files.content.read", "files.content.write", "sharing.read"],
-			},
+			// dropbox: {
+			// 	clientId: env.DROPBOX_CLIENT_ID as string,
+			// 	clientSecret: env.DROPBOX_CLIENT_SECRET as string,
+			// 	scope: ["files.metadata.read", "files.content.read", "files.content.write", "sharing.read"],
+			// },
 		},
 
-		plugins: [
-			genericOAuth({
-				config: [
-					{
-						providerId: "box",
-						clientId: env.BOX_CLIENT_ID,
-						clientSecret: env.BOX_CLIENT_SECRET,
-						authorizationUrl: "https://account.box.com/api/oauth2/authorize",
-						tokenUrl: "https://api.box.com/oauth2/token",
-						userInfoUrl: "https://api.box.com/2.0/users/me",
-						mapProfileToUser: profile => ({
-							id: profile.id,
-							name: profile.name,
-							email: profile.login,
-						}),
-						scopes: ["root_readwrite", "manage_app_users"],
-					},
-				],
-			}),
-		],
+		// plugins: [
+		// 	genericOAuth({
+		// 		config: [
+		// 			{
+		// 				providerId: "box",
+		// 				clientId: env.BOX_CLIENT_ID,
+		// 				clientSecret: env.BOX_CLIENT_SECRET,
+		// 				authorizationUrl: "https://account.box.com/api/oauth2/authorize",
+		// 				tokenUrl: "https://api.box.com/oauth2/token",
+		// 				userInfoUrl: "https://api.box.com/2.0/users/me",
+		// 				mapProfileToUser: profile => ({
+		// 					id: profile.id,
+		// 					name: profile.name,
+		// 					email: profile.login,
+		// 				}),
+		// 				scopes: ["root_readwrite", "manage_app_users"],
+		// 			},
+		// 		],
+		// 	}),
+		// ],
 
 		secondaryStorage: {
 			// better-auth expects a JSON string
