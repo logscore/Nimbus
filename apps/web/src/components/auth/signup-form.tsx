@@ -2,38 +2,38 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthProviderButtons } from "@/components/auth/shared/auth-provider-buttons";
-import { SegmentedProgress } from "@/components/ui/segmented-progress";
+// import { SegmentedProgress } from "@/components/ui/segmented-progress";
 import { signUpSchema, type SignUpFormData } from "@nimbus/shared";
-import { ArrowLeft, Eye, EyeClosed, Loader2 } from "lucide-react";
-import { useCheckEmailExists, useSignUp } from "@/hooks/useAuth";
-import { FieldError } from "@/components/ui/field-error";
-import { Separator } from "@/components/ui/separator";
+// import { FieldError } from "@/components/ui/field-error";
+// import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, type ComponentProps } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { useSignUp } from "@/hooks/useAuth";
+// import { Label } from "@/components/ui/label";
+// import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
+import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import Link from "next/link";
 
 export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 	const searchParams = useSearchParams();
 	const urlEmail = searchParams.get("email");
-	const [showPasswordEntry, setShowPasswordEntry] = useState(false);
-	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+	// const [showPasswordEntry, setShowPasswordEntry] = useState(false);
+	// const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const { isLoading, signUpWithCredentials } = useSignUp();
-	const checkEmailMutation = useCheckEmailExists();
+	// const checkEmailMutation = useCheckEmailExists();
 
 	const {
-		register,
+		// register,
 		handleSubmit,
-		formState: { errors },
-		trigger,
-		getValues,
-		setError,
+		// formState: { errors },
+		// trigger,
+		// getValues,
+		// setError,
 	} = useForm<SignUpFormData>({
 		resolver: zodResolver(signUpSchema),
 		defaultValues: {
@@ -45,29 +45,29 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 		},
 	});
 
-	const handleContinue = async () => {
-		const isValid = await trigger(["firstName", "lastName", "email"]);
-		if (isValid) {
-			const email = getValues("email");
+	// const handleContinue = async () => {
+	// 	const isValid = await trigger(["firstName", "lastName", "email"]);
+	// 	if (isValid) {
+	// 		const email = getValues("email");
 
-			checkEmailMutation.mutate(email, {
-				onSuccess: data => {
-					if (data.exists) {
-						setError("email", {
-							type: "manual",
-							message: "An account with this email already exists. Please sign in instead.",
-						});
-						toast.error("An account with this email already exists. Please sign in instead.");
-					} else {
-						setShowPasswordEntry(true);
-					}
-				},
-				onError: () => {
-					toast.error("Failed to verify email. Please try again.");
-				},
-			});
-		}
-	};
+	// 		checkEmailMutation.mutate(email, {
+	// 			onSuccess: data => {
+	// 				if (data.exists) {
+	// 					setError("email", {
+	// 						type: "manual",
+	// 						message: "An account with this email already exists. Please sign in instead.",
+	// 					});
+	// 					toast.error("An account with this email already exists. Please sign in instead.");
+	// 				} else {
+	// 					setShowPasswordEntry(true);
+	// 				}
+	// 			},
+	// 			onError: () => {
+	// 				toast.error("Failed to verify email. Please try again.");
+	// 			},
+	// 		});
+	// 	}
+	// };
 
 	// const handleGoBack = () => {
 	// 	setShowPasswordEntry(false);
@@ -89,26 +89,25 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 							</Link>
 						</Button>
 					</div>
-					<SegmentedProgress segments={2} value={showPasswordEntry ? 2 : 1} />
+					{/* <SegmentedProgress segments={2} value={showPasswordEntry ? 2 : 1} /> */}
 					<div className="gap-2 pt-6">
 						<CardTitle className="text-center text-lg md:text-xl">Sign up for Nimbus.storage</CardTitle>
-						<CardDescription className="text-center text-xs md:text-sm">
+						{/* <CardDescription className="text-center text-xs md:text-sm">
 							{!showPasswordEntry ? "Let's create your Nimbus storage account" : "Let's secure your account"}
-						</CardDescription>
+						</CardDescription> */}
 					</div>
 				</CardHeader>
 
 				<CardContent className="px-6">
 					<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-						{!showPasswordEntry && (
-							<>
-								<AuthProviderButtons action="signup" isLoading={isLoading} />
-								<div className="text-muted-foreground text-center font-mono text-sm font-semibold tracking-wider">
+						{/* {!showPasswordEntry && ( */}
+						<AuthProviderButtons action="signup" isLoading={isLoading} />
+						{/* <div className="text-muted-foreground text-center font-mono text-sm font-semibold tracking-wider">
 									OR
-								</div>
-							</>
-						)}
+								</div> */}
 
+						{/* )} */}
+						{/*
 						<div className="grid grid-cols-2 gap-1.5 align-top">
 							<div className="space-y-1">
 								<Label htmlFor="firstName" className="dark:text-muted-foreground text-sm font-semibold">
@@ -218,7 +217,7 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 									{isLoading ? <Loader2 className="animate-spin" /> : "Create Account"}
 								</Button>
 							</div>
-						)}
+						)} */}
 					</form>
 				</CardContent>
 				<CardFooter className="px-6 py-4">

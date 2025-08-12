@@ -9,7 +9,6 @@ import type {
 } from "@nimbus/shared";
 import { getDriveProviderContext } from "../../hono";
 import { TagService } from "../tags/tag-service";
-import type { Readable } from "node:stream";
 
 interface CreateFileOptions {
 	name: string;

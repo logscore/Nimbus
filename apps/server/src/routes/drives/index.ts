@@ -43,7 +43,7 @@ const drivesRouter = createDriveProviderRouter()
 
 			// Check if file is already pinned for this account
 			const firstResult = await c.var.db.query.pinnedFile.findFirst({
-				where: (table, { eq }) => eq(table.userId, user.id),
+				where: (table, { eq }) => eq(table.fileId, fileId),
 			});
 
 			if (firstResult) {

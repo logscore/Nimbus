@@ -4,7 +4,7 @@ import { SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "
 import { Progress } from "@/components/ui/progress";
 import { useDriveInfo } from "@/hooks/useDriveOps";
 import { Moon, Settings, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@nimbus/shared";
 import { useTheme } from "@/hooks/useTheme";
 import { useEffect, useState } from "react";
@@ -64,9 +64,9 @@ export default function StorageFooter() {
 									{fileSizeText(isError, totalSpace)}
 								</div>
 							)}
-							<Button variant="link" className="ml-2 px-2 text-xs font-medium text-neutral-800 dark:text-neutral-300">
+							{/* <Button variant="link" className="ml-2 px-2 text-xs font-medium text-neutral-800 dark:text-neutral-300">
 								Upgrade
-							</Button>
+							</Button> */}
 						</div>
 					</div>
 				</SidebarMenuItem>

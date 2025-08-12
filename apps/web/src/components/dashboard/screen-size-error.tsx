@@ -26,8 +26,9 @@ export default function SmallScreenError() {
 					<h1 className="text-5xl leading-tight font-bold text-white md:text-6xl">Use desktop</h1>
 
 					<p className="mx-auto max-w-lg text-lg text-neutral-400">
-						I don&apos;t have time for mobile because I have a life.
+						Nimbus is optimized for the desktop experience.
 						<br />
+						Please use a desktop browser to experience the best of Nimbus.
 					</p>
 				</div>
 			</div>

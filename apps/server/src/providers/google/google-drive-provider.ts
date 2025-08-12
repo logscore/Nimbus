@@ -100,13 +100,20 @@ export class GoogleDriveProvider implements Provider {
 						}
 					}
 
+					// Create a concrete ArrayBuffer to avoid SharedArrayBuffer typing issues
+					const arrayBufferForBody = (() => {
+						const ab = new ArrayBuffer(contentBuffer.byteLength);
+						new Uint8Array(ab).set(contentBuffer);
+						return ab;
+					})();
+
 					const uploadRes = await fetch(uploadUrl, {
 						method: "PUT",
 						headers: {
 							"Content-Type": mimeType,
 							"Content-Length": String(contentBuffer.byteLength),
 						},
-						body: contentBuffer,
+						body: arrayBufferForBody,
 					});
 
 					if (!uploadRes.ok) {
