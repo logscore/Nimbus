@@ -1,10 +1,10 @@
 "use client";
 
-import { useBoxAuth, useDropboxAuth, useGoogleAuth, useMicrosoftAuth } from "@/hooks/useAuth";
+import { useGoogleAuth, useMicrosoftAuth } from "@/hooks/useAuth";
 import { SocialAuthButton } from "./social-auth-button";
 import type { DriveProvider } from "@nimbus/shared";
-import { Button } from "@/components/ui/button";
-import { Cloud, Loader2 } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -44,8 +44,8 @@ export function AuthProviderButtons({
 
 	const { signInWithGoogleProvider } = useGoogleAuth();
 	const { signInWithMicrosoftProvider } = useMicrosoftAuth();
-	const { signInWithBoxProvider } = useBoxAuth();
-	const { signInWithDropboxProvider } = useDropboxAuth();
+	// const { signInWithBoxProvider } = useBoxAuth();
+	// const { signInWithDropboxProvider } = useDropboxAuth();
 
 	const handleSocialAuth = async (provider: Exclude<DriveProvider, "s3">) => {
 		try {
@@ -61,10 +61,10 @@ export function AuthProviderButtons({
 				await signInWithGoogleProvider({ callbackURL });
 			} else if (provider === "microsoft") {
 				await signInWithMicrosoftProvider({ callbackURL });
-			} else if (provider === "box") {
-				await signInWithBoxProvider({ callbackURL });
-			} else if (provider === "dropbox") {
-				await signInWithDropboxProvider({ callbackURL });
+				// } else if (provider === "box") {
+				// 	await signInWithBoxProvider({ callbackURL });
+				// } else if (provider === "dropbox") {
+				// 	await signInWithDropboxProvider({ callbackURL });
 			}
 
 			onAuthSuccess?.();
@@ -107,7 +107,7 @@ export function AuthProviderButtons({
 			>
 				{getIsLoading("microsoft") && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 			</SocialAuthButton>
-
+			{/* 
 			<SocialAuthButton
 				provider="box"
 				action={action}
@@ -136,7 +136,7 @@ export function AuthProviderButtons({
 					<Cloud className="h-4 w-4" />
 					Amazon S3 / S3-Compatible
 				</Button>
-			)}
+			)} */}
 		</>
 	);
 }

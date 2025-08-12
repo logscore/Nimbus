@@ -1,11 +1,10 @@
 "use client";
 
-import SmallScreenError from "@/components/dashboard/screen-size-error";
 import { FileTable } from "@/components/dashboard/file-browser";
 import { useGetFiles } from "@/hooks/useFileOperations";
 import { Header } from "@/components/dashboard/header";
-import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 export default function DrivePage() {
 	const searchParams = useSearchParams();
@@ -18,22 +17,6 @@ export default function DrivePage() {
 		// TODO: implement sorting, filtering, pagination, and a generalized web content/view interfaces
 		returnedValues: ["id", "name", "mimeType", "size", "modifiedTime", "webContentLink", "webViewLink"],
 	});
-
-	// This prevents screens that are too small from using the app
-	const [isSmallScreen, setIsSmallScreen] = useState(false);
-
-	useEffect(() => {
-		function handleResize() {
-			setIsSmallScreen(window.innerWidth < 700);
-		}
-		handleResize();
-		window.addEventListener("resize", handleResize);
-		return () => window.removeEventListener("resize", handleResize);
-	}, []);
-
-	if (isSmallScreen) {
-		return <SmallScreenError />;
-	}
 
 	return (
 		<>
