@@ -5,9 +5,9 @@ import HeroLight from "@/public/images/hero-light.png";
 import HeroDark from "@/public/images/hero-dark.png";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Header from "@/components/home/header";
+import Footer from "@/components/home/footer";
 import { type Variants } from "motion/react";
 import Image from "next/image";
-import Footer from "./footer";
 
 const transitionVariants: { item: Variants } = {
 	item: {
