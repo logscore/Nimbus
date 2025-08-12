@@ -22,18 +22,9 @@ const userRouter = createProtectedRouter()
 			return sendError(c, { message: "User does not have a default account configured" });
 		}
 
-		const parsedDefaultProvider = driveProviderSchema.safeParse(defaultProviderId);
-		if (!parsedDefaultProvider.success) {
-			return sendError(c, { message: "Invalid default provider" });
-		}
-
 		const account = await c.var.db.query.account.findFirst({
 			where: (table, { and, eq }) =>
-				and(
-					eq(table.userId, user.id),
-					eq(table.providerId, parsedDefaultProvider.data),
-					eq(table.accountId, defaultAccountId)
-				),
+				and(eq(table.userId, user.id), eq(table.providerId, defaultProviderId), eq(table.accountId, defaultAccountId)),
 		});
 
 		if (!account) {

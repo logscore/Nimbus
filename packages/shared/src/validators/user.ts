@@ -1,3 +1,4 @@
+import { driveProviderSchema } from "@nimbus/shared";
 import z from "zod";
 
 export const userSchema = z.object({
@@ -14,7 +15,7 @@ export const userSchema = z.object({
 
 export const updateUserSchema = z.object({
 	defaultAccountId: z.string(),
-	defaultProviderId: z.string(),
+	defaultProviderId: driveProviderSchema,
 });
 
 export type UserSchema = z.infer<typeof userSchema>;
