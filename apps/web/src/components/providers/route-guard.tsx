@@ -31,15 +31,6 @@ export function RouteGuard({ children, requireAuth = false, redirectTo = "/signi
 		}
 	}, [session, isPending, requireAuth, redirectTo, router]);
 
-	// Show loading state while checking auth
-	if (isPending) {
-		return (
-			<div className="flex min-h-screen w-full items-center justify-center">
-				<div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
-			</div>
-		);
-	}
-
 	// Allow rendering if no auth requirement, or if authenticated
 	const isAuthenticated = !!session?.user;
 	const shouldRender = !requireAuth || isAuthenticated;

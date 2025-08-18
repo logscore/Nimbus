@@ -2,7 +2,7 @@
 
 import { DiscordIcon, GitHubIcon, LogoIcon, XPlatformIcon } from "@/components/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ModeToggle } from "@/components/mode-toggle";
+import { authClient } from "@nimbus/auth/auth-client";
 import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import Link from "next/link";
@@ -31,7 +31,7 @@ export default function Header() {
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<Button variant="ghost" aria-label="Discord" className="h-9 w-9">
+						<Button variant="ghost" asChild aria-label="Discord" className="h-9 w-9">
 							<a href="https://discord.gg/c9nWy26ubK" target="_blank" rel="noopener noreferrer">
 								<DiscordIcon />
 							</a>
@@ -59,7 +59,19 @@ export default function Header() {
 					</TooltipTrigger>
 					<TooltipContent>X (Twitter)</TooltipContent>
 				</Tooltip>
-				<ModeToggle />
+				{!authClient.useSession().data?.session ? (
+					<Button asChild aria-label="Sign in">
+						<Link href="/signin" className="ml-4 font-semibold">
+							Sign In
+						</Link>
+					</Button>
+				) : (
+					<Button asChild aria-label="Go to Nimbus dashboard">
+						<Link href="/dashboard" className="font-semibold">
+							Go to Nimbus
+						</Link>
+					</Button>
+				)}
 			</div>
 		</header>
 	);

@@ -3,7 +3,6 @@ import type { Redis as UpstashRedis } from "@upstash/redis/cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import type { Redis as ValkeyRedis } from "iovalkey";
-import { genericOAuth } from "better-auth/plugins";
 import type { RedisClient } from "@nimbus/cache";
 import { sendMail } from "./utils/send-mail";
 import { type DB } from "@nimbus/db";

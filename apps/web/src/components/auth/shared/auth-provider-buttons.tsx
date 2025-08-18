@@ -22,7 +22,6 @@ export function AuthProviderButtons({
 	onProviderClick,
 	isLoading: externalIsLoading,
 	action,
-	showS3Button = false,
 	callbackURL,
 	onAuthSuccess,
 	onS3Click,
@@ -107,7 +106,7 @@ export function AuthProviderButtons({
 			>
 				{getIsLoading("microsoft") && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 			</SocialAuthButton>
-			{/* 
+			{/*
 			<SocialAuthButton
 				provider="box"
 				action={action}

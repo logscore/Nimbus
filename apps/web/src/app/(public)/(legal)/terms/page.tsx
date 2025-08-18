@@ -18,7 +18,7 @@ export default function TermsPage() {
 					<div className="pb-10 text-center">
 						<LegalHeading1>Terms of Service</LegalHeading1>
 					</div>
-					<Card className="border-muted/30 border-2 shadow-none">
+					<Card className="border-2 shadow-none">
 						<CardContent className="space-y-8 p-8 text-base leading-relaxed">
 							<LegalParagraph>
 								These Terms of Service govern your use of the website located at{" "}

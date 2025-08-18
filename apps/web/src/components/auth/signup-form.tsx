@@ -1,16 +1,16 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthProviderButtons } from "@/components/auth/shared/auth-provider-buttons";
 // import { SegmentedProgress } from "@/components/ui/segmented-progress";
 import { signUpSchema, type SignUpFormData } from "@nimbus/shared";
 // import { FieldError } from "@/components/ui/field-error";
 // import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, type ComponentProps } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useSignUp } from "@/hooks/useAuth";
+import { type ComponentProps } from "react";
 // import { Label } from "@/components/ui/label";
 // import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";

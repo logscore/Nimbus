@@ -14,7 +14,6 @@ import { handleUploadError, sendError, sendSuccess } from "../utils";
 import { createDriveProviderRouter } from "../../hono";
 import { zValidator } from "@hono/zod-validator";
 import { FileService } from "./file-service";
-import { Readable } from "node:stream";
 
 const fileService = new FileService();
 const filesRouter = createDriveProviderRouter()

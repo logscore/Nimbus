@@ -24,7 +24,7 @@ export default function PrivacyPage() {
 					<div className="mb-10 text-center">
 						<LegalHeading1>Privacy Policy</LegalHeading1>
 					</div>
-					<Card className="border-muted/30 bg-background/80 border-2 shadow-none">
+					<Card className="border-2 shadow-none">
 						<CardContent className="space-y-8 p-8 text-base leading-relaxed">
 							<LegalParagraph>
 								Your privacy is important to us. It is {COMPANY_NAME}&apos;s policy to respect your privacy and comply

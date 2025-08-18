@@ -10,10 +10,18 @@ export default function Footer() {
 			<div className="mx-auto flex w-full max-w-7xl flex-row items-center justify-center">
 				<div className="text-muted-foreground flex flex-row items-center justify-center gap-2">
 					<LogoIcon className="h-9 w-9" aria-hidden="true" />
-					<Link href="/terms" className="text-xs underline underline-offset-2 md:text-sm">
+					<Link
+						href="https://nimbus.storage/terms"
+						className="text-xs underline underline-offset-2 md:text-sm"
+						aria-label="Terms of Use"
+					>
 						Terms of Use
 					</Link>
-					<Link href="/privacy" className="text-xs underline underline-offset-2 md:text-sm">
+					<Link
+						href="https://nimbus.storage/privacy"
+						className="text-xs underline underline-offset-2 md:text-sm"
+						aria-label="Privacy Policy"
+					>
 						Privacy Policy
 					</Link>
 				</div>
