@@ -46,6 +46,7 @@ export function useBreadcrumbPath(fileId?: string) {
 
 			return breadcrumbs;
 		},
+		enabled: !!fileId || fileId !== "root",
 		placeholderData: prevData => prevData,
 	});
 }
