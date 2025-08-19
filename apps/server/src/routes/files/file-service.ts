@@ -6,10 +6,10 @@ import type {
 	GetFilesSchema,
 	MoveFileSchema,
 	UpdateFileSchema,
+	Tag,
 } from "@nimbus/shared";
 import { getDriveProviderContext } from "../../hono";
 import { TagService } from "../tags/tag-service";
-import type { Readable } from "node:stream";
 
 interface CreateFileOptions {
 	name: string;
@@ -44,19 +44,20 @@ export class FileService {
 			return null;
 		}
 
-		// Add tags to files, handling any tag retrieval failures
-		const filesWithTags = await Promise.all(
-			res.items.map(async item => {
-				if (!item.id) return { ...item, tags: [] };
-				try {
-					const tags = await this.tagService.getFileTags(item.id, user.id);
-					return { ...item, tags };
-				} catch (error) {
-					console.error(`Failed to get tags for file ${item.id}:`, error);
-					return { ...item, tags: [] };
-				}
-			})
-		);
+		// Batch load tags for files to avoid N parallel queries
+		const fileIds = res.items.map(i => i.id).filter((id): id is string => Boolean(id));
+		let tagsByFileId: Record<string, Tag[]> = {};
+		try {
+			// Lazy import type to avoid circular import issues at top
+			tagsByFileId = await this.tagService.getTagsByFileIds(fileIds, user.id);
+		} catch (error) {
+			console.error("Failed to batch get tags for files:", error);
+		}
+
+		const filesWithTags = res.items.map(item => {
+			const tags = item.id ? (tagsByFileId[item.id] ?? []) : [];
+			return { ...item, tags };
+		});
 
 		return filesWithTags as File[];
 	}
@@ -84,7 +85,7 @@ export class FileService {
 		return drive.delete(options.fileId);
 	}
 
-	async createFile(options: CreateFileOptions, fileStream?: Readable) {
+	async createFile(options: CreateFileOptions, fileStream?: Buffer<ArrayBuffer>) {
 		const drive = this.c.var.provider;
 		return drive.create(options, fileStream);
 	}

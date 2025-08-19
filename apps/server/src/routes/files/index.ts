@@ -92,22 +92,18 @@ const filesRouter = createDriveProviderRouter()
 				});
 			}
 
-			// Convert File to Readable stream for upload
 			const arrayBuffer = await file.arrayBuffer();
 			const fileBuffer = Buffer.from(arrayBuffer);
-			const readableStream = new Readable();
-			readableStream.push(fileBuffer);
-			readableStream.push(null); // Signal end of stream
 
 			// Upload with timeout
 			const UPLOAD_TIMEOUT = 5 * 60 * 1000;
 			const uploadPromise = fileService.createFile(
 				{
 					name: file.name,
-					mimeType: file.type,
+					mimeType: file.type || "application/octet-stream",
 					parentId,
 				},
-				readableStream
+				fileBuffer
 			);
 
 			const uploadedFile = await Promise.race([

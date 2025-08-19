@@ -103,10 +103,6 @@ export function createEnv(runtimeEnv: NodeJS.ProcessEnv) {
 		// },
 	});
 
-	console.log(
-		`Loaded env variables. Running in ${env.NODE_ENV.toUpperCase()} mode. IS_EDGE_RUNTIME: ${env.IS_EDGE_RUNTIME}`
-	);
-
 	return env;
 }
 

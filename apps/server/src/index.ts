@@ -2,13 +2,16 @@ import { DRIVE_PROVIDER_HEADERS } from "@nimbus/shared";
 import { contextStorage } from "hono/context-storage";
 import { createPublicRouter } from "./hono";
 import { ContextManager } from "./context";
+import { timeout } from "hono/timeout";
 import { cors } from "hono/cors";
 import routes from "./routes";
 
 const app = createPublicRouter()
 	.use(contextStorage())
 	.use("*", async (c, next) => {
-		const env = ContextManager.getInstance().env;
+		const contextManager = ContextManager.getInstance();
+		const env = contextManager.env;
+		c.set("contextManager", contextManager);
 		c.set("env", env);
 		await next();
 	})
@@ -21,22 +24,26 @@ const app = createPublicRouter()
 			maxAge: 43200, // 12 hours
 		})
 	)
-	.use("*", async (c, next) => {
-		const env = c.var.env;
-		const { db, redisClient, auth } = await ContextManager.getInstance().createContext();
-		c.set("db", db);
-		c.set("redisClient", redisClient);
-		c.set("auth", auth);
-		try {
-			await next();
-		} finally {
-			// WARNING: make sure to add WRANGLER_DEV to .dev.vars for wrangler dev
-			// for local dev, always keep context open UNLESS wrangler dev, close context
-			if (env.IS_EDGE_RUNTIME && (env.NODE_ENV === "production" || env.WRANGLER_DEV)) {
-				await ContextManager.getInstance().close();
+	.use(
+		"*",
+		async (c, next) => {
+			const env = c.var.env;
+			const { db, redisClient, auth } = await c.var.contextManager.createContext();
+			c.set("db", db);
+			c.set("redisClient", redisClient);
+			c.set("auth", auth);
+			try {
+				await next();
+			} finally {
+				// WARNING: make sure to add WRANGLER_DEV to .dev.vars for wrangler dev
+				// for local dev, always keep context open UNLESS wrangler dev, close context
+				if (env.IS_EDGE_RUNTIME && (env.NODE_ENV === "production" || env.WRANGLER_DEV)) {
+					await c.var.contextManager.close();
+				}
 			}
-		}
-	})
+		},
+		timeout(5000)
+	)
 	.get("/kamehame", c => c.text("HAAAAAAAAAAAAAA"))
 	.route("/api", routes);
 
