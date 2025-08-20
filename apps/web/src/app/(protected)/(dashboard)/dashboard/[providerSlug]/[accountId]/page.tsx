@@ -1,6 +1,7 @@
 "use client";
 
 import SmallScreenError from "@/components/dashboard/screen-size-error";
+import DndKitProvider from "@/components/providers/dnd-kit-provider";
 import { FileTable } from "@/components/dashboard/file-browser";
 import { useGetFiles } from "@/hooks/useFileOperations";
 import { Header } from "@/components/dashboard/header";
@@ -38,10 +39,10 @@ export default function DrivePage() {
 	return (
 		<>
 			<Suspense fallback={null}>
-				<Header />
-				<div className="flex flex-1 flex-col">
+				<DndKitProvider parentId={folderId}>
+					<Header />
 					<FileTable files={data || []} isLoading={isLoading} refetch={refetch} error={error} />
-				</div>
+				</DndKitProvider>
 			</Suspense>
 		</>
 	);

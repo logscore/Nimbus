@@ -5,7 +5,7 @@ import type { DriveProviderClient } from "@/utils/client";
 import { handleUnauthorizedError } from "@/utils/client";
 import { useQuery } from "@tanstack/react-query";
 
-interface BreadcrumbItem {
+export interface BreadcrumbItem {
 	id: string;
 	name: string;
 }
@@ -46,7 +46,7 @@ export function useBreadcrumbPath(fileId?: string) {
 
 			return breadcrumbs;
 		},
-		enabled: !!fileId, // Only run the query if fileId exists
+		enabled: !!fileId || fileId !== "root",
 		placeholderData: prevData => prevData,
 	});
 }

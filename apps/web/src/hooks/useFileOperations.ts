@@ -4,6 +4,7 @@ import type {
 	File,
 	GetFileByIdSchema,
 	GetFilesSchema,
+	MoveFileSchema,
 	UpdateFileSchema,
 	UploadFileSchema,
 } from "@nimbus/shared";
@@ -165,11 +166,14 @@ export function useCreateFolder() {
 	});
 }
 
+export const uploadMutationKey = ["uploadFile"];
+
 export function useUploadFile() {
 	const queryClient = useQueryClient();
 	const { clientPromise } = useAccountProvider();
 	return useMutation({
 		// mutationFn: async ({ file, parentId, onProgress }: UploadFileParams) => {
+		mutationKey: uploadMutationKey,
 		mutationFn: async ({ file, parentId }: UploadFileSchema) => {
 			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
 			const response = await handleUnauthorizedError(
@@ -305,6 +309,47 @@ export function useDownloadFile() {
 		onError: error => {
 			console.error("Download error:", error);
 			toast.error(error instanceof Error ? error.message : "Failed to download file");
+		},
+	});
+}
+
+export function useMoveFile() {
+	const queryClient = useQueryClient();
+	const { clientPromise, providerId, accountId } = useAccountProvider();
+	return useMutation({
+		mutationFn: async ({ sourceId, targetParentId, newName }: MoveFileSchema & { parentId: string }) => {
+			const BASE_FILE_CLIENT = await getBaseFileClient(clientPromise);
+			const response = await handleUnauthorizedError(
+				() =>
+					BASE_FILE_CLIENT.move.$post({
+						json: {
+							sourceId,
+							targetParentId,
+							newName,
+						},
+					}),
+				"Failed to move file"
+			);
+			return await response.json();
+		},
+		onMutate: async ({ sourceId, parentId }) => {
+			await queryClient.cancelQueries({ queryKey: ["files", providerId, accountId, parentId] });
+
+			const previousFiles = queryClient.getQueryData<File[]>(["files", providerId, accountId, parentId]);
+
+			queryClient.setQueryData(["files", providerId, accountId, parentId], (old: File[] = []) =>
+				old.filter(file => file.id !== sourceId)
+			);
+
+			return { previousFiles };
+		},
+		onSuccess: async () => {
+			toast.success("File moved successfully");
+		},
+		onError: async (error, { parentId }, context) => {
+			queryClient.setQueryData(["files", providerId, accountId, parentId], context?.previousFiles);
+			console.error("Error moving file:", error);
+			toast.error(error.message ?? "Failed to move file");
 		},
 	});
 }

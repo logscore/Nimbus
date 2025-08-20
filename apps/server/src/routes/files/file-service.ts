@@ -4,6 +4,7 @@ import type {
 	File,
 	GetFileByIdSchema,
 	GetFilesSchema,
+	MoveFileSchema,
 	UpdateFileSchema,
 	Tag,
 } from "@nimbus/shared";
@@ -92,5 +93,10 @@ export class FileService {
 	async downloadFile(options: DownloadFileSchema) {
 		const drive = this.c.var.provider;
 		return drive.download(options.fileId, options);
+	}
+
+	async moveFile(options: MoveFileSchema) {
+		const drive = this.c.var.provider;
+		return drive.move(options.sourceId, options.targetParentId, options.newName);
 	}
 }

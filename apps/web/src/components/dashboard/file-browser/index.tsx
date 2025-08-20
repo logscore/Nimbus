@@ -21,13 +21,16 @@ import {
 	getCoreRowModel,
 	getSortedRowModel,
 	useReactTable,
+	type Row,
 	type SortingState,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useDraggable, useDroppable } from "@dnd-kit/react";
 import React, { useMemo, useState, type JSX } from "react";
 import { UploadButton } from "@/components/upload-button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { pointerIntersection } from "@dnd-kit/collision";
+import DragNDropUploader from "./drag-n-drop-uploader";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@nimbus/shared";
 import { PdfIcon } from "@/components/icons";
@@ -36,6 +39,7 @@ import type { File } from "@nimbus/shared";
 import { useTags } from "@/hooks/useTags";
 import { FileTags } from "./file-tags";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 // Utility function for date formatting
 const formatDate = (dateString: string | null): string => {
@@ -284,92 +288,135 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 	});
 
 	return (
-		<div className="flex flex-1 flex-col justify-end">
-			<ScrollArea className="h-[740px] w-full px-2">
-				<Table>
-					<TableHeader className="hover:bg-transparent">
-						{table.getHeaderGroups().map(headerGroup => (
-							<TableRow key={headerGroup.id} className="h-6 hover:bg-transparent">
-								{headerGroup.headers.map(header => (
-									<TableHead
-										key={header.id}
-										className="whitespace-nowrap"
-										style={{
-											width:
-												header.id === "tags" || header.id === "size" || header.id === "modifiedTime"
-													? `${header.getSize()}px`
-													: undefined,
-										}}
-									>
-										{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-									</TableHead>
-								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					{error ? (
-						<TableBody>
-							<TableRow className="hover:bg-transparent">
-								<TableCell colSpan={columns.length} className="h-[600px]">
-									<div className="flex h-full flex-col items-center justify-center gap-3">
-										<h3>An error occured when getting your files. Please try again</h3>
-										<Button variant="outline" onClick={refetch}>
-											Try again
-										</Button>
-									</div>
-								</TableCell>
-							</TableRow>
-						</TableBody>
-					) : isLoading ? (
-						<TableBody>
-							<TableRow className="hover:bg-transparent">
-								<TableCell colSpan={columns.length} className="h-[600px]">
-									<div className="flex h-full flex-col items-center justify-center gap-2">
-										<Loader2 className="h-6 w-6 animate-spin" />
-										<p>Loading files</p>
-									</div>
-								</TableCell>
-							</TableRow>
-						</TableBody>
-					) : table.getRowModel().rows.length === 0 ? (
-						<TableBody>
-							<TableRow className="hover:bg-transparent">
-								<TableCell colSpan={columns.length} className="h-[600px]">
-									<div className="flex h-full flex-col items-center justify-center gap-2">
-										<p>No files found. Lets add one!</p>
-										<UploadButton name="Add File" />
-									</div>
-								</TableCell>
-							</TableRow>
-						</TableBody>
-					) : (
-						<TableBody>
-							{table.getRowModel().rows.map(row => (
-								<TableRow
-									key={row.id}
-									className="h-8 hover:bg-transparent"
-									onDoubleClick={() => handleRowDoubleClick(row.original)}
-								>
-									{row.getVisibleCells().map(cell => (
-										<TableCell
-											key={cell.id}
-											className="h-10 py-0 whitespace-nowrap"
+		<div className="relative flex h-full w-full flex-col justify-start">
+			<DragNDropUploader>
+				{/* h-0 is required to make the table scrollable */}
+				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar scrollbar-thumb-accent/70 scrollbar-track-transparent scrollbar-hover:scrollbar-thumb-accent scrollbar-w-2 scrollbar-h-2 h-0 min-h-full w-full overflow-auto overflow-y-scroll pb-5">
+					<Table>
+						<TableHeader className="hover:bg-transparent">
+							{table.getHeaderGroups().map(headerGroup => (
+								<TableRow key={headerGroup.id} className="h-6 hover:bg-transparent">
+									{headerGroup.headers.map(header => (
+										<TableHead
+											key={header.id}
+											className="whitespace-nowrap"
 											style={{
-												width: cell.column.id === "tags" || cell.column.id === "actions" ? "50px" : undefined,
+												width:
+													header.id === "tags" || header.id === "size" || header.id === "modifiedTime"
+														? `${header.getSize()}px`
+														: undefined,
 											}}
 										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
+											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+										</TableHead>
 									))}
 								</TableRow>
 							))}
-						</TableBody>
-					)}
-				</Table>
-			</ScrollArea>
+						</TableHeader>
+						{error ? (
+							<TableBody>
+								<TableRow className="hover:bg-transparent">
+									<TableCell colSpan={columns.length} className="h-[600px]">
+										<div className="flex h-full flex-col items-center justify-center gap-3">
+											<h3>An error occured when getting your files. Please try again</h3>
+											<Button variant="outline" onClick={refetch}>
+												Try again
+											</Button>
+										</div>
+									</TableCell>
+								</TableRow>
+							</TableBody>
+						) : isLoading ? (
+							<TableBody>
+								<TableRow className="hover:bg-transparent">
+									<TableCell colSpan={columns.length} className="h-[600px]">
+										<div className="flex h-full flex-col items-center justify-center gap-2">
+											<Loader2 className="h-6 w-6 animate-spin" />
+											<p>Loading files</p>
+										</div>
+									</TableCell>
+								</TableRow>
+							</TableBody>
+						) : table.getRowModel().rows.length === 0 ? (
+							<TableBody>
+								<TableRow className="hover:bg-transparent">
+									<TableCell colSpan={columns.length} className="h-[600px]">
+										<div className="flex h-full flex-col items-center justify-center gap-2">
+											<p>No files found. Lets add one!</p>
+											<UploadButton name="Add File" />
+										</div>
+									</TableCell>
+								</TableRow>
+							</TableBody>
+						) : (
+							<TableBody className="border-spacing-2">
+								{table.getRowModel().rows.map(row => (
+									<DroppableTableRow key={row.id} row={row} handleRowDoubleClick={handleRowDoubleClick} />
+								))}
+							</TableBody>
+						)}
+					</Table>
+				</div>
+			</DragNDropUploader>
 		</div>
 	);
 }
+
+function DroppableTableRow({
+	row,
+	handleRowDoubleClick,
+}: {
+	row: Row<File>;
+	handleRowDoubleClick: (file: File) => void;
+}) {
+	const { ref: droppableRef, isDropTarget } = useDroppable({
+		id: `droppable-${row.id}`,
+		accept: "files",
+		data: { id: row.original.id },
+		collisionDetector: pointerIntersection,
+	});
+
+	const { ref: draggableRef, isDragging } = useDraggable({
+		id: `draggable-${row.id}`,
+		type: "files",
+		data: { id: row.original.id, parentId: row.original.parentId },
+	});
+
+	const isFolder = row.original.type === "folder" || row.original.mimeType.includes("folder");
+
+	return (
+		<>
+			<TableRow
+				className={cn(
+					"h-8 rounded-md transition-all hover:bg-transparent",
+					isDragging && "z-[100] scale-x-90 rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500",
+					isDropTarget && "scale-x-95 rounded-md bg-blue-500/20 text-blue-500 ring-2 ring-blue-500"
+				)}
+				onDoubleClick={() => handleRowDoubleClick(row.original)}
+				ref={node => {
+					if (isFolder) {
+						droppableRef(node);
+					}
+					draggableRef(node);
+				}}
+			>
+				{row.getVisibleCells().map(cell => (
+					<TableCell
+						key={cell.id}
+						className="h-10 py-0 whitespace-nowrap"
+						style={{
+							width: cell.column.id === "tags" || cell.column.id === "actions" ? "50px" : undefined,
+						}}
+					>
+						{flexRender(cell.column.columnDef.cell, cell.getContext())}
+					</TableCell>
+				))}
+			</TableRow>
+		</>
+	);
+}
+
+export default DroppableTableRow;
 
 /**
  * Get modern Lucide React icon for file type
