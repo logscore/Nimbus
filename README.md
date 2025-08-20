@@ -1,6 +1,6 @@
 # Nimbus cloud storage
 
-![Coverage](https://img.shields.io/badge/coverage-9%25-red)
+![Coverage](https://img.shields.io/badge/coverage-8%25-red)
 
 A better cloud
 
