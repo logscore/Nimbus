@@ -12,7 +12,7 @@ import { useUnlinkAccount } from "@/hooks/useUnlinkAccount";
 import { protectedClient } from "@/utils/client";
 
 import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
-import { SecuritySection } from "@/components/settings/security-section";
+// import { SecuritySection } from "@/components/settings/security-section";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { SettingsHeader } from "@/components/settings/header";
 
@@ -176,7 +176,7 @@ export default function SettingsPage() {
 					onUpdateAccount={handleUpdateAccount}
 				/>
 
-				<SecuritySection />
+				{/*<SecuritySection />*/}
 			</div>
 		</div>
 	);

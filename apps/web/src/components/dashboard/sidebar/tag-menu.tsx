@@ -92,9 +92,9 @@ export default function TagMenu() {
 						<div className="text-muted-foreground px-3 py-2 text-xs">Your tags seems empty.</div>
 					) : isLoading ? (
 						<>
-							<Skeleton className="mb-1 h-6 w-full bg-neutral-200 dark:bg-neutral-700" />
-							<Skeleton className="mb-1 h-6 w-full bg-neutral-200 dark:bg-neutral-700" />
-							<Skeleton className="mb-1 h-6 w-full bg-neutral-200 dark:bg-neutral-700" />
+							<Skeleton className="mb-2 h-6 w-full bg-neutral-200 dark:bg-neutral-700" />
+							<Skeleton className="mb-2 h-6 w-full bg-neutral-200 dark:bg-neutral-700" />
+							<Skeleton className="mb-2 h-6 w-full bg-neutral-200 dark:bg-neutral-700" />
 						</>
 					) : (
 						<TagTree

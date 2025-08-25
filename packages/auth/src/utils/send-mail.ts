@@ -2,7 +2,7 @@ import type { Resend } from "resend";
 
 interface EmailContext {
 	resend: Resend;
-	from: string;
+	from: string | undefined;
 }
 
 interface SendMailOptions {

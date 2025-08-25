@@ -2,7 +2,7 @@ import { type Account, type AuthContext, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import { cacheClient, type CacheClient } from "@nimbus/cache";
-import { genericOAuth } from "better-auth/plugins";
+// import { genericOAuth } from "better-auth/plugins";
 import { sendMail } from "./utils/send-mail";
 import { env } from "@nimbus/env/server";
 import { db, type DB } from "@nimbus/db";
@@ -41,7 +41,7 @@ export const auth = betterAuth({
 	}),
 
 	emailAndPassword: {
-		enabled: true,
+		enabled: false,
 		autoSignIn: true,
 		minPasswordLength: 8,
 		maxPasswordLength: 100,
@@ -102,33 +102,33 @@ export const auth = betterAuth({
 			prompt: "select_account",
 		},
 
-		dropbox: {
-			clientId: env.DROPBOX_CLIENT_ID as string,
-			clientSecret: env.DROPBOX_CLIENT_SECRET as string,
-			scope: ["files.metadata.read", "files.content.read", "files.content.write", "sharing.read"],
-		},
+		// dropbox: {
+		// 	clientId: env.DROPBOX_CLIENT_ID as string,
+		// 	clientSecret: env.DROPBOX_CLIENT_SECRET as string,
+		// 	scope: ["files.metadata.read", "files.content.read", "files.content.write", "sharing.read"],
+		// },
 	},
 
-	plugins: [
-		genericOAuth({
-			config: [
-				{
-					providerId: "box",
-					clientId: env.BOX_CLIENT_ID,
-					clientSecret: env.BOX_CLIENT_SECRET,
-					authorizationUrl: "https://account.box.com/api/oauth2/authorize",
-					tokenUrl: "https://api.box.com/oauth2/token",
-					userInfoUrl: "https://api.box.com/2.0/users/me",
-					mapProfileToUser: profile => ({
-						id: profile.id,
-						name: profile.name,
-						email: profile.login,
-					}),
-					scopes: ["root_readwrite", "manage_app_users"],
-				},
-			],
-		}),
-	],
+	// plugins: [
+	// 	genericOAuth({
+	// 		config: [
+	// 			{
+	// 				providerId: "box",
+	// 				clientId: env.BOX_CLIENT_ID,
+	// 				clientSecret: env.BOX_CLIENT_SECRET,
+	// 				authorizationUrl: "https://account.box.com/api/oauth2/authorize",
+	// 				tokenUrl: "https://api.box.com/oauth2/token",
+	// 				userInfoUrl: "https://api.box.com/2.0/users/me",
+	// 				mapProfileToUser: profile => ({
+	// 					id: profile.id,
+	// 					name: profile.name,
+	// 					email: profile.login,
+	// 				}),
+	// 				scopes: ["root_readwrite", "manage_app_users"],
+	// 			},
+	// 		],
+	// 	}),
+	// ],
 
 	secondaryStorage: {
 		// better-auth expects a JSON string
@@ -173,7 +173,7 @@ export const auth = betterAuth({
 			},
 		},
 		changeEmail: {
-			enabled: true,
+			enabled: false,
 			sendChangeEmailVerification: async ({ user, newEmail, url }) => {
 				// const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
 				// const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;

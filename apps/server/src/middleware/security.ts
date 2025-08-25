@@ -35,7 +35,9 @@ const getClientIp = (c: Context): string => {
 		return realIp.trim();
 	}
 
-	return `unidentifiable-${webcrypto.randomUUID()}`;
+	return "unidentifiable";
+	// Gotta block for now, can't let unknown IP addresses through
+	// return `unidentifiable-${webcrypto.randomUUID()}`;
 };
 
 export const securityMiddleware = (options: SecurityOptions = {}) => {
