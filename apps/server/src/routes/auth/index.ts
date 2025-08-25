@@ -1,11 +1,13 @@
 import { emailObjectSchema, type CheckEmailExists } from "@nimbus/shared";
 import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
-import { createPublicRouter } from "../../hono";
+import { type HonoContext } from "../../hono";
+import { auth } from "@nimbus/auth/auth";
+import { Hono } from "hono";
 
 // TODO(rate-limiting): implement for auth
 
-const authRouter = createPublicRouter()
+const authRouter = new Hono<{ Variables: HonoContext }>()
 	.post("/check-email", zValidator("json", emailObjectSchema), async c => {
 		try {
 			const email = c.req.valid("json").email;
@@ -27,7 +29,7 @@ const authRouter = createPublicRouter()
 	// Better Auth handler for all other auth routes
 	.on(["POST", "GET"], "/*", async c => {
 		try {
-			return c.var.auth.handler(c.req.raw);
+			return auth.handler(c.req.raw);
 		} catch (error) {
 			console.error("Auth handler error:", error);
 			return sendError(c);

@@ -1,6 +1,5 @@
 import {
 	type DriveProvider,
-	type DriveProviderHeaders,
 	type DriveProviderSlug,
 	type DriveProviderSlugParam,
 	providerToSlug,
@@ -23,7 +22,7 @@ const createClient = (providerId: string | null, accountId: string | null): Prom
 		return new Promise<DriveProviderClient>(() => {});
 	}
 
-	const headers: DriveProviderHeaders = {
+	const headers = {
 		"X-Provider-Id": providerId,
 		"X-Account-Id": accountId,
 	};

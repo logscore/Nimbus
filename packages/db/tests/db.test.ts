@@ -25,7 +25,6 @@ const { Pool: MockPool } = pg;
 describe("Database Connection Tests", () => {
 	const testDatabaseUrl = "postgresql://testuser:testpass@localhost:5432/testdb";
 	const baseEnv: DatabaseEnv = {
-		IS_EDGE_RUNTIME: false,
 		NODE_ENV: "test",
 		DATABASE_URL: testDatabaseUrl,
 	};
@@ -70,13 +69,13 @@ describe("Database Connection Tests", () => {
 	});
 
 	describe("Environment-specific database creation", () => {
-		it("should use postgres-js in edge environment", () => {
-			const edgeEnv = { ...baseEnv, IS_EDGE_RUNTIME: true };
-			createDb(edgeEnv);
-			expect(mockPostgres).toHaveBeenCalledWith(edgeEnv.DATABASE_URL, { prepare: false });
+		it("should use postgres-js in development environment", () => {
+			const devEnv = { ...baseEnv, NODE_ENV: "development" };
+			createDb(devEnv);
+			expect(mockPostgres).toHaveBeenCalledWith(devEnv.DATABASE_URL, { prepare: false });
 		});
 
-		it("should use pg.Pool in node environment", () => {
+		it("should use pg.Pool in production environment", () => {
 			const nodeEnv = { ...baseEnv, NODE_ENV: "production" };
 			createDb(nodeEnv);
 			expect(MockPool).toHaveBeenCalledWith({ connectionString: nodeEnv.DATABASE_URL });

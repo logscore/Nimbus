@@ -1,7 +1,6 @@
-// TODO:(analytics): add posthog
-
 import { ReactQueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { PHProvider } from "@/components/providers/posthog-provider";
 import { AppProviders } from "@/components/providers/app-providers";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -83,17 +82,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 				className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} antialiased`}
 				suppressHydrationWarning
 			>
-				<ReactQueryProvider>
-					<AppProviders>
-						<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-							<div className="relative min-h-screen">
-								<main className="flex h-full w-full justify-center">{children}</main>
-								<Toaster position="top-center" richColors theme="system" />
-							</div>
-						</ThemeProvider>
-					</AppProviders>
-					<ReactQueryDevtools initialIsOpen={false} />
-				</ReactQueryProvider>
+				<PHProvider>
+					<ReactQueryProvider>
+						<AppProviders>
+							<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+								<div className="relative min-h-screen">
+									<main className="flex h-full w-full justify-center">{children}</main>
+									<Toaster position="top-center" richColors theme="system" />
+								</div>
+							</ThemeProvider>
+						</AppProviders>
+						<ReactQueryDevtools initialIsOpen={false} />
+					</ReactQueryProvider>
+				</PHProvider>
 			</body>
 		</html>
 	);

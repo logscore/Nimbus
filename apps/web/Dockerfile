@@ -11,6 +11,7 @@ ENV NEXT_PUBLIC_FRONTEND_URL=${NEXT_PUBLIC_FRONTEND_URL}
 # Copy package files for dependency installation
 COPY package.json bun.lock ./
 COPY apps/web/package.json ./apps/web/
+COPY apps/server/package.json ./apps/server/
 COPY packages/ ./packages/
 
 # Install dependencies

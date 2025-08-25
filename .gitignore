@@ -19,14 +19,11 @@ dist
 **/coverage-summary.json
 
 # next.js
-/.next/
-/out/
-.open-next
+.next/
+out/
 
 # production
 /build
-.wrangler
-.open-next
 
 # misc
 .DS_Store
@@ -46,14 +43,9 @@ yarn-error.log*
 .env.local
 .env*disabled
 
-# cloudflare env
-.dev.vars
-.dev.vars.preview
-.dev.vars.staging
-.dev.vars.production
-
 # vercel
 .vercel
+.turbo
 
 # typescript
 *.tsbuildinfo

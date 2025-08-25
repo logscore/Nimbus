@@ -7,12 +7,13 @@ import {
 	type SignInFormData,
 	type SignUpFormData,
 } from "@nimbus/shared";
-import { authClient, BASE_CALLBACK_URL } from "@nimbus/auth/auth-client";
 import { useSearchParamsSafely } from "@/hooks/useSearchParamsSafely";
+import { authClient } from "@nimbus/auth/auth-client";
 import { useMutation } from "@tanstack/react-query";
 import { publicClient } from "@/utils/client";
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import env from "@nimbus/env/client";
 import { toast } from "sonner";
 
 interface AuthState {
@@ -23,11 +24,14 @@ interface AuthState {
 const signInWithProvider = async (provider: DriveProvider) => {
 	return authClient.signIn.social({
 		provider,
-		callbackURL: BASE_CALLBACK_URL,
+		callbackURL: `${env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
 	});
 };
 
-const linkSessionWithProvider = async (provider: DriveProvider, callbackURL: string = BASE_CALLBACK_URL) => {
+const linkSessionWithProvider = async (
+	provider: DriveProvider,
+	callbackURL: string = `${env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`
+) => {
 	return authClient.linkSocial({
 		provider,
 		callbackURL,
@@ -196,7 +200,7 @@ export const useSignUp = () => {
 				name: fullName,
 				email: data.email,
 				password: data.password,
-				callbackURL: BASE_CALLBACK_URL,
+				callbackURL: `${env.NEXT_PUBLIC_FRONTEND_URL}/dashboard`,
 			});
 			redirectToDashboard();
 		},

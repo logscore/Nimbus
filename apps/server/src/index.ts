@@ -1,52 +1,64 @@
-import { DRIVE_PROVIDER_HEADERS } from "@nimbus/shared";
 import { contextStorage } from "hono/context-storage";
+import { cacheClient } from "@nimbus/cache";
 import { createPublicRouter } from "./hono";
-import { ContextManager } from "./context";
+import { serve } from "@hono/node-server";
+import { env } from "@nimbus/env/server";
+import { auth } from "@nimbus/auth/auth";
 import { cors } from "hono/cors";
+import { db } from "@nimbus/db";
 import routes from "./routes";
 
 const app = createPublicRouter()
 	.use(contextStorage())
-	.use("*", async (c, next) => {
-		const env = ContextManager.getInstance().env;
-		c.set("env", env);
-		await next();
-	})
 	.use(
 		cors({
-			origin: (_origin, c) => c.var.env.TRUSTED_ORIGINS,
+			origin: env.TRUSTED_ORIGINS,
 			credentials: true,
-			allowHeaders: ["Content-Type", "Authorization", ...DRIVE_PROVIDER_HEADERS],
+			allowHeaders: ["Content-Type", "Authorization", "X-Provider-Id", "X-Account-Id"],
 			allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 			maxAge: 43200, // 12 hours
 		})
 	)
 	.use("*", async (c, next) => {
-		const env = c.var.env;
-		const { db, redisClient, auth } = await ContextManager.getInstance().createContext();
-		c.set("db", db);
-		c.set("redisClient", redisClient);
-		c.set("auth", auth);
-		try {
-			await next();
-		} finally {
-			// WARNING: make sure to add WRANGLER_DEV to .dev.vars for wrangler dev
-			// for local dev, always keep context open UNLESS wrangler dev, close context
-			if (env.IS_EDGE_RUNTIME && (env.NODE_ENV === "production" || env.WRANGLER_DEV)) {
-				await ContextManager.getInstance().close();
-			}
+		const session = await auth.api.getSession({ headers: c.req.raw.headers });
+
+		if (!session) {
+			c.set("user", null);
+			c.set("session", null);
+			return next();
 		}
+
+		c.set("user", session.user);
+		c.set("session", session.session);
+		c.set("db", db);
+		c.set("cache", cacheClient);
+		c.set("auth", auth);
+		await next();
 	})
-	.get("/kamehame", c => c.text("HAAAAAAAAAAAAAA"))
+	.get("/health", c => {
+		c.status(200);
+		return c.text("OK");
+	})
 	.route("/api", routes);
 
 export type AppType = typeof app;
 
-const handler = {
-	port: process.env.SERVER_PORT,
-	async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
-		return app.fetch(request, env, ctx);
-	},
-};
+const server = serve({
+	fetch: app.fetch,
+	port: env.SERVER_PORT,
+});
 
-export default handler;
+// graceful shutdown
+process.on("SIGINT", () => {
+	server.close();
+	process.exit(0);
+});
+process.on("SIGTERM", () => {
+	server.close(err => {
+		if (err) {
+			console.error(err);
+			process.exit(1);
+		}
+		process.exit(0);
+	});
+});

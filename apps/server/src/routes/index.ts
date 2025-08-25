@@ -1,4 +1,3 @@
-import { createDriveProviderRouter, createProtectedRouter, createPublicRouter } from "../hono";
 import type { Provider } from "../providers/interface/provider";
 import { OneDriveProvider } from "../providers/microsoft";
 import { GoogleDriveProvider } from "../providers/google";
@@ -8,6 +7,8 @@ import { driveProviderSchema } from "@nimbus/shared";
 import { BoxProvider } from "../providers/box";
 import { decrypt } from "../utils/encryption";
 import { S3Provider } from "../providers/s3";
+import { type HonoContext } from "../hono";
+import { env } from "@nimbus/env/server";
 import waitlistRoutes from "./waitlist";
 import accountRouter from "./account";
 import drivesRoutes from "./drives";
@@ -15,12 +16,14 @@ import filesRoutes from "./files";
 import userRouter from "./user";
 import tagsRoutes from "./tags";
 import authRoutes from "./auth";
+import { Hono } from "hono";
 
-const driveProviderPaths = ["/files", "/drives", "/tags"] as const;
-const driveProviderRouters = [filesRoutes, drivesRoutes, tagsRoutes] as const;
-const driveProviderRouter = createDriveProviderRouter()
+const driveRouter = new Hono<{ Variables: HonoContext }>()
 	.use("*", async (c, next) => {
-		const userId = c.var.user.id;
+		const user = c.var.user;
+		if (!user) {
+			return sendUnauthorized(c, "Unauthorized");
+		}
 		const providerIdHeader = decodeURIComponent(c.req.header("X-Provider-Id") || "");
 		const accountIdHeader = decodeURIComponent(c.req.header("X-Account-Id") || "");
 
@@ -31,7 +34,7 @@ const driveProviderRouter = createDriveProviderRouter()
 		const account = await c.var.db.query.account.findFirst({
 			where: (table, { and, eq }) =>
 				and(
-					eq(table.userId, userId),
+					eq(table.userId, user.id),
 					eq(table.providerId, parsedProviderId.data),
 					eq(table.accountId, accountIdHeader)
 				),
@@ -87,7 +90,7 @@ const driveProviderRouter = createDriveProviderRouter()
 				} else if (parsedProviderName.data === "microsoft") {
 					provider = new OneDriveProvider(accessToken);
 				} else if (parsedProviderName.data === "box") {
-					provider = new BoxProvider(accessToken, c.var.env.BOX_CLIENT_ID, c.var.env.BOX_CLIENT_SECRET);
+					provider = new BoxProvider(accessToken, env.BOX_CLIENT_ID, env.BOX_CLIENT_SECRET);
 				} else if (parsedProviderName.data === "dropbox") {
 					provider = new DropboxProvider(accessToken);
 				} else {
@@ -105,13 +108,11 @@ const driveProviderRouter = createDriveProviderRouter()
 
 		await next();
 	})
-	.route(driveProviderPaths[0], driveProviderRouters[0])
-	.route(driveProviderPaths[1], driveProviderRouters[1])
-	.route(driveProviderPaths[2], driveProviderRouters[2]);
+	.route("/files", filesRoutes)
+	.route("/drives", drivesRoutes)
+	.route("/tags", tagsRoutes);
 
-const protectedPaths = ["/user", "/account"] as const;
-const protectedRouters = [userRouter, accountRouter] as const;
-const protectedRouter = createProtectedRouter()
+const protectedRouter = new Hono<{ Variables: HonoContext }>()
 	.use("*", async (c, next) => {
 		const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
 		const user = session?.user;
@@ -121,15 +122,13 @@ const protectedRouter = createProtectedRouter()
 		c.set("user", user);
 		await next();
 	})
-	.route(protectedPaths[0], protectedRouters[0])
-	.route(protectedPaths[1], protectedRouters[1])
-	.route("/", driveProviderRouter);
+	.route("/user", userRouter)
+	.route("/account", accountRouter)
+	.route("/", driveRouter);
 
-const publicPaths = ["/auth", "/waitlist"] as const;
-const publicRouters = [authRoutes, waitlistRoutes] as const;
-const routes = createPublicRouter()
-	.route(publicPaths[0], publicRouters[0])
-	.route(publicPaths[1], publicRouters[1])
+const apiRoutes = new Hono<{ Variables: HonoContext }>()
+	.route("/auth", authRoutes)
+	.route("/waitlist", waitlistRoutes)
 	.route("/", protectedRouter);
 
-export default routes;
+export default apiRoutes;

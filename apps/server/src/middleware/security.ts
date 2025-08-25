@@ -1,7 +1,6 @@
-import { createRateLimiter, type CreateRateLimiterContext } from "@nimbus/cache/rate-limiters";
-import type { RateLimiter } from "@nimbus/cache";
+import { RateLimiterRedis as ValkeyRateLimit } from "rate-limiter-flexible";
+import { type Context, type Next } from "hono";
 import { sendError } from "../routes/utils";
-import type { Context, Next } from "hono";
 import { webcrypto } from "node:crypto";
 
 /**
@@ -10,19 +9,9 @@ import { webcrypto } from "node:crypto";
 interface SecurityOptions {
 	rateLimiting?: {
 		enabled: boolean;
-		rateLimiter: (c: Context) => RateLimiter;
+		rateLimiter: (c: Context) => ValkeyRateLimit;
 	};
 	securityHeaders?: boolean;
-}
-
-export function buildSecurityMiddleware(ctx: CreateRateLimiterContext) {
-	return securityMiddleware({
-		rateLimiting: {
-			enabled: true,
-			rateLimiter: _c => createRateLimiter(ctx),
-		},
-		securityHeaders: true,
-	});
 }
 
 /**
@@ -49,7 +38,7 @@ const getClientIp = (c: Context): string => {
 	return `unidentifiable-${webcrypto.randomUUID()}`;
 };
 
-const securityMiddleware = (options: SecurityOptions = {}) => {
+export const securityMiddleware = (options: SecurityOptions = {}) => {
 	const {
 		rateLimiting = {
 			enabled: options.rateLimiting?.enabled ?? true,
@@ -115,31 +104,12 @@ const securityMiddleware = (options: SecurityOptions = {}) => {
 
 			try {
 				const limiter = rateLimiting.rateLimiter(c);
-				if ("limit" in limiter) {
-					// Handle Upstash limit
-					const result = await limiter.limit(identifier);
-					if (!result.success) {
-						const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
-						c.header("Retry-After", retryAfter.toString());
-						return c.json(
-							{
-								success: false,
-								error: "Too many requests",
-								retryAfter: `${retryAfter} seconds`,
-							},
-							429
-						);
-					}
-				} else {
-					// Handle Valkey limit
-					await limiter.consume(identifier);
-				}
+				await limiter.consume(identifier);
 			} catch (error: any) {
 				console.error("Rate limiter error:", error);
 
-				// Handle different types of rate limit errors
+				// Handle rate limit exceeded error for Valkey
 				if (error.remaining === 0 || error.msBeforeNext) {
-					// This is a rate limit exceeded error for Valkey
 					const retryAfter = Math.ceil((error.msBeforeNext || 60000) / 1000);
 					c.header("Retry-After", retryAfter.toString());
 					return c.json(

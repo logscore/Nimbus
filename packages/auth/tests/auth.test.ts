@@ -1,5 +1,5 @@
 import { dbMock, mockFindFirst, mockSet, mockUpdate, mockWhere } from "@nimbus/db/mock";
-import { afterAccountCreation, createAuth, type AuthEnv } from "../src/auth";
+import { afterAccountCreation, auth, type Auth } from "../src/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RedisClient } from "@nimbus/cache";
 import { mock } from "vitest-mock-extended";
@@ -45,25 +45,6 @@ vi.mock("../src/utils/send-mail", () => ({
 // TESTS
 describe("createAuth", () => {
 	it("should return a valid auth object", () => {
-		const mockEnv: AuthEnv = {
-			GOOGLE_CLIENT_ID: "test_google_client_id",
-			GOOGLE_CLIENT_SECRET: "test_google_client_secret",
-			MICROSOFT_CLIENT_ID: "test_ms_client_id",
-			MICROSOFT_CLIENT_SECRET: "test_ms_client_secret",
-			BOX_CLIENT_ID: "test_box_client_id",
-			BOX_CLIENT_SECRET: "test_box_client_secret",
-			DROPBOX_CLIENT_ID: "test_dropbox_client_id",
-			DROPBOX_CLIENT_SECRET: "test_dropbox_client_secret",
-			EMAIL_FROM: "test@example.com",
-			BACKEND_URL: "http://localhost:3000",
-			TRUSTED_ORIGINS: ["http://localhost:3000"],
-			IS_EDGE_RUNTIME: false,
-		};
-
-		const mockRedis = mock<RedisClient>();
-		const mockResend = mock<Resend>();
-
-		const auth = createAuth(mockEnv, dbMock, mockRedis, mockResend);
 		expect(auth).toBeDefined();
 		expect(betterAuth).toHaveBeenCalled();
 	});

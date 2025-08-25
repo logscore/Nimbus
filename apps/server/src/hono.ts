@@ -1,22 +1,28 @@
+import type { auth, Auth, SessionUser } from "@nimbus/auth/auth";
 import type { Provider } from "./providers/interface/provider";
-import type { Auth, SessionUser } from "@nimbus/auth/auth";
 import { getContext } from "hono/context-storage";
-import type { RedisClient } from "@nimbus/cache";
+import type { CacheClient } from "@nimbus/cache";
 import { Hono, type Env as HonoEnv } from "hono";
-import type { Env } from "@nimbus/env/server";
 import type { DB } from "@nimbus/db";
 
 export interface BaseRouterVars {
-	env: Env;
-}
-
-export interface PublicRouterVars extends BaseRouterVars {
+	user: typeof auth.$Infer.Session.user | null;
+	session: typeof auth.$Infer.Session.session | null;
 	db: DB;
-	redisClient: RedisClient;
+	cache: CacheClient;
 	auth: Auth;
 }
 
-export interface ProtectedRouterVars extends PublicRouterVars {
+export interface HonoContext {
+	user: typeof auth.$Infer.Session.user | null;
+	session: typeof auth.$Infer.Session.session | null;
+	db: DB;
+	cache: CacheClient;
+	auth: Auth;
+	provider: Provider;
+}
+
+export interface ProtectedRouterVars extends BaseRouterVars {
 	user: SessionUser;
 }
 
@@ -25,7 +31,7 @@ export interface DriveProviderRouterVars extends ProtectedRouterVars {
 }
 
 export interface PublicRouterEnv {
-	Variables: PublicRouterVars;
+	Variables: BaseRouterVars;
 }
 
 export interface ProtectedRouterEnv {

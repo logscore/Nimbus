@@ -1,12 +1,12 @@
 import { createEnv } from "@t3-oss/env-core";
-import BASE_ENV from "./base";
 import { z } from "zod";
 
 export const env = createEnv({
-	...BASE_ENV,
 	runtimeEnv: {
 		NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
 		NEXT_PUBLIC_FRONTEND_URL: process.env.NEXT_PUBLIC_FRONTEND_URL,
+		NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+		NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
 	},
 
 	clientPrefix: "NEXT_PUBLIC_",
@@ -14,8 +14,9 @@ export const env = createEnv({
 		// Client-side environment variables
 		NEXT_PUBLIC_BACKEND_URL: z.url(),
 		NEXT_PUBLIC_FRONTEND_URL: z.url(),
+		NEXT_PUBLIC_POSTHOG_KEY: z.string(),
+		NEXT_PUBLIC_POSTHOG_HOST: z.string(),
 	},
 });
 
-// Export the typed environment variables
 export default env;
