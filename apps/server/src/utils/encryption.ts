@@ -59,6 +59,7 @@ export function decrypt(encryptedText: string): string {
 	return encryptedText;
 }
 
+// ! THIS IS NEVER USED, FIGURE OUT WHAT TO DO WITH IT OR REMOVE IT
 /**
  * Determines if text is in encrypted format
  */

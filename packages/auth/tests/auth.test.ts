@@ -1,10 +1,7 @@
 import { dbMock, mockFindFirst, mockSet, mockUpdate, mockWhere } from "@nimbus/db/mock";
-import { afterAccountCreation, auth, type Auth } from "../src/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { RedisClient } from "@nimbus/cache";
-import { mock } from "vitest-mock-extended";
+import { afterAccountCreation, auth } from "../src/auth";
 import { betterAuth } from "better-auth";
-import type { Resend } from "resend";
 
 // Mock better-auth
 vi.mock("better-auth", () => ({

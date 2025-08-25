@@ -15,9 +15,6 @@
 .env.*
 .env*disabled
 
-# Cloudflare
-cloudflare-env.d.ts
-
 # Generated files
 drizzle/
 

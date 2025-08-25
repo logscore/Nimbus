@@ -1,12 +1,13 @@
 import { emailObjectSchema, type WaitlistCount } from "@nimbus/shared";
 import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
-import { createPublicRouter } from "../../hono";
+import { type HonoContext } from "../../hono";
 import { waitlist } from "@nimbus/db/schema";
 import { count } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { Hono } from "hono";
 
-const waitlistRouter = createPublicRouter()
+const waitlistRouter = new Hono<{ Variables: HonoContext }>()
 	.get("/count", async c => {
 		try {
 			const result = await c.var.db.select({ count: count() }).from(waitlist);

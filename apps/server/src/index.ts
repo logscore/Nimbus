@@ -1,14 +1,15 @@
 import { contextStorage } from "hono/context-storage";
 import { cacheClient } from "@nimbus/cache";
-import { createPublicRouter } from "./hono";
 import { serve } from "@hono/node-server";
+import { type HonoContext } from "./hono";
 import { env } from "@nimbus/env/server";
 import { auth } from "@nimbus/auth/auth";
 import { cors } from "hono/cors";
 import { db } from "@nimbus/db";
 import routes from "./routes";
+import { Hono } from "hono";
 
-const app = createPublicRouter()
+const app = new Hono<{ Variables: HonoContext }>()
 	.use(contextStorage())
 	.use(
 		cors({

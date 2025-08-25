@@ -8,7 +8,8 @@
 		"./rate-limiters": "./src/rate-limiters.ts"
 	},
 	"scripts": {
-		"build": "bun build src/rate-limiters.ts --outdir dist --target bun",
+		"lint": "bun run oxlint . --fix",
+		"format": "bun prettier . --write --list-different",
 		"docker:up": "docker compose up -d",
 		"docker:down": "docker compose down",
 		"docker:remove": "docker compose down --rmi local -v",
@@ -16,10 +17,10 @@
 	},
 	"dependencies": {
 		"iovalkey": "^0.3.3",
-		"rate-limiter-flexible": "^7.2.0"
+		"rate-limiter-flexible": "^7.2.0",
+		"@nimbus/env": "workspace:*"
 	},
 	"devDependencies": {
-		"@nimbus/tsconfig": "workspace:*",
 		"@nimbus/vitest": "workspace:*"
 	}
 }

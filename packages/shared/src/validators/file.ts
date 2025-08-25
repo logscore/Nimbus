@@ -32,7 +32,6 @@ export const updateFileSchema = z.object({
 	fileId: fileIdSchema,
 	name: z.string().min(1, "Name cannot be empty").max(100, "Name cannot be longer than 100 characters"),
 	// TODO: implement updating more than just name
-	// name: z.string().min(1, "Name cannot be empty").max(100, "Name cannot be longer than 100 characters").optional(),
 });
 
 export const createFileSchema = z.object({

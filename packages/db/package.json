@@ -4,7 +4,8 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
-		"build": "bun build src/index.ts --outdir dist --target bun",
+		"lint": "bun run oxlint . --fix",
+		"format": "bun prettier . --write --list-different",
 		"generate": "bun --bun run drizzle-kit generate --config=drizzle.config.ts",
 		"migrate": "bun --bun run drizzle-kit migrate --config=drizzle.config.ts",
 		"push": "bun --bun run drizzle-kit push --config=drizzle.config.ts",
@@ -23,11 +24,11 @@
 		"./mock": "./src/mock.ts"
 	},
 	"devDependencies": {
-		"@nimbus/tsconfig": "workspace:*",
 		"@nimbus/vitest": "workspace:*",
 		"drizzle-kit": "^0.31.4"
 	},
 	"dependencies": {
+		"@nimbus/env": "workspace:*",
 		"drizzle-orm": "^0.44.4",
 		"pg": "^8.16.3",
 		"postgres": "^3.4.7"

@@ -54,8 +54,8 @@ export const env = createEnv({
 			}),
 
 		// Email
-		EMAIL_FROM: z.email(),
-		RESEND_API_KEY: z.string(),
+		EMAIL_FROM: z.email().optional(),
+		RESEND_API_KEY: z.string().optional(),
 
 		// For docker
 		SERVER_PORT: z.coerce.number(),

@@ -46,7 +46,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run formatter
-        run: bun format:check
+        run: bun format
 
       - name: Run linter
         run: bun lint

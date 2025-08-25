@@ -22,7 +22,7 @@ const MOCK_FOLDER_RESPONSE = {
 	path_display: "/test-folder",
 };
 
-export function createMockDropboxClient() {
+function createMockDropboxClient() {
 	return {
 		filesCreateFolderV2: vi.fn(),
 		filesUpload: vi.fn(),

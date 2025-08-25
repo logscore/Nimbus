@@ -130,23 +130,23 @@ export const auth = betterAuth({
 		}),
 	],
 
-	// secondaryStorage: {
-	// 	// better-auth expects a JSON string
-	// 	get: async (key: string) => {
-	// 		const value = await (cacheClient as CacheClient).get(key);
-	// 		return value;
-	// 	},
-	// 	set: async (key: string, value: string, ttl?: number) => {
-	// 		if (ttl) {
-	// 			await (cacheClient as CacheClient).set(key, value, "EX", ttl);
-	// 		} else {
-	// 			await cacheClient.set(key, value);
-	// 		}
-	// 	},
-	// 	delete: async (key: string) => {
-	// 		await cacheClient.del(key);
-	// 	},
-	// },
+	secondaryStorage: {
+		// better-auth expects a JSON string
+		get: async (key: string) => {
+			const value = await (cacheClient as CacheClient).get(key);
+			return value;
+		},
+		set: async (key: string, value: string, ttl?: number) => {
+			if (ttl) {
+				await (cacheClient as CacheClient).set(key, value, "EX", ttl);
+			} else {
+				await cacheClient.set(key, value);
+			}
+		},
+		delete: async (key: string) => {
+			await cacheClient.del(key);
+		},
+	},
 
 	// https://www.better-auth.com/docs/reference/options#user
 	user: {

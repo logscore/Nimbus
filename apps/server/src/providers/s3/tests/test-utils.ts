@@ -1,7 +1,7 @@
 import { CreateBucketCommand, S3Client } from "@aws-sdk/client-s3";
 import { S3Provider } from "../s3-provider";
 
-export const config = {
+const config = {
 	endpoint: "http://localhost:9000",
 	region: "us-east-1",
 	accessKeyId: "minioadmin",
@@ -10,7 +10,7 @@ export const config = {
 };
 
 // Create S3 client
-export const createLocalS3Client = () => {
+const createLocalS3Client = () => {
 	return new S3Client({
 		endpoint: config.endpoint,
 		region: config.region,
@@ -91,31 +91,6 @@ export function createTestS3Provider(bucketName: string): S3Provider {
 		endpoint: config.endpoint,
 		forcePathStyle: config.forcePathStyle,
 	});
-}
-
-/**
- * Creates a test file with random content
- */
-export function createTestFile(name: string, content?: string) {
-	return {
-		name,
-		mimeType: "text/plain",
-		size: content?.length || 11,
-		parentId: "",
-		content: Buffer.from(content || "test content"),
-	};
-}
-
-/**
- * Creates a test folder
- */
-export function createTestFolder(name: string) {
-	return {
-		name,
-		mimeType: "application/x-directory",
-		size: 0,
-		parentId: "",
-	};
 }
 
 /**

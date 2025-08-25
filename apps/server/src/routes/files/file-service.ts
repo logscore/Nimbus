@@ -7,8 +7,11 @@ import type {
 	MoveFileSchema,
 	UpdateFileSchema,
 } from "@nimbus/shared";
-import { getDriveProviderContext } from "../../hono";
+import type { Provider } from "../../providers/interface/provider";
+import { getContext } from "hono/context-storage";
 import { TagService } from "../tags/tag-service";
+import type { auth } from "@nimbus/auth/auth";
+import type { HonoContext } from "../../hono";
 import type { Readable } from "node:stream";
 
 interface CreateFileOptions {
@@ -19,22 +22,17 @@ interface CreateFileOptions {
 
 export class FileService {
 	private tagService: TagService;
-	private get c() {
-		const context = getDriveProviderContext();
-		if (!context) {
-			throw new Error("Context is not available in TagService. It must be used within a request cycle.");
-		}
-		return context;
-	}
+	private user: typeof auth.$Infer.Session.user | null;
+	private provider: Provider;
 
 	constructor() {
 		this.tagService = new TagService();
+		this.user = getContext<{ Variables: HonoContext }>().var.user;
+		this.provider = getContext<{ Variables: HonoContext }>().var.provider;
 	}
 
 	async listFiles(options: GetFilesSchema) {
-		const user = this.c.var.user;
-		const drive = this.c.var.provider;
-		const res = await drive.listChildren(options.parentId, {
+		const res = await this.provider.listChildren(options.parentId, {
 			pageSize: options.pageSize,
 			pageToken: options.pageToken,
 			fields: options.returnedValues,
@@ -49,7 +47,7 @@ export class FileService {
 			res.items.map(async item => {
 				if (!item.id) return { ...item, tags: [] };
 				try {
-					const tags = await this.tagService.getFileTags(item.id, user.id);
+					const tags = await this.tagService.getFileTags(item.id, this.user!.id);
 					return { ...item, tags };
 				} catch (error) {
 					console.error(`Failed to get tags for file ${item.id}:`, error);
@@ -62,40 +60,33 @@ export class FileService {
 	}
 
 	async getById(options: GetFileByIdSchema) {
-		const user = this.c.var.user;
-		const drive = this.c.var.provider;
-		const file = await drive.getById(options.fileId, options.returnedValues);
+		const file = await this.provider.getById(options.fileId, options.returnedValues);
 
 		if (!file) {
 			return null;
 		}
 
-		const tags = await this.tagService.getFileTags(options.fileId, user.id);
+		const tags = await this.tagService.getFileTags(options.fileId, this.user!.id);
 		return { ...file, tags } as File;
 	}
 
 	async updateFile(options: UpdateFileSchema) {
-		const drive = this.c.var.provider;
-		return drive.update(options.fileId, { name: options.name });
+		return this.provider.update(options.fileId, { name: options.name });
 	}
 
 	async deleteFile(options: DeleteFileSchema) {
-		const drive = this.c.var.provider;
-		return drive.delete(options.fileId);
+		return this.provider.delete(options.fileId);
 	}
 
 	async createFile(options: CreateFileOptions, fileStream?: Readable) {
-		const drive = this.c.var.provider;
-		return drive.create(options, fileStream);
+		return this.provider.create(options, fileStream);
 	}
 
 	async downloadFile(options: DownloadFileSchema) {
-		const drive = this.c.var.provider;
-		return drive.download(options.fileId, options);
+		return this.provider.download(options.fileId, options);
 	}
 
 	async moveFile(options: MoveFileSchema) {
-		const drive = this.c.var.provider;
-		return drive.move(options.sourceId, options.targetParentId, options.newName);
+		return this.provider.move(options.sourceId, options.targetParentId, options.newName);
 	}
 }
