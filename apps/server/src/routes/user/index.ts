@@ -11,7 +11,7 @@ import { Hono } from "hono";
 
 // TODO(rate-limiting): implement for user
 
-const userRouter = new Hono<{ Variables: HonoContext }>()
+const userRouter = new Hono<HonoContext>()
 	.get(
 		"/",
 		securityMiddleware({

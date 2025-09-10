@@ -4,8 +4,10 @@ import { PHProvider } from "@/components/providers/posthog-provider";
 import { AppProviders } from "@/components/providers/app-providers";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Databuddy } from "@databuddy/sdk/react";
 import { siteConfig } from "@/utils/site-config";
 import OGImage from "@/public/images/og.png";
+import type env from "@nimbus/env/client";
 import { manrope } from "@/utils/fonts";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
@@ -82,19 +84,31 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 				className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} antialiased`}
 				suppressHydrationWarning
 			>
-				<PHProvider>
-					<ReactQueryProvider>
-						<AppProviders>
-							<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-								<div className="relative min-h-screen">
-									<main className="flex h-full w-full justify-center">{children}</main>
-									<Toaster position="top-center" richColors theme="system" />
-								</div>
-							</ThemeProvider>
-						</AppProviders>
-						<ReactQueryDevtools initialIsOpen={false} />
-					</ReactQueryProvider>
-				</PHProvider>
+				<ReactQueryProvider>
+					<AppProviders>
+						<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+							<div className="relative min-h-screen">
+								<main className="flex h-full w-full justify-center">{children}</main>
+								<Databuddy
+									clientId="f0gfwz-oGflp3lSEx_gaA"
+									trackHashChanges={true}
+									trackAttributes={true}
+									trackOutgoingLinks={true}
+									trackInteractions={true}
+									trackEngagement={true}
+									trackScrollDepth={true}
+									trackExitIntent={true}
+									trackBounceRate={true}
+									trackWebVitals={true}
+									trackErrors={true}
+									enableBatching={true}
+								/>
+								<Toaster position="top-center" richColors theme="system" />
+							</div>
+						</ThemeProvider>
+					</AppProviders>
+					<ReactQueryDevtools initialIsOpen={false} />
+				</ReactQueryProvider>
 			</body>
 		</html>
 	);

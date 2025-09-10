@@ -16,6 +16,7 @@
 		"docker:reset": "bun run docker:remove && bun run docker:up"
 	},
 	"dependencies": {
+		"@databuddy/sdk": "^2.0.0",
 		"@dnd-kit/react": "^0.1.20",
 		"@hookform/resolvers": "^5.2.1",
 		"@nimbus/auth": "workspace:*",
@@ -58,6 +59,7 @@
 		"recharts": "^3.1.0",
 		"sonner": "^2.0.6",
 		"tailwind-merge": "^3.3.1",
+		"tailwind-scrollbar": "^4.0.2",
 		"tailwindcss": "^4.1.11",
 		"tw-animate-css": "^1.3.6",
 		"vaul": "^1.1.2",

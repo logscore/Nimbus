@@ -12,7 +12,7 @@ import { Resend } from "resend";
 // TODO(shared): move constants to shared package. use in validation.
 // TODO(rate-limiting): implement for auth
 const emailContext = {
-	from: env.EMAIL_FROM,
+	from: env.EMAIL_FROM!,
 	resend: new Resend(env.RESEND_API_KEY),
 };
 
@@ -41,7 +41,7 @@ export const auth = betterAuth({
 	}),
 
 	emailAndPassword: {
-		enabled: false,
+		enabled: true,
 		autoSignIn: true,
 		minPasswordLength: 8,
 		maxPasswordLength: 100,

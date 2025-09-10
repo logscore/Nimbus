@@ -7,7 +7,7 @@ import { Hono } from "hono";
 
 // TODO(rate-limiting): implement for auth
 
-const authRouter = new Hono<{ Variables: HonoContext }>()
+const authRouter = new Hono<HonoContext>()
 	.post("/check-email", zValidator("json", emailObjectSchema), async c => {
 		try {
 			const email = c.req.valid("json").email;

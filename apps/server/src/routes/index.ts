@@ -18,7 +18,7 @@ import tagsRoutes from "./tags";
 import authRoutes from "./auth";
 import { Hono } from "hono";
 
-const driveRouter = new Hono<{ Variables: HonoContext }>()
+const driveRouter = new Hono<HonoContext>()
 	.use("*", async (c, next) => {
 		const user = c.var.user;
 		if (!user) {
@@ -112,7 +112,7 @@ const driveRouter = new Hono<{ Variables: HonoContext }>()
 	.route("/drives", drivesRoutes)
 	.route("/tags", tagsRoutes);
 
-const protectedRouter = new Hono<{ Variables: HonoContext }>()
+const protectedRouter = new Hono<HonoContext>()
 	.use("*", async (c, next) => {
 		const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
 		const user = session?.user;
@@ -126,7 +126,7 @@ const protectedRouter = new Hono<{ Variables: HonoContext }>()
 	.route("/account", accountRouter)
 	.route("/", driveRouter);
 
-const apiRoutes = new Hono<{ Variables: HonoContext }>()
+const apiRoutes = new Hono<HonoContext>()
 	.route("/auth", authRoutes)
 	.route("/waitlist", waitlistRoutes)
 	.route("/", protectedRouter);

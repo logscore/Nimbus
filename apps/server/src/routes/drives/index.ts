@@ -12,7 +12,7 @@ import { Hono } from "hono";
 
 // TODO(rate-limiting): implement for pinned files
 
-const drivesRouter = new Hono<{ Variables: HonoContext }>()
+const drivesRouter = new Hono<HonoContext>()
 	.get(
 		"/about",
 		securityMiddleware({

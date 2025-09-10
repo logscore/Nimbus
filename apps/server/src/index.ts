@@ -9,7 +9,7 @@ import { db } from "@nimbus/db";
 import routes from "./routes";
 import { Hono } from "hono";
 
-const app = new Hono<{ Variables: HonoContext }>()
+const app = new Hono<HonoContext>()
 	.use(contextStorage())
 	.use(
 		cors({

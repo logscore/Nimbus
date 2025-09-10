@@ -280,7 +280,7 @@ Tests **require** the `docker-compose.test.yml` to be running.
 
 Look at the scripts in `package.json` for all the `test:*` options.
 
-## Deploying Docker images (ex. Coolify) or Cloudflare
+## Deploying Docker images (ex. Coolify)
 
 Follow the [DEPLOYMENT.md](DEPLOYMENT.md) file for instructions on how to deploy with Coolify.
 

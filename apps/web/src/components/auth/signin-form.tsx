@@ -1,44 +1,44 @@
 "use client";
 
 import { AuthProviderButtons } from "@/components/auth/shared/auth-provider-buttons";
-// import { PasswordInput } from "@/components/auth/shared/password-input";
-// import { signInSchema, type SignInFormData } from "@nimbus/shared";
+import { PasswordInput } from "@/components/auth/shared/password-input";
+import { signInSchema, type SignInFormData } from "@nimbus/shared";
 import { AuthCard } from "@/components/auth/shared/auth-card";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import { Checkbox } from "@/components/ui/checkbox";
-// import { Button } from "@/components/ui/button";
-// import { Label } from "@/components/ui/label";
-// import { Input } from "@/components/ui/input";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { FieldError } from "@/components/ui/field-error";
+import type { ChangeEvent, ComponentProps } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useSignIn } from "@/hooks/useAuth";
-// import { useForm, type SubmitHandler } from "react-hook-form";
-// import { FieldError } from "@/components/ui/field-error";
-import type { ComponentProps } from "react";
-// import { Loader2 } from "lucide-react";
-// import Link from "next/link";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 export function SignInForm({ className, ...props }: ComponentProps<"div">) {
-	const { isLoading } = useSignIn();
+	const { signInWithCredentials, isLoading } = useSignIn();
 
-	// const {
-	// 	register,
-	// 	handleSubmit,
-	// 	formState: { errors },
-	// 	setValue,
-	// 	watch,
-	// } = useForm<SignInFormData>({
-	// 	resolver: zodResolver(signInSchema),
-	// 	defaultValues: {
-	// 		email: "",
-	// 		password: "",
-	// 		remember: false,
-	// 	},
-	// });
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+		setValue,
+		watch,
+	} = useForm<SignInFormData>({
+		resolver: zodResolver(signInSchema),
+		defaultValues: {
+			email: "",
+			password: "",
+			remember: false,
+		},
+	});
 
-	// const passwordValue = watch("password");
+	const passwordValue = watch("password");
 
-	// const onSubmit: SubmitHandler<SignInFormData> = async data => {
-	// 	await signInWithCredentials(data);
-	// };
+	const onSubmit: SubmitHandler<SignInFormData> = async data => {
+		await signInWithCredentials(data);
+	};
 
 	return (
 		<AuthCard
@@ -50,7 +50,7 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 		>
 			<div className="flex flex-col gap-4">
 				<AuthProviderButtons action="signin" isLoading={isLoading} />
-				{/* 
+
 				<div className="text-muted-foreground text-center font-mono text-sm font-semibold tracking-wider">OR</div>
 
 				<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -118,7 +118,7 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 							"Sign in"
 						)}
 					</Button>
-				</form> */}
+				</form>
 			</div>
 		</AuthCard>
 	);

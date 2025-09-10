@@ -22,7 +22,7 @@ import { Hono } from "hono";
 // TODO(rate-limiting): implement for tags
 
 const tagService = new TagService();
-const tagsRouter = new Hono<{ Variables: HonoContext }>()
+const tagsRouter = new Hono<HonoContext>()
 	// Get all tags for the authenticated user
 	.get(
 		"/",

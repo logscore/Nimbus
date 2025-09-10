@@ -7,7 +7,7 @@ import { count } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { Hono } from "hono";
 
-const waitlistRouter = new Hono<{ Variables: HonoContext }>()
+const waitlistRouter = new Hono<HonoContext>()
 	.get("/count", async c => {
 		try {
 			const result = await c.var.db.select({ count: count() }).from(waitlist);

@@ -24,6 +24,6 @@
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false,
 		"noUncheckedIndexedAccess": true,
-		"types": ["node", "@cloudflare/workers-types"]
+		"types": ["node"]
 	}
 }

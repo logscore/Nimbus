@@ -7,10 +7,8 @@ import type {
 	MoveFileSchema,
 	UpdateFileSchema,
 } from "@nimbus/shared";
-import type { Provider } from "../../providers/interface/provider";
 import { getContext } from "hono/context-storage";
 import { TagService } from "../tags/tag-service";
-import type { auth } from "@nimbus/auth/auth";
 import type { HonoContext } from "../../hono";
 import type { Readable } from "node:stream";
 
@@ -22,13 +20,17 @@ interface CreateFileOptions {
 
 export class FileService {
 	private tagService: TagService;
-	private user: typeof auth.$Infer.Session.user | null;
-	private provider: Provider;
+
+	private get user() {
+		return getContext<HonoContext>().var.user;
+	}
+
+	private get provider() {
+		return getContext<HonoContext>().var.provider;
+	}
 
 	constructor() {
 		this.tagService = new TagService();
-		this.user = getContext<{ Variables: HonoContext }>().var.user;
-		this.provider = getContext<{ Variables: HonoContext }>().var.provider;
 	}
 
 	async listFiles(options: GetFilesSchema) {

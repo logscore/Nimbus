@@ -22,7 +22,7 @@ import { Readable } from "node:stream";
 import { Hono } from "hono";
 
 const fileService = new FileService();
-const filesRouter = new Hono<{ Variables: HonoContext }>()
+const filesRouter = new Hono<HonoContext>()
 	// Get files
 	// TODO: Grab fileId from url path, not the params
 	.get(
@@ -268,7 +268,7 @@ const filesRouter = new Hono<{ Variables: HonoContext }>()
 				c.header("Content-Length", downloadResult.size.toString());
 
 				// Return the file data
-				return c.body(downloadResult.data);
+				return c.body(downloadResult.data as any);
 			} catch (error) {
 				const options = handleUploadError(error);
 				return sendError(c, options);
