@@ -62,10 +62,14 @@ export const env = createEnv({
 		WEB_PORT: z.coerce.number(),
 
 		// Valkey (Redis)
-		VALKEY_HOST: z.string(),
-		VALKEY_PORT: z.string(),
+		VALKEY_HOST: z.string().default("127.0.0.1"),
+		VALKEY_PORT: z.string().default("6379"),
 		VALKEY_USERNAME: z.string(),
 		VALKEY_PASSWORD: z.string(),
+
+		// Stripe
+		STRIPE_SECRET_KEY: z.string(),
+		STRIPE_WEBHOOK_SECRET: z.string(),
 	},
 
 	runtimeEnv: process.env,

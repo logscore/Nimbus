@@ -4,10 +4,16 @@ import schema, { user as userTable } from "@nimbus/db/schema";
 import { cacheClient, type CacheClient } from "@nimbus/cache";
 // import { genericOAuth } from "better-auth/plugins";
 import { sendMail } from "./utils/send-mail";
+import { stripe } from "@better-auth/stripe";
 import { env } from "@nimbus/env/server";
 import { db, type DB } from "@nimbus/db";
 import { eq } from "drizzle-orm";
 import { Resend } from "resend";
+import Stripe from "stripe";
+
+const stripeClient = new Stripe(env.STRIPE_SECRET_KEY!, {
+	apiVersion: "2025-08-27.basil",
+});
 
 // TODO(shared): move constants to shared package. use in validation.
 // TODO(rate-limiting): implement for auth
@@ -109,44 +115,49 @@ export const auth = betterAuth({
 		// },
 	},
 
-	// plugins: [
-	// 	genericOAuth({
-	// 		config: [
-	// 			{
-	// 				providerId: "box",
-	// 				clientId: env.BOX_CLIENT_ID,
-	// 				clientSecret: env.BOX_CLIENT_SECRET,
-	// 				authorizationUrl: "https://account.box.com/api/oauth2/authorize",
-	// 				tokenUrl: "https://api.box.com/oauth2/token",
-	// 				userInfoUrl: "https://api.box.com/2.0/users/me",
-	// 				mapProfileToUser: profile => ({
-	// 					id: profile.id,
-	// 					name: profile.name,
-	// 					email: profile.login,
-	// 				}),
-	// 				scopes: ["root_readwrite", "manage_app_users"],
-	// 			},
-	// 		],
-	// 	}),
-	// ],
+	plugins: [
+		stripe({
+			stripeClient,
+			stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET!,
+			createCustomerOnSignUp: true,
+		}),
+		// 	genericOAuth({
+		// 		config: [
+		// 			{
+		// 				providerId: "box",
+		// 				clientId: env.BOX_CLIENT_ID,
+		// 				clientSecret: env.BOX_CLIENT_SECRET,
+		// 				authorizationUrl: "https://account.box.com/api/oauth2/authorize",
+		// 				tokenUrl: "https://api.box.com/oauth2/token",
+		// 				userInfoUrl: "https://api.box.com/2.0/users/me",
+		// 				mapProfileToUser: profile => ({
+		// 					id: profile.id,
+		// 					name: profile.name,
+		// 					email: profile.login,
+		// 				}),
+		// 				scopes: ["root_readwrite", "manage_app_users"],
+		// 			},
+		// 		],
+		// 	}),
+	],
 
-	secondaryStorage: {
-		// better-auth expects a JSON string
-		get: async (key: string) => {
-			const value = await (cacheClient as CacheClient).get(key);
-			return value;
-		},
-		set: async (key: string, value: string, ttl?: number) => {
-			if (ttl) {
-				await (cacheClient as CacheClient).set(key, value, "EX", ttl);
-			} else {
-				await cacheClient.set(key, value);
-			}
-		},
-		delete: async (key: string) => {
-			await cacheClient.del(key);
-		},
-	},
+	// secondaryStorage: {
+	// 	// better-auth expects a JSON string
+	// 	get: async (key: string) => {
+	// 		const value = await (cacheClient as CacheClient).get(key);
+	// 		return value;
+	// 	},
+	// 	set: async (key: string, value: string, ttl?: number) => {
+	// 		if (ttl) {
+	// 			await (cacheClient as CacheClient).set(key, value, "EX", ttl);
+	// 		} else {
+	// 			await cacheClient.set(key, value);
+	// 		}
+	// 	},
+	// 	delete: async (key: string) => {
+	// 		await cacheClient.del(key);
+	// 	},
+	// },
 
 	// https://www.better-auth.com/docs/reference/options#user
 	user: {

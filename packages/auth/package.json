@@ -12,6 +12,7 @@
 		"@nimbus/vitest": "workspace:*"
 	},
 	"dependencies": {
+		"@better-auth/stripe": "^1.3.24",
 		"@nimbus/cache": "workspace:*",
 		"@nimbus/db": "workspace:*",
 		"@nimbus/env": "workspace:*",

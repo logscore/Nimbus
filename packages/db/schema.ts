@@ -1,4 +1,4 @@
-import { boolean, foreignKey, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, foreignKey, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 const defaultTimestamp = (name: string) =>
 	timestamp(name)
@@ -17,6 +17,7 @@ export const user = pgTable("user", {
 	// references account.accountId and account.providerId. Is set via better-auth database hook after account creation
 	defaultAccountId: text("default_account_id"),
 	defaultProviderId: text("default_provider_id"),
+	stripeCustomerId: text("stripe_customer_id"),
 	createdAt: defaultTimestamp("created_at"),
 	updatedAt: defaultTimestamp("updated_at"),
 });
@@ -65,6 +66,43 @@ export const account = pgTable(
 			columns: [table.userId],
 			foreignColumns: [user.id],
 			name: "account_user_id_user_id_fk",
+		}).onDelete("cascade"),
+	]
+);
+
+// Subscription schema
+export const subscription = pgTable(
+	"subscription",
+	{
+		id: text("id").primaryKey(),
+		plan: text("plan").notNull(),
+
+		// Typically user ID, but could support teams/orgs later
+		referenceId: text("reference_id").notNull(),
+
+		stripeCustomerId: text("stripe_customer_id"),
+		stripeSubscriptionId: text("stripe_subscription_id"),
+
+		status: text("status").notNull(),
+
+		periodStart: timestamp("period_start"),
+		periodEnd: timestamp("period_end"),
+		cancelAtPeriodEnd: boolean("cancel_at_period_end").$defaultFn(() => false),
+
+		seats: integer("seats"),
+
+		trialStart: timestamp("trial_start"),
+		trialEnd: timestamp("trial_end"),
+
+		createdAt: defaultTimestamp("created_at"),
+		updatedAt: defaultTimestamp("updated_at"),
+	},
+	table => [
+		index("subscription_reference_id_idx").using("btree", table.referenceId.asc().nullsLast().op("text_ops")),
+		foreignKey({
+			columns: [table.referenceId],
+			foreignColumns: [user.id],
+			name: "subscription_reference_id_user_id_fk",
 		}).onDelete("cascade"),
 	]
 );

@@ -74,5 +74,9 @@
 	"workspaces": [
 		"apps/*",
 		"packages/*"
-	]
+	],
+	"dependencies": {
+		"@better-auth/stripe": "^1.3.24",
+		"stripe": "^19.0.0"
+	}
 }
