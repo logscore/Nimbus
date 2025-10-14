@@ -4,9 +4,6 @@
  * @type {import('lint-staged').Configuration}
  */
 const config = {
-	// Lint and fix Next.js files
-	"apps/web/**/*.{ts,tsx,js,jsx}": () => "bun run --cwd=apps/web lint --fix",
-
 	// Lint and fix TypeScript and JavaScript files
 	"**/*.{ts,tsx,js,jsx}": ["oxlint --fix", "prettier --write --list-different"],
 

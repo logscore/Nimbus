@@ -60,7 +60,7 @@ function SettingsPage() {
 			if (user?.email !== email) {
 				await authClient.changeEmail({
 					newEmail: email,
-					callbackURL: `${env.NEXT_PUBLIC_FRONTEND_URL}/verify-email`,
+					callbackURL: `${env.VITE_PUBLIC_FRONTEND_URL}/verify-email`,
 				});
 				isUpdated = true;
 			}

@@ -3,19 +3,19 @@ import { z } from "zod";
 
 const env = createEnv({
 	runtimeEnv: {
-		NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
-		NEXT_PUBLIC_FRONTEND_URL: process.env.NEXT_PUBLIC_FRONTEND_URL,
-		NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-		NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+		VITE_PUBLIC_BACKEND_URL: import.meta.env.VITE_PUBLIC_BACKEND_URL,
+		VITE_PUBLIC_FRONTEND_URL: import.meta.env.VITE_PUBLIC_FRONTEND_URL,
+		VITE_PUBLIC_POSTHOG_KEY: import.meta.env.VITE_PUBLIC_POSTHOG_KEY,
+		VITE_PUBLIC_POSTHOG_HOST: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
 	},
 
-	clientPrefix: "NEXT_PUBLIC_",
+	clientPrefix: "VITE_PUBLIC_",
 	client: {
 		// Client-side environment variables
-		NEXT_PUBLIC_BACKEND_URL: z.url(),
-		NEXT_PUBLIC_FRONTEND_URL: z.url(),
-		NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
-		NEXT_PUBLIC_POSTHOG_HOST: z.string().optional(),
+		VITE_PUBLIC_BACKEND_URL: z.url(),
+		VITE_PUBLIC_FRONTEND_URL: z.url(),
+		VITE_PUBLIC_POSTHOG_KEY: z.string().optional(),
+		VITE_PUBLIC_POSTHOG_HOST: z.string().optional(),
 	},
 });
 

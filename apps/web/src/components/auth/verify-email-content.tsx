@@ -23,7 +23,7 @@ export function VerifyEmailContent({ ...props }: ComponentProps<"div">) {
 		if (!token) return;
 		setIsLoading(true);
 		try {
-			await axios.get(`${env.NEXT_PUBLIC_BACKEND_URL}/api/auth/verify-email`, {
+			await axios.get(`${env.VITE_PUBLIC_BACKEND_URL}/api/auth/verify-email`, {
 				withCredentials: true,
 				params: {
 					token,

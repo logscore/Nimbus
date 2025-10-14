@@ -4,10 +4,10 @@ import env from "@nimbus/env/client";
 import { hc } from "hono/client";
 
 const createClient = (options?: ClientRequestOptions) => {
-	if (!env.NEXT_PUBLIC_BACKEND_URL) {
-		throw new Error("NEXT_PUBLIC_BACKEND_URL is not configured");
+	if (!env.VITE_PUBLIC_BACKEND_URL) {
+		throw new Error("VITE_PUBLIC_BACKEND_URL is not configured");
 	}
-	return hc<AppType>(env.NEXT_PUBLIC_BACKEND_URL, options);
+	return hc<AppType>(env.VITE_PUBLIC_BACKEND_URL, options);
 };
 export const publicClient = createClient();
 

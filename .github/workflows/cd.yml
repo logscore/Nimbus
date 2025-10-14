@@ -175,8 +175,8 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           NODE_ENV: ${{ secrets.NODE_ENV }}
-          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
-          NEXT_PUBLIC_FRONTEND_URL: ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}
+          VITE_PUBLIC_BACKEND_URL: ${{ secrets.VITE_PUBLIC_BACKEND_URL }}
+          VITE_PUBLIC_FRONTEND_URL: ${{ secrets.VITE_PUBLIC_FRONTEND_URL }}
         run: |
           cd apps/web
           bun run cf:build

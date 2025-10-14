@@ -93,15 +93,15 @@ services:
   #     dockerfile: apps/web/Dockerfile
   #     target: runner
   #     args:
-  #       NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
-  #       NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
+  #       VITE_PUBLIC_BACKEND_URL: ${VITE_PUBLIC_BACKEND_URL}
+  #       VITE_PUBLIC_FRONTEND_URL: ${VITE_PUBLIC_FRONTEND_URL}
   #   container_name: nimbus-web
   #   restart: unless-stopped
   #   env_file: .env
   #   environment:
   #     NODE_ENV: production
-  #     NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
-  #     NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
+  #     VITE_PUBLIC_BACKEND_URL: ${VITE_PUBLIC_BACKEND_URL}
+  #     VITE_PUBLIC_FRONTEND_URL: ${VITE_PUBLIC_FRONTEND_URL}
   #   ports:
   #     - "3000:3000"
   #   depends_on:

@@ -13,7 +13,7 @@ export function cn(...inputs: ClassValue[]) {
  * Gets the base URL for the frontend
  */
 export const getBaseUrl = () => {
-	return env.NEXT_PUBLIC_FRONTEND_URL;
+	return env.VITE_PUBLIC_FRONTEND_URL;
 };
 
 /**

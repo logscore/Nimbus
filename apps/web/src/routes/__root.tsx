@@ -1,9 +1,9 @@
 import { createRootRoute, Outlet, ErrorComponent } from "@tanstack/react-router";
 import { ReactQueryProvider } from "@/components/providers/query-provider";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AppProviders } from "@/components/providers/app-providers";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { geistSans, geistMono, manrope } from "@/utils/fonts";
 import { Toaster } from "sonner";
 import { Suspense } from "react";
