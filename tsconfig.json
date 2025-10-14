@@ -24,6 +24,6 @@
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false,
 		"noUncheckedIndexedAccess": true,
-		"types": ["node"]
+		"types": ["node", "vite/client"]
 	}
 }

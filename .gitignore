@@ -18,9 +18,7 @@ dist
 **/coverage-final.json
 **/coverage-summary.json
 
-# next.js
-.next/
-out/
+.tanstack/
 
 # production
 /build

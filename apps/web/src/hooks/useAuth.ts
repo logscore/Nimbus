@@ -24,13 +24,13 @@ interface AuthState {
 const signInWithProvider = async (provider: DriveProvider) => {
 	return authClient.signIn.social({
 		provider,
-		callbackURL: `${env.VITE_PUBLIC_FRONTEND_URL}/dashboard`,
+		callbackURL: `${import.meta.env.VITE_FRONTEND_URL}/dashboard`,
 	});
 };
 
 const linkSessionWithProvider = async (
 	provider: DriveProvider,
-	callbackURL: string = `${env.VITE_PUBLIC_FRONTEND_URL}/dashboard`
+	callbackURL: string = `${import.meta.env.VITE_FRONTEND_URL}/dashboard`
 ) => {
 	return authClient.linkSocial({
 		provider,
@@ -200,7 +200,7 @@ export const useSignUp = () => {
 				name: fullName,
 				email: data.email,
 				password: data.password,
-				callbackURL: `${env.VITE_PUBLIC_FRONTEND_URL}/dashboard`,
+				callbackURL: `${import.meta.env.VITE_FRONTEND_URL}/dashboard`,
 			});
 			redirectToDashboard();
 		},

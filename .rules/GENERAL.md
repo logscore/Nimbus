@@ -1,2 +1,3 @@
-- Only do the minimum required changes to accomplish the stated task.
+- Only do the minimum required changes to accomplish the stated task
 - Do not write up a document at the end of your process
+- Do not edit any files under the /ui folder

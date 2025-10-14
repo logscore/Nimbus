@@ -40,8 +40,8 @@ Nimbus requires the following environment variables to work, some will be pre-fi
 - `WEB_PORT`
 - `BACKEND_URL`
 - `TRUSTED_ORIGINS`
-- `VITE_PUBLIC_BACKEND_URL`
-- `VITE_PUBLIC_FRONTEND_URL`
+- `VITE_BACKEND_URL`
+- `VITE_FRONTEND_URL`
 - `DATABASE_URL`
 - `DATABASE_HOST`
 - `POSTGRES_PORT`
@@ -57,8 +57,8 @@ Nimbus requires the following environment variables to work, some will be pre-fi
 
 - `EMAIL_FROM`
 - `RESEND_API_KEY`
-- `VITE_PUBLIC_POSTHOG_KEY`
-- `VITE_PUBLIC_POSTHOG_HOST`
+- `VITE_POSTHOG_KEY`
+- `VITE_POSTHOG_HOST`
 
 ### 3. Start Services
 

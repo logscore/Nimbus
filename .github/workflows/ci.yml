@@ -58,8 +58,8 @@ jobs:
         env:
           NODE_ENV: production
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/nimbus-test
-          VITE_PUBLIC_BACKEND_URL: http://localhost:1284
-          VITE_PUBLIC_FRONTEND_URL: http://localhost:3000
+          VITE_BACKEND_URL: http://localhost:1284
+          VITE_FRONTEND_URL: http://localhost:3000
         run: bun run build
 
       - name: Create coverage badge

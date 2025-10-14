@@ -1,6 +1,5 @@
 # Dependency directories
 **/node_modules/
-**/.next/
 **/dist/
 **/build/
 *package-lock.json

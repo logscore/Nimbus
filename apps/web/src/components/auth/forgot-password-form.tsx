@@ -8,10 +8,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForgotPassword } from "@/hooks/useAuth";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import type { ComponentProps } from "react";
-import Link from "next/link";
 
 export function ForgotPasswordForm({ ...props }: ComponentProps<"div">) {
 	const { isLoading, forgotPassword } = useForgotPassword();
@@ -37,10 +37,10 @@ export function ForgotPasswordForm({ ...props }: ComponentProps<"div">) {
 				<CardHeader className="overflow-x-hidden">
 					<div className="-mx-6 flex flex-row items-center justify-start border-b">
 						<Button className="cursor-pointer rounded-none px-6 py-6 font-semibold" variant="link" asChild>
-							<Link href="/signin">
+							<a href="/signin">
 								<ArrowLeft />
 								Back
-							</Link>
+							</a>
 						</Button>
 					</div>
 					<div className="gap-2 pt-6">
@@ -85,7 +85,7 @@ export function ForgotPasswordForm({ ...props }: ComponentProps<"div">) {
 				<CardFooter className="px-6 py-4">
 					<p className="w-full text-center text-sm text-neutral-600">
 						By continuing, you agree to our{" "}
-						<Link href="/terms" className="cursor-pointer whitespace-nowrap underline underline-offset-4">
+						<Link to="/terms" className="cursor-pointer whitespace-nowrap underline underline-offset-4">
 							terms of service
 						</Link>
 						.

@@ -7,8 +7,8 @@ import posthog from "posthog-js";
 
 export function PHProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
-		posthog.init(env.VITE_PUBLIC_POSTHOG_KEY, {
-			api_host: env.VITE_PUBLIC_POSTHOG_HOST,
+		posthog.init(import.meta.env.VITE_POSTHOG_KEY!, {
+			api_host: import.meta.env.VITE_POSTHOG_HOST,
 			capture_pageview: false, // Disable automatic pageview capture, as we capture manually
 			defaults: "2025-05-24",
 		});
