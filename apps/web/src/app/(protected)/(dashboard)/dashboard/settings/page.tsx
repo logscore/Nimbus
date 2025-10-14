@@ -9,9 +9,12 @@ import { toast } from "sonner";
 import { useDefaultAccountProvider } from "@/components/providers/default-account-provider";
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useUnlinkAccount } from "@/hooks/useUnlinkAccount";
+import { useSubscription } from "@/hooks/useSubscription";
 import { protectedClient } from "@/utils/client";
 
 import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
+import { SubscriptionInfo } from "@/components/subscription/subscription-info";
+import { UpgradeDialog } from "@/components/subscription/upgrade-dialog";
 // import { SecuritySection } from "@/components/settings/security-section";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { SettingsHeader } from "@/components/settings/header";
@@ -22,11 +25,20 @@ export default function SettingsPage() {
 	const { user, accounts, refreshUser, refreshAccounts } = useUserInfoProvider();
 	const { defaultAccountId } = useDefaultAccountProvider();
 	const { unlinkAccount } = useUnlinkAccount();
+	const {
+		subscription,
+		connectionCount,
+		maxConnections,
+		canAddConnection,
+		isActive,
+		refetch: refetchSubscription,
+	} = useSubscription();
 	const [name, setName] = useState(user?.name || "");
 	const [email, setEmail] = useState(user?.email || "");
 	const [isSaving, setIsSaving] = useState(false);
 	const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
 	const [previewUrl, setPreviewUrl] = useState<string | null>(user?.image || null);
+	const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
 	useEffect(() => {
 		if (user) {
@@ -167,6 +179,17 @@ export default function SettingsPage() {
 					isSaving={isSaving}
 				/>
 
+				{subscription && (
+					<SubscriptionInfo
+						subscription={subscription}
+						connectionCount={connectionCount}
+						maxConnections={maxConnections}
+						canAddConnection={canAddConnection}
+						isActive={isActive}
+						onUpgradeClick={() => setShowUpgradeDialog(true)}
+					/>
+				)}
+
 				<ConnectedAccountsSection
 					accounts={accounts}
 					defaultAccountId={defaultAccountId}
@@ -178,6 +201,16 @@ export default function SettingsPage() {
 
 				{/*<SecuritySection />*/}
 			</div>
+
+			{subscription && (
+				<UpgradeDialog
+					open={showUpgradeDialog}
+					onOpenChange={setShowUpgradeDialog}
+					currentPlan={subscription.plan}
+					currentConnectionCount={connectionCount}
+					maxConnections={maxConnections}
+				/>
+			)}
 		</div>
 	);
 }

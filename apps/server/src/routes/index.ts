@@ -4,6 +4,7 @@ import { GoogleDriveProvider } from "../providers/google";
 import { sendForbidden, sendUnauthorized } from "./utils";
 import { DropboxProvider } from "../providers/dropbox";
 import { driveProviderSchema } from "@nimbus/shared";
+import subscriptionRouter from "./subscription";
 import { BoxProvider } from "../providers/box";
 import { decrypt } from "../utils/encryption";
 import { S3Provider } from "../providers/s3";
@@ -124,6 +125,7 @@ const protectedRouter = new Hono<HonoContext>()
 	})
 	.route("/user", userRouter)
 	.route("/account", accountRouter)
+	.route("/subscription", subscriptionRouter)
 	.route("/", driveRouter);
 
 const apiRoutes = new Hono<HonoContext>()

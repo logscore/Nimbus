@@ -9,7 +9,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 type AuthProviderButtonsProps = {
-	onProviderClick?: (provider: DriveProvider) => Promise<void> | void;
+	onProviderClick?: (provider: DriveProvider) => Promise<boolean> | boolean;
 	isLoading?: boolean | Record<DriveProvider, boolean>;
 	action: "signin" | "signup";
 	showS3Button?: boolean;
@@ -51,7 +51,8 @@ export function AuthProviderButtons({
 		try {
 			// If external handler is provided, use it
 			if (onProviderClick) {
-				return await onProviderClick(provider);
+				const shouldProceed = await onProviderClick(provider);
+				if (!shouldProceed) return;
 			}
 
 			// Otherwise, handle internally
@@ -79,8 +80,10 @@ export function AuthProviderButtons({
 	const handleProviderClick = async (provider: DriveProvider) => {
 		if (provider === "s3") {
 			if (onProviderClick) {
-				await onProviderClick("s3");
-			} else if (onS3Click) {
+				const shouldProceed = await onProviderClick("s3");
+				if (!shouldProceed) return;
+			}
+			if (onS3Click) {
 				onS3Click();
 			}
 		} else {

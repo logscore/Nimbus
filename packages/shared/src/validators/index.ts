@@ -4,5 +4,7 @@ export * from "./email";
 export * from "./file";
 export * from "./password";
 export * from "./provider";
+export * from "./string";
+export * from "./subscription";
 export * from "./tag";
 export * from "./user";

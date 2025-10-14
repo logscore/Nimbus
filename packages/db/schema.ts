@@ -1,9 +1,22 @@
-import { boolean, foreignKey, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, foreignKey, index, integer, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 const defaultTimestamp = (name: string) =>
 	timestamp(name)
 		.$defaultFn(() => /* @__PURE__ */ new Date())
 		.notNull();
+
+// Subscription plans enum
+export const subscriptionPlanEnum = pgEnum("subscription_plan", ["free", "pro"]);
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+	"active",
+	"canceled",
+	"incomplete",
+	"incomplete_expired",
+	"past_due",
+	"paused",
+	"trialing",
+	"unpaid",
+]);
 
 // Auth schema
 export const user = pgTable("user", {
@@ -75,7 +88,7 @@ export const subscription = pgTable(
 	"subscription",
 	{
 		id: text("id").primaryKey(),
-		plan: text("plan").notNull(),
+		plan: subscriptionPlanEnum("plan").notNull().default("free"),
 
 		// Typically user ID, but could support teams/orgs later
 		referenceId: text("reference_id").notNull(),
@@ -83,11 +96,13 @@ export const subscription = pgTable(
 		stripeCustomerId: text("stripe_customer_id"),
 		stripeSubscriptionId: text("stripe_subscription_id"),
 
-		status: text("status").notNull(),
+		status: subscriptionStatusEnum("status").notNull().default("active"),
 
 		periodStart: timestamp("period_start"),
 		periodEnd: timestamp("period_end"),
-		cancelAtPeriodEnd: boolean("cancel_at_period_end").$defaultFn(() => false),
+		cancelAtPeriodEnd: boolean("cancel_at_period_end")
+			.$defaultFn(() => false)
+			.notNull(),
 
 		seats: integer("seats"),
 
@@ -180,6 +195,7 @@ const schema = {
 	user,
 	session,
 	account,
+	subscription,
 	verification,
 	tag,
 	fileTag,
@@ -191,6 +207,8 @@ export type UserTableInsert = typeof user.$inferInsert;
 export type UserTableSelect = typeof user.$inferSelect;
 export type SessionTableInsert = typeof session.$inferInsert;
 export type AccountTableSelect = typeof account.$inferSelect;
+export type SubscriptionTableInsert = typeof subscription.$inferInsert;
+export type SubscriptionTableSelect = typeof subscription.$inferSelect;
 export type PinnedFileTableSelect = typeof pinnedFile.$inferSelect;
 
 export default schema;

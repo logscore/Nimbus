@@ -5,6 +5,7 @@ import {
 	type CreateS3AccountSchema,
 	type UpdateAccountSchema,
 } from "@nimbus/shared";
+import { SubscriptionService } from "../../services/subscription-service";
 import { sendError, sendSuccess, sendUnauthorized } from "../utils";
 import { createRateLimiter } from "@nimbus/cache/rate-limiters";
 import { account as accountTable } from "@nimbus/db/schema";
@@ -106,6 +107,17 @@ const accountRouter = new Hono<HonoContext>()
 			const data: CreateS3AccountSchema = c.req.valid("json");
 
 			try {
+				// Check subscription limits
+				const subscriptionService = new SubscriptionService(c.var.db);
+				const canAdd = await subscriptionService.canUserAddConnection(userId);
+
+				if (!canAdd.allowed) {
+					return sendError(c, {
+						message: canAdd.reason || "You have reached your connection limit",
+						status: 403,
+					});
+				}
+
 				const testProvider = new S3Provider({
 					accessKeyId: data.accessKeyId,
 					secretAccessKey: data.secretAccessKey,

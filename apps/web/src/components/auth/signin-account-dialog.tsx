@@ -2,7 +2,9 @@
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AuthProviderButtons } from "@/components/auth/shared/auth-provider-buttons";
+import { UpgradeDialog } from "@/components/subscription/upgrade-dialog";
 import { S3AccountForm } from "@/components/settings/s3-account-form";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import type { DriveProvider } from "@nimbus/shared";
 import { usePathname } from "next/navigation";
@@ -18,8 +20,16 @@ type ViewMode = "select" | "s3-form";
 export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogProps) {
 	const isMounted = useIsMounted();
 	const pathname = usePathname();
+	const {
+		subscription,
+		connectionCount,
+		maxConnections,
+		canAddConnection,
+		refetch: refetchSubscription,
+	} = useSubscription();
 	const [callbackURL, setCallbackURL] = useState<string>("");
 	const [viewMode, setViewMode] = useState<ViewMode>("select");
+	const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 	const [isLoading] = useState<Record<DriveProvider, boolean>>({
 		google: false,
 		microsoft: false,
@@ -43,11 +53,27 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 	}, [open]);
 
 	const handleS3Success = () => {
+		refetchSubscription();
 		onOpenChange(false);
 	};
 
 	const handleS3Cancel = () => {
 		setViewMode("select");
+	};
+
+	const handleProviderClick = (provider: DriveProvider) => {
+		// Check subscription limits before allowing connection
+		if (!canAddConnection) {
+			onOpenChange(false);
+			setShowUpgradeDialog(true);
+			return false;
+		}
+		return true;
+	};
+
+	const handleAuthSuccess = () => {
+		refetchSubscription();
+		onOpenChange(false);
 	};
 
 	return (
@@ -78,8 +104,13 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 							isLoading={isLoading}
 							showS3Button={true}
 							callbackURL={callbackURL}
-							onAuthSuccess={() => onOpenChange(false)}
-							onS3Click={() => setViewMode("s3-form")}
+							onAuthSuccess={handleAuthSuccess}
+							onS3Click={() => {
+								if (handleProviderClick("s3")) {
+									setViewMode("s3-form");
+								}
+							}}
+							onProviderClick={handleProviderClick}
 						/>
 					</div>
 				) : (
@@ -88,6 +119,16 @@ export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogP
 					</div>
 				)}
 			</DialogContent>
+
+			{subscription && (
+				<UpgradeDialog
+					open={showUpgradeDialog}
+					onOpenChange={setShowUpgradeDialog}
+					currentPlan={subscription.plan}
+					currentConnectionCount={connectionCount}
+					maxConnections={maxConnections}
+				/>
+			)}
 		</Dialog>
 	);
 }

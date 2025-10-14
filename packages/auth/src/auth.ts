@@ -2,14 +2,16 @@ import { type Account, type AuthContext, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import { cacheClient, type CacheClient } from "@nimbus/cache";
+import { stripe } from "@better-auth/stripe";
 // import { genericOAuth } from "better-auth/plugins";
 import { sendMail } from "./utils/send-mail";
-import { stripe } from "@better-auth/stripe";
 import { env } from "@nimbus/env/server";
 import { db, type DB } from "@nimbus/db";
 import { eq } from "drizzle-orm";
 import { Resend } from "resend";
 import Stripe from "stripe";
+
+// Note: SubscriptionService import moved to function to avoid circular dependency
 
 const stripeClient = new Stripe(env.STRIPE_SECRET_KEY!, {
 	apiVersion: "2025-08-27.basil",
@@ -245,6 +247,21 @@ export const auth = betterAuth({
 	databaseHooks: {
 		account: {
 			create: {
+				before: async account => {
+					// Dynamically import to avoid circular dependency
+					const { SubscriptionService } = await import("../../../apps/server/src/services/subscription-service");
+					const subscriptionService = new SubscriptionService(db);
+
+					// Check if user can add a new connection
+					const canAdd = await subscriptionService.canUserAddConnection(account.userId);
+
+					if (!canAdd.allowed) {
+						throw new Error(
+							canAdd.reason ||
+								"You have reached your connection limit. Please upgrade to Pro for unlimited connections."
+						);
+					}
+				},
 				after: account => afterAccountCreation(db, account),
 			},
 		},

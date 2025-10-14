@@ -70,6 +70,7 @@ export const env = createEnv({
 		// Stripe
 		STRIPE_SECRET_KEY: z.string(),
 		STRIPE_WEBHOOK_SECRET: z.string(),
+		STRIPE_PRO_PRICE_ID: z.string(),
 	},
 
 	runtimeEnv: process.env,
