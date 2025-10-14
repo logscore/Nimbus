@@ -8,19 +8,15 @@
 		"./rate-limiters": "./src/rate-limiters.ts"
 	},
 	"scripts": {
+		"dev": "docker compose up",
 		"lint": "bun run oxlint . --fix",
 		"format": "bun prettier . --write --list-different",
 		"docker:up": "docker compose up -d",
-		"docker:down": "docker compose down",
-		"docker:remove": "docker compose down --rmi local -v",
-		"docker:reset": "bun run docker:remove && bun run docker:up"
+		"docker:down": "docker compose down"
 	},
 	"dependencies": {
 		"iovalkey": "^0.3.3",
 		"rate-limiter-flexible": "^7.2.0",
 		"@nimbus/env": "workspace:*"
-	},
-	"devDependencies": {
-		"@nimbus/vitest": "workspace:*"
 	}
 }

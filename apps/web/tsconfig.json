@@ -1,13 +1,14 @@
 {
 	"extends": "../../tsconfig.json",
 	"compilerOptions": {
-		"jsx": "preserve",
-		"lib": ["esnext", "dom", "dom.iterable"],
-		"plugins": [
-			{
-				"name": "next"
-			}
-		],
+		"jsx": "react-jsx",
+		"lib": ["ES2020", "dom", "dom.iterable"],
+		"target": "ES2020",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"resolveJsonModule": true,
+		"types": ["vite/client"],
+		"skipLibCheck": true,
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./src/*"],
@@ -23,12 +24,6 @@
 			"path": "../../packages/shared/tsconfig.json"
 		}
 	],
-	"include": [
-		"next-env.d.ts",
-		".next/types/**/*.ts",
-		"**/*.ts",
-		"**/*.tsx",
-		"src/components/providers/useDefaultAccount"
-	],
+	"include": ["src", "**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules"]
 }

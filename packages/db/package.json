@@ -4,27 +4,18 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
+		"dev": "docker compose up",
 		"lint": "bun run oxlint . --fix",
 		"format": "bun prettier . --write --list-different",
-		"generate": "bun --bun run drizzle-kit generate --config=drizzle.config.ts",
-		"migrate": "bun --bun run drizzle-kit migrate --config=drizzle.config.ts",
 		"push": "bun --bun run drizzle-kit push --config=drizzle.config.ts",
-		"pull": "bun --bun run drizzle-kit pull --config=drizzle.config.ts",
-		"check": "bun --bun run drizzle-kit check --config=drizzle.config.ts",
-		"upgrade": "bun --bun run drizzle-kit up --config=drizzle.config.ts",
-		"studio": "bun --bun run drizzle-kit studio --config=drizzle.config.ts",
 		"docker:up": "docker compose up -d",
-		"docker:down": "docker compose down",
-		"docker:remove": "docker compose down --rmi local -v",
-		"docker:reset": "bun run docker:remove && bun run docker:up"
+		"docker:down": "docker compose down"
 	},
 	"exports": {
 		".": "./src/index.ts",
-		"./schema": "./schema.ts",
-		"./mock": "./src/mock.ts"
+		"./schema": "./schema.ts"
 	},
 	"devDependencies": {
-		"@nimbus/vitest": "workspace:*",
 		"drizzle-kit": "^0.31.4"
 	},
 	"dependencies": {

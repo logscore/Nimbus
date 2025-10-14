@@ -9,8 +9,5 @@
 	"dependencies": {
 		"zod": "^4.0.14",
 		"@nimbus/db": "workspace:*"
-	},
-	"devDependencies": {
-		"@nimbus/vitest": "workspace:*"
 	}
 }

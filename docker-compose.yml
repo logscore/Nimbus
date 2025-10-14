@@ -56,59 +56,59 @@ services:
     networks:
       - nimbus-network
 
-  # Server Service
-  server:
-    build:
-      context: .
-      dockerfile: apps/server/Dockerfile
-      target: runner
-    container_name: nimbus-server
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      NODE_ENV: production
-      PORT: ${SERVER_PORT:-1284}
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      # Valkey connection settings with username/password
-      VALKEY_HOST: ${VALKEY_HOST}
-      VALKEY_PORT: ${VALKEY_PORT}
-      VALKEY_USERNAME: ${VALKEY_USERNAME}
-      VALKEY_PASSWORD: ${VALKEY_PASSWORD}
-      # Connection URL format with username and password
-      VALKEY_URL: valkey://${VALKEY_USERNAME}:${VALKEY_PASSWORD}@${VALKEY_HOST}:${VALKEY_PORT}/0
-    ports:
-      - "1284:1284"
-    depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_healthy
-    networks:
-      - nimbus-network
+  # # Server Service
+  # server:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/server/Dockerfile
+  #     target: runner
+  #   container_name: nimbus-server
+  #   restart: unless-stopped
+  #   env_file: .env
+  #   environment:
+  #     NODE_ENV: production
+  #     PORT: ${SERVER_PORT:-1284}
+  #     DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+  #     # Valkey connection settings with username/password
+  #     VALKEY_HOST: ${VALKEY_HOST}
+  #     VALKEY_PORT: ${VALKEY_PORT}
+  #     VALKEY_USERNAME: ${VALKEY_USERNAME}
+  #     VALKEY_PASSWORD: ${VALKEY_PASSWORD}
+  #     # Connection URL format with username and password
+  #     VALKEY_URL: valkey://${VALKEY_USERNAME}:${VALKEY_PASSWORD}@${VALKEY_HOST}:${VALKEY_PORT}/0
+  #   ports:
+  #     - "1284:1284"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     cache:
+  #       condition: service_healthy
+  #   networks:
+  #     - nimbus-network
 
-  # Web Service
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      target: runner
-      args:
-        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
-        NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
-    container_name: nimbus-web
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
-      NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
-    ports:
-      - "3000:3000"
-    depends_on:
-      server:
-        condition: service_started
-    networks:
-      - nimbus-network
+  # # Web Service
+  # web:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/web/Dockerfile
+  #     target: runner
+  #     args:
+  #       NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+  #       NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
+  #   container_name: nimbus-web
+  #   restart: unless-stopped
+  #   env_file: .env
+  #   environment:
+  #     NODE_ENV: production
+  #     NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+  #     NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     server:
+  #       condition: service_started
+  #   networks:
+  #     - nimbus-network
 
 volumes:
   postgres-data:

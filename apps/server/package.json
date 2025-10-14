@@ -46,7 +46,6 @@
 	},
 	"devDependencies": {
 		"@microsoft/microsoft-graph-types": "^2.40.0",
-		"@nimbus/vitest": "workspace:*",
 		"@types/pg": "^8.15.4"
 	}
 }

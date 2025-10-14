@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /api/auth/
+Disallow: /reset-password
+
+Sitemap: https://nimbus.example.com/sitemap.xml

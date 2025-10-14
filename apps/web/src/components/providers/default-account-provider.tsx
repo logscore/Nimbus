@@ -2,9 +2,9 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { DriveProvider, DriveProviderSlug } from "@nimbus/shared";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 import { providerToSlug, slugToProvider } from "@nimbus/shared";
 import { useUserInfoProvider } from "./user-info-provider";
-import { usePathname, useRouter } from "next/navigation";
 
 interface AccountProvider {
 	defaultProviderSlug: DriveProviderSlug | null;
@@ -18,8 +18,9 @@ const DefaultAccountProviderContext = createContext<AccountProvider | undefined>
 
 export function DefaultAccountProvider({ children }: { children: ReactNode }) {
 	const { user, error: userInfoError, isLoading: userInfoIsPending } = useUserInfoProvider();
-	const router = useRouter();
-	const pathname = usePathname();
+	const navigate = useNavigate();
+	const location = useLocation();
+	const pathname = location.pathname;
 
 	const [state, setState] = useState<AccountProvider>(() => ({
 		defaultProviderSlug: null,
@@ -78,7 +79,7 @@ export function DefaultAccountProvider({ children }: { children: ReactNode }) {
 		}
 		const path = `/dashboard/${providerSlug}/${accountId}`;
 		if (pathname !== path) {
-			router.push(path);
+			navigate({ to: path as any });
 		}
 	};
 

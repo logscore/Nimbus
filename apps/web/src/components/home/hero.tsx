@@ -1,13 +1,10 @@
 import { AnimatedGroup } from "@/components/ui/animated-group";
 import BgAngels from "@/components/brand-assets/bg-angels";
 import { WaitlistForm } from "@/components/home/waitlist";
-import HeroLight from "@/public/images/hero-light.png";
-import HeroDark from "@/public/images/hero-dark.png";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Header from "@/components/home/header";
 import Footer from "@/components/home/footer";
 import { type Variants } from "motion/react";
-import Image from "next/image";
 
 const transitionVariants: { item: Variants } = {
 	item: {
@@ -84,23 +81,17 @@ export default function Hero() {
 			>
 				<div className="border-border mx-auto w-full max-w-3xl rounded-xl border bg-gray-50/5 p-2 backdrop-blur-xs sm:max-w-4xl sm:min-w-0 sm:translate-x-0">
 					<div className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-black to-[#7FBEE4] opacity-30 blur-[60px]" />
-					<Image
-						src={HeroDark}
+					<img
+						src="/images/hero-dark.png"
 						alt="Hero"
 						className="z-10 ml-0 hidden h-auto w-full rounded-lg object-cover sm:mx-auto dark:block"
-						unoptimized
 						loading="lazy"
-						placeholder="blur"
-						sizes="(max-width: 768px) 100vw, 80vw"
 					/>
-					<Image
-						src={HeroLight}
+					<img
+						src="/images/hero-light.png"
 						alt="Hero"
 						className="z-10 ml-0 block h-auto w-full rounded-lg object-cover sm:mx-auto dark:hidden"
-						unoptimized
 						loading="lazy"
-						placeholder="blur"
-						sizes="(max-width: 768px) 100vw, 80vw"
 					/>
 				</div>
 			</AnimatedGroup>
