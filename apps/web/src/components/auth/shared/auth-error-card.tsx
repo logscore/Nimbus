@@ -1,7 +1,7 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 
 interface AuthErrorCardProps {
 	title: string;
@@ -18,7 +18,7 @@ export function AuthErrorCard({ title, content, actionText, actionHref, classNam
 				<CardHeader className="overflow-x-hidden">
 					<div className="-mx-6 flex flex-row items-center justify-start border-b">
 						<Button className="cursor-pointer rounded-none px-6 py-6 font-semibold" variant="link" asChild>
-							<Link href="/">
+							<Link to="/">
 								<ArrowLeft className="mr-2 h-4 w-4" />
 								Back to Home
 							</Link>
@@ -35,7 +35,7 @@ export function AuthErrorCard({ title, content, actionText, actionHref, classNam
 
 				<CardFooter className="px-6 py-4">
 					<Button asChild className="w-full">
-						<Link href={actionHref}>{actionText}</Link>
+						<Link to={actionHref}>{actionText}</Link>
 					</Button>
 				</CardFooter>
 			</Card>

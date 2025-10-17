@@ -9,7 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root"
-import { Route as DebugRouteImport } from "./routes/debug"
+import { Route as DevelopersRouteImport } from "./routes/developers"
 import { Route as PublicRouteImport } from "./routes/_public"
 import { Route as ProtectedRouteImport } from "./routes/_protected"
 import { Route as IndexRouteImport } from "./routes/index"
@@ -26,9 +26,9 @@ import { Route as ProtectedDashboardIndexRouteImport } from "./routes/_protected
 import { Route as ProtectedDashboardSettingsRouteImport } from "./routes/_protected/dashboard/settings"
 import { Route as ProtectedDashboardProviderSlugAccountIdRouteImport } from "./routes/_protected/dashboard/$providerSlug.$accountId"
 
-const DebugRoute = DebugRouteImport.update({
-  id: "/debug",
-  path: "/debug",
+const DevelopersRoute = DevelopersRouteImport.update({
+  id: "/developers",
+  path: "/developers",
   getParentRoute: () => rootRouteImport,
 } as any)
 const PublicRoute = PublicRouteImport.update({
@@ -109,7 +109,7 @@ const ProtectedDashboardProviderSlugAccountIdRoute =
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
-  "/debug": typeof DebugRoute
+  "/developers": typeof DevelopersRoute
   "/dashboard": typeof ProtectedDashboardRouteWithChildren
   "/contributors": typeof PublicContributorsRoute
   "/forgot-password": typeof PublicForgotPasswordRoute
@@ -125,7 +125,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
-  "/debug": typeof DebugRoute
+  "/developers": typeof DevelopersRoute
   "/contributors": typeof PublicContributorsRoute
   "/forgot-password": typeof PublicForgotPasswordRoute
   "/privacy": typeof PublicPrivacyRoute
@@ -143,7 +143,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/_protected": typeof ProtectedRouteWithChildren
   "/_public": typeof PublicRouteWithChildren
-  "/debug": typeof DebugRoute
+  "/developers": typeof DevelopersRoute
   "/_protected/dashboard": typeof ProtectedDashboardRouteWithChildren
   "/_public/contributors": typeof PublicContributorsRoute
   "/_public/forgot-password": typeof PublicForgotPasswordRoute
@@ -161,7 +161,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | "/"
-    | "/debug"
+    | "/developers"
     | "/dashboard"
     | "/contributors"
     | "/forgot-password"
@@ -177,7 +177,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
-    | "/debug"
+    | "/developers"
     | "/contributors"
     | "/forgot-password"
     | "/privacy"
@@ -194,7 +194,7 @@ export interface FileRouteTypes {
     | "/"
     | "/_protected"
     | "/_public"
-    | "/debug"
+    | "/developers"
     | "/_protected/dashboard"
     | "/_public/contributors"
     | "/_public/forgot-password"
@@ -213,16 +213,16 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRoute: typeof ProtectedRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
-  DebugRoute: typeof DebugRoute
+  DevelopersRoute: typeof DevelopersRoute
 }
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    "/debug": {
-      id: "/debug"
-      path: "/debug"
-      fullPath: "/debug"
-      preLoaderRoute: typeof DebugRouteImport
+    "/developers": {
+      id: "/developers"
+      path: "/developers"
+      fullPath: "/developers"
+      preLoaderRoute: typeof DevelopersRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/_public": {
@@ -390,7 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRoute: ProtectedRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
-  DebugRoute: DebugRoute,
+  DevelopersRoute: DevelopersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

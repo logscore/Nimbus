@@ -1,9 +1,7 @@
-"use client";
-
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from "@/components/ui/breadcrumb";
 import { type BreadcrumbItem as BreadcrumbItemType } from "@/hooks/useBreadcrumb";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useBreadcrumbPath } from "@/hooks/useBreadcrumb";
 import { pointerIntersection } from "@dnd-kit/collision";
 import { SourceSelector } from "./source-selector";
@@ -34,25 +32,26 @@ const variants: Variants = {
 };
 
 export function FileBreadcrumb() {
-	const searchParams = useSearchParams();
-	const router = useRouter();
-	const currentFileId = searchParams.get("folderId") || "";
+	const searchParams = useSearch({ from: "/_protected/dashboard/$providerSlug/$accountId" });
+	const navigate = useNavigate({ from: "/dashboard/$providerSlug/$accountId" });
+	const currentFileId = searchParams.folderId || "";
 	const { data } = useBreadcrumbPath(currentFileId);
 
 	// Handle clicking a folder navigation
-	async function handleFolderClick(id: string) {
-		const params = new URLSearchParams(searchParams);
-		params.set("folderId", id);
-		router.push(`?${params.toString()}`);
+	function handleFolderClick(id: string) {
+		navigate({
+			search: { ...searchParams, folderId: id },
+		});
 	}
 
 	// Handle clicking the home icon to remove folderId
-	async function handleHomeClick() {
-		const params = new URLSearchParams(searchParams);
-		const folderId = params.get("folderId");
-		if (!folderId) return;
-		params.delete("folderId");
-		router.push(`?${params.toString()}`);
+	function handleHomeClick() {
+		if (!searchParams.folderId) return;
+
+		const { folderId, ...restSearchParams } = searchParams;
+		navigate({
+			search: restSearchParams,
+		});
 	}
 
 	const { ref: droppableRef, isDropTarget } = useDroppable({

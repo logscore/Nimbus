@@ -1,5 +1,3 @@
-"use client";
-
 import { type ComponentProps } from "react";
 
 import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar";

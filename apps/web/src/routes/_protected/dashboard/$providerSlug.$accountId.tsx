@@ -1,3 +1,4 @@
+import { AccountProvider } from "@/components/providers/account-provider";
 import DndKitProvider from "@/components/providers/dnd-kit-provider";
 import { FileTable } from "@/components/dashboard/file-browser";
 import { createFileRoute } from "@tanstack/react-router";
@@ -7,6 +8,8 @@ import { Suspense } from "react";
 
 type DashboardSearch = {
 	folderId?: string;
+	type?: string;
+	id?: string;
 };
 
 export const Route = createFileRoute("/_protected/dashboard/$providerSlug/$accountId")({
@@ -14,6 +17,8 @@ export const Route = createFileRoute("/_protected/dashboard/$providerSlug/$accou
 	validateSearch: (search: Record<string, unknown>): DashboardSearch => {
 		return {
 			folderId: (search.folderId as string) || undefined,
+			type: (search.type as string) || undefined,
+			id: (search.id as string) || undefined,
 		};
 	},
 });

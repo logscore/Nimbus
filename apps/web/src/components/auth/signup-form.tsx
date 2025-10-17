@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthProviderButtons } from "@/components/auth/shared/auth-provider-buttons";
 import { SegmentedProgress } from "@/components/ui/segmented-progress";
@@ -10,21 +8,19 @@ import { FieldError } from "@/components/ui/field-error";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, type ComponentProps } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import Link from "next/link";
 
 export function SignupForm({ className, ...props }: ComponentProps<"div">) {
-	const searchParams = useSearchParams();
-	const urlEmail = searchParams.get("email");
+	const searchParams = useSearch({ from: "/_public/signup" });
 	const [showPasswordEntry, setShowPasswordEntry] = useState(false);
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-	const { isLoading, signUpWithCredentials } = useSignUp();
+	const signUpMutation = useSignUp();
 	const checkEmailMutation = useCheckEmailExists();
 
 	const {
@@ -37,7 +33,7 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 	} = useForm<SignUpFormData>({
 		resolver: zodResolver(signUpSchema),
 		defaultValues: {
-			email: urlEmail ?? "",
+			email: "",
 			firstName: "",
 			lastName: "",
 			password: "",
@@ -49,32 +45,24 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 		const isValid = await trigger(["firstName", "lastName", "email"]);
 		if (isValid) {
 			const email = getValues("email");
-
+			// Check email exists is now handled by the mutation's onSuccess/onError
 			checkEmailMutation.mutate(email, {
 				onSuccess: data => {
 					if (data.exists) {
 						setError("email", {
 							type: "manual",
-							message: "An account with this email already exists. Please sign in instead.",
+							message: "An account with this email already exists. Please sign in to continue.",
 						});
-						toast.error("An account with this email already exists. Please sign in instead.");
 					} else {
 						setShowPasswordEntry(true);
 					}
-				},
-				onError: () => {
-					toast.error("Failed to verify email. Please try again.");
 				},
 			});
 		}
 	};
 
-	const handleGoBack = () => {
-		setShowPasswordEntry(false);
-	};
-
 	const onSubmit = async (data: SignUpFormData) => {
-		await signUpWithCredentials(data);
+		signUpMutation.mutate(data);
 	};
 
 	return (
@@ -83,7 +71,7 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 				<CardHeader className="overflow-x-hidden">
 					<div className="-mx-6 flex flex-row items-center justify-start border-b">
 						<Button className="cursor-pointer rounded-none px-6 py-6 font-semibold" variant="link" asChild>
-							<Link href={`/signin`}>
+							<Link to={`/signin`}>
 								<ArrowLeft className="mr-2" />
 								Sign in
 							</Link>
@@ -99,10 +87,19 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 				</CardHeader>
 
 				<CardContent className="px-6">
-					<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+					<form
+						onSubmit={handleSubmit(onSubmit)}
+						className="flex flex-col gap-4"
+						onKeyDown={e => {
+							if (e.key === "Enter" && !showPasswordEntry) {
+								e.preventDefault();
+								handleContinue();
+							}
+						}}
+					>
 						{!showPasswordEntry && (
 							<>
-								<AuthProviderButtons action="signup" isLoading={isLoading} />
+								<AuthProviderButtons action="signup" />
 								<div className="text-muted-foreground text-center font-mono text-sm font-semibold tracking-wider">
 									OR
 								</div>
@@ -121,7 +118,7 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 									{...register("firstName")}
 									aria-invalid={!!errors.firstName}
 								/>
-								<FieldError error={errors.firstName?.message as string} />
+								<FieldError error={errors.firstName?.message} />
 							</div>
 							<div className="space-y-1">
 								<Label htmlFor="lastName" className="dark:text-muted-foreground text-sm font-semibold">
@@ -134,7 +131,7 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 									{...register("lastName")}
 									aria-invalid={!!errors.lastName}
 								/>
-								<FieldError error={errors.lastName?.message as string} />
+								<FieldError error={errors.lastName?.message} />
 							</div>
 						</div>
 
@@ -146,11 +143,10 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 								id="email"
 								type="email"
 								placeholder="example@0.email"
-								className=""
 								{...register("email")}
 								aria-invalid={!!errors.email}
 							/>
-							<FieldError error={errors.email?.message as string} />
+							<FieldError error={errors.email?.message} />
 						</div>
 
 						{!showPasswordEntry && (
@@ -158,15 +154,13 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 								type="button"
 								className="w-full cursor-pointer font-semibold"
 								onClick={handleContinue}
-								disabled={isLoading || checkEmailMutation.isPending}
+								disabled={checkEmailMutation.isPending}
 							>
 								{checkEmailMutation.isPending ? (
 									<>
 										<Loader2 className="mr-2 animate-spin" />
 										Checking email...
 									</>
-								) : isLoading ? (
-									<Loader2 className="animate-spin" />
 								) : (
 									"Continue"
 								)}
@@ -196,8 +190,9 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 										placeholder="Enter your password"
 										{...register("password")}
 										aria-invalid={!!errors.password}
+										disabled={signUpMutation.isPending}
 									/>
-									<FieldError error={errors.password?.message as string} />
+									<FieldError error={errors.password?.message} />
 								</div>
 
 								<div className="space-y-1">
@@ -210,12 +205,13 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 										placeholder="Confirm your password"
 										{...register("confirmPassword")}
 										aria-invalid={!!errors.confirmPassword}
+										disabled={signUpMutation.isPending}
 									/>
-									<FieldError error={errors.confirmPassword?.message as string} />
+									<FieldError error={errors.confirmPassword?.message} />
 								</div>
 
-								<Button type="submit" className="flex-1" disabled={isLoading}>
-									{isLoading ? <Loader2 className="animate-spin" /> : "Create Account"}
+								<Button type="submit" className="flex-1" disabled={signUpMutation.isPending}>
+									{signUpMutation.isPending ? <Loader2 className="animate-spin" /> : "Create Account"}
 								</Button>
 							</div>
 						)}
@@ -224,7 +220,7 @@ export function SignupForm({ className, ...props }: ComponentProps<"div">) {
 				<CardFooter className="px-6 py-4">
 					<p className="w-full text-center text-sm text-neutral-600">
 						By signing up, you agree to our{" "}
-						<Link href="/terms" className="cursor-pointer whitespace-nowrap underline underline-offset-4">
+						<Link to="/terms" className="cursor-pointer whitespace-nowrap underline underline-offset-4">
 							terms of service
 						</Link>
 						.

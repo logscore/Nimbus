@@ -1,5 +1,3 @@
-"use client";
-
 import {
 	Archive,
 	ChevronDown,
@@ -25,12 +23,12 @@ import {
 	type SortingState,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useDraggable, useDroppable } from "@dnd-kit/react";
-import React, { useMemo, useState, type JSX } from "react";
 import { UploadButton } from "@/components/upload-button";
 import { pointerIntersection } from "@dnd-kit/collision";
 import DragNDropUploader from "./drag-n-drop-uploader";
+import { useMemo, useState, type JSX } from "react";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@nimbus/shared";
 import { PdfIcon } from "@/components/icons";
@@ -79,73 +77,70 @@ const columnHelper = createColumnHelper<File>();
 
 export function FileTable({ files, isLoading, refetch, error }: FileTableProps) {
 	const { tags } = useTags(files[0]?.parentId);
-	const router = useRouter();
-	const searchParams = useSearchParams();
+	const navigate = useNavigate({ from: "/dashboard/$providerSlug/$accountId" });
+	const searchParams = useSearch({ from: "/_protected/dashboard/$providerSlug/$accountId" });
 	const [sorting, setSorting] = useState<SortingState>([]);
-
-	const [filteredFiles, setFilteredFiles] = useState<File[]>([]);
-	const searchType = searchParams.get("type");
 
 	const safeFiles = useMemo(() => {
 		if (isLoading || !files || !Array.isArray(files)) {
 			return [];
 		}
+		return files;
+	}, [files, isLoading]);
 
-		let result = [...files];
+	const filteredFiles = useMemo(() => {
+		if (!safeFiles.length) return [];
 
-		// Apply type filter if specified
-		if (searchType) {
-			result = result.filter(file => {
-				const mimeType = file.mimeType?.toLowerCase() ?? "";
-				const fileName = file.name?.toLowerCase() ?? "";
+		const searchType = searchParams.type;
+		if (!searchType) return safeFiles;
 
-				switch (searchType) {
-					case "folder":
-						return mimeType === "application/vnd.google-apps.folder" || mimeType === "folder";
-					case "document":
-						return (
-							// Google Docs
-							mimeType.includes("application/vnd.google-apps.document") ||
-							mimeType.includes("application/vnd.google-apps.spreadsheet") ||
-							mimeType.includes("application/vnd.google-apps.presentation") ||
-							// Microsoft Office
-							mimeType.includes("officedocument") ||
-							mimeType.includes("msword") ||
-							// PDFs
-							mimeType.includes("pdf") ||
-							// Text files
-							mimeType.includes("text/") ||
-							// Common document extensions
-							/\.(doc|docx|xls|xlsx|ppt|pptx|pdf|txt|rtf|odt|ods|odp)$/i.test(fileName)
-						);
-					case "media":
-						return (
-							// Images
-							mimeType.includes("image/") ||
-							// Videos
-							mimeType.includes("video/") ||
-							// Audio
-							mimeType.includes("audio/") ||
-							// Common media extensions
-							/\.(jpg|jpeg|png|gif|bmp|webp|mp4|webm|mov|mp3|wav|ogg)$/i.test(fileName)
-						);
-					default:
-						return true;
-				}
-			});
-		}
+		return safeFiles.filter(file => {
+			const mimeType = file.mimeType?.toLowerCase() ?? "";
+			const fileName = file.name?.toLowerCase() ?? "";
 
-		setFilteredFiles(result);
-		return result;
-	}, [files, isLoading, searchType]);
+			switch (searchType) {
+				case "folder":
+					return mimeType === "application/vnd.google-apps.folder" || mimeType === "folder";
+				case "document":
+					return (
+						// Google Docs
+						mimeType.includes("application/vnd.google-apps.document") ||
+						mimeType.includes("application/vnd.google-apps.spreadsheet") ||
+						mimeType.includes("application/vnd.google-apps.presentation") ||
+						// Microsoft Office
+						mimeType.includes("officedocument") ||
+						mimeType.includes("msword") ||
+						// PDFs
+						mimeType.includes("pdf") ||
+						// Text files
+						mimeType.includes("text/") ||
+						// Common document extensions
+						/\.(doc|docx|xls|xlsx|ppt|pptx|pdf|txt|rtf|odt|ods|odp)$/i.test(fileName)
+					);
+				case "media":
+					return (
+						// Images
+						mimeType.includes("image/") ||
+						// Videos
+						mimeType.includes("video/") ||
+						// Audio
+						mimeType.includes("audio/") ||
+						// Common media extensions
+						/\.(jpg|jpeg|png|gif|bmp|webp|mp4|webm|mov|mp3|wav|ogg)$/i.test(fileName)
+					);
+				default:
+					return true;
+			}
+		});
+	}, [safeFiles, searchParams.type]);
 
 	const handleRowDoubleClick = (file: File): void => {
 		const fileType = file.mimeType.includes("folder") || file.mimeType === "folder" ? "folder" : "file";
 
 		if (fileType === "folder") {
-			const params = new URLSearchParams(searchParams);
-			params.set("folderId", file.id);
-			router.push(`?${params.toString()}`);
+			navigate({
+				search: { ...searchParams, folderId: file.id },
+			});
 		}
 	};
 
@@ -277,7 +272,7 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 	);
 
 	const table = useReactTable({
-		data: searchType ? filteredFiles : safeFiles,
+		data: searchParams.type ? filteredFiles : safeFiles,
 		columns,
 		state: {
 			sorting,

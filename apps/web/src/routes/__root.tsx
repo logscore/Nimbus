@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AppProviders } from "@/components/providers/app-providers";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { geistSans, geistMono, manrope } from "@/utils/fonts";
+import { TanStackDevtools } from "@tanstack/react-devtools";
 import { Toaster } from "sonner";
 import { Suspense } from "react";
 
@@ -22,19 +23,25 @@ function RootComponent() {
 					<div
 						className={`bg-background text-foreground relative min-h-screen ${geistSans.variable} ${geistMono.variable} ${manrope.variable}`}
 					>
-						<Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
+						<Suspense>
 							<Outlet />
 						</Suspense>
-						<Toaster position="top-center" richColors theme="system" />
+						<Toaster position="bottom-right" richColors theme="system" />
 					</div>
-					<Suspense fallback={null}>
-						<TanStackRouterDevtools position="bottom-right" />
-					</Suspense>
 				</ThemeProvider>
 			</AppProviders>
-			<Suspense fallback={null}>
-				<ReactQueryDevtools initialIsOpen={false} />
-			</Suspense>
+			<TanStackDevtools
+				plugins={[
+					{
+						name: "TanStack Router",
+						render: <TanStackRouterDevtools />,
+					},
+					{
+						name: "React Query",
+						render: <ReactQueryDevtools />,
+					},
+				]}
+			/>
 		</ReactQueryProvider>
 	);
 }

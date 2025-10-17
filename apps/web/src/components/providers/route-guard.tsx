@@ -1,7 +1,5 @@
-"use client";
-
+import { useNavigate, useLocation } from "@tanstack/react-router";
 import { authClient } from "@nimbus/auth/auth-client";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 interface RouteGuardProps {
@@ -11,7 +9,8 @@ interface RouteGuardProps {
 }
 
 export function RouteGuard({ children, requireAuth = false, redirectTo = "/signin" }: RouteGuardProps) {
-	const router = useRouter();
+	const navigate = useNavigate();
+	const location = useLocation();
 	const { data: session, isPending } = authClient.useSession();
 
 	useEffect(() => {
@@ -21,15 +20,16 @@ export function RouteGuard({ children, requireAuth = false, redirectTo = "/signi
 
 			if (requireAuth && !isAuthenticated) {
 				// Redirect to signin if auth is required but user isn't authenticated
-				const currentPath = window.location.pathname;
-				const redirectUrl = `${redirectTo}?redirect=${encodeURIComponent(currentPath)}`;
-				router.push(redirectUrl);
-			} else if (!requireAuth && isAuthenticated && window.location.pathname === "/signin") {
+				navigate({
+					to: redirectTo,
+					// search: { redirect: location.pathname },
+				});
+			} else if (!requireAuth && isAuthenticated && location.pathname === "/signin") {
 				// Redirect to dashboard if already signed in and on signin page
-				router.push("/dashboard");
+				navigate({ to: "/dashboard" });
 			}
 		}
-	}, [session, isPending, requireAuth, redirectTo, router]);
+	}, [session, isPending, requireAuth, redirectTo, location.pathname, navigate]);
 
 	// Show loading state while checking auth
 	if (isPending) {

@@ -1,5 +1,3 @@
-"use client";
-
 import { AuthProviderButtons } from "@/components/auth/shared/auth-provider-buttons";
 import { PasswordInput } from "@/components/auth/shared/password-input";
 import { signInSchema, type SignInFormData } from "@nimbus/shared";
@@ -10,14 +8,15 @@ import type { ChangeEvent, ComponentProps } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useSignIn } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
-import Link from "next/link";
 
 export function SignInForm({ className, ...props }: ComponentProps<"div">) {
-	const { signInWithCredentials, isLoading } = useSignIn();
+	const signInMutation = useSignIn();
+	const isLoading = signInMutation.isPending;
 
 	const {
 		register,
@@ -37,19 +36,13 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 	const passwordValue = watch("password");
 
 	const onSubmit: SubmitHandler<SignInFormData> = async data => {
-		await signInWithCredentials(data);
+		signInMutation.mutate(data);
 	};
 
 	return (
-		<AuthCard
-			title="Welcome back to Nimbus.storage"
-			description="You do the files, we store them."
-			navigationType="signin"
-			className={className}
-			{...props}
-		>
+		<AuthCard title="Welcome back to Nimbus" navigationType="signin" className={className} {...props}>
 			<div className="flex flex-col gap-4">
-				<AuthProviderButtons action="signin" isLoading={isLoading} />
+				<AuthProviderButtons action="signin" />
 
 				<div className="text-muted-foreground text-center font-mono text-sm font-semibold tracking-wider">OR</div>
 
@@ -101,7 +94,7 @@ export function SignInForm({ className, ...props }: ComponentProps<"div">) {
 							</Label>
 						</div>
 						<Link
-							href="/forgot-password"
+							to="/forgot-password"
 							className="text-muted-foreground hover:text-primary text-sm underline underline-offset-4 transition-colors"
 						>
 							Forgot password?

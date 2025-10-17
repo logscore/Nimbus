@@ -1,8 +1,7 @@
-"use client";
-
 import { BoxIcon, DropboxIcon, GoogleIcon, MicrosoftIcon } from "@/components/icons";
 import type { SocialAuthButtonProps } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import type { PropsWithChildren } from "react";
 
 const providerConfig = {
 	google: {
@@ -23,12 +22,7 @@ const providerConfig = {
 	},
 } as const;
 
-export function SocialAuthButton({
-	provider,
-	action,
-	children,
-	...props
-}: React.PropsWithChildren<SocialAuthButtonProps>) {
+export function SocialAuthButton({ provider, action, children, ...props }: PropsWithChildren<SocialAuthButtonProps>) {
 	const config = providerConfig[provider];
 	const IconComponent = config.icon;
 
@@ -40,7 +34,7 @@ export function SocialAuthButton({
 		<Button
 			variant="outline"
 			type="button"
-			className="w-full cursor-pointer justify-between truncate shadow-md shadow-blue-600/20 transition-all duration-300 hover:shadow-sm hover:shadow-blue-600/20 dark:shadow-lg"
+			className="w-full cursor-pointer justify-between truncate shadow-md transition-all duration-300 hover:shadow-sm"
 			{...props}
 		>
 			<IconComponent />

@@ -7,37 +7,14 @@ import {
 	type SignInFormData,
 	type SignUpFormData,
 } from "@nimbus/shared";
-import { useSearchParamsSafely } from "@/hooks/useSearchParamsSafely";
 import { authClient } from "@nimbus/auth/auth-client";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { publicClient } from "@/utils/client";
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
 import env from "@nimbus/env/client";
 import { toast } from "sonner";
 
-interface AuthState {
-	isLoading: boolean;
-	error: string | null;
-}
-
-const signInWithProvider = async (provider: DriveProvider) => {
-	return authClient.signIn.social({
-		provider,
-		callbackURL: `${import.meta.env.VITE_FRONTEND_URL}/dashboard`,
-	});
-};
-
-const linkSessionWithProvider = async (
-	provider: DriveProvider,
-	callbackURL: string = `${import.meta.env.VITE_FRONTEND_URL}/dashboard`
-) => {
-	return authClient.linkSocial({
-		provider,
-		callbackURL,
-	});
-};
-
+// Simple error handler
 const handleAuthError = (error: unknown, defaultMessage: string): string => {
 	if (error instanceof Error) {
 		return error.message || defaultMessage;
@@ -45,334 +22,186 @@ const handleAuthError = (error: unknown, defaultMessage: string): string => {
 	return defaultMessage;
 };
 
-const getProviderDisplayName = (provider: DriveProvider): string => {
-	return provider.charAt(0).toUpperCase() + provider.slice(1);
-};
+// Social auth hook
+export const useSocialAuth = () => {
+	const navigate = useNavigate();
 
-const useSocialAuth = (provider: DriveProvider) => {
-	const [isLoading, setIsLoading] = useState(false);
-	const providerName = getProviderDisplayName(provider);
+	return useMutation({
+		mutationFn: async (options: { provider: DriveProvider; callbackURL?: string }) => {
+			const isLoggedIn = await authClient.getSession();
+			const action = isLoggedIn.data?.session ? "link" : "signin";
+			const providerName = options.provider.charAt(0).toUpperCase() + options.provider.slice(1);
 
-	const handleAuth = useCallback(
-		async (options?: { callbackURL?: string }) => {
-			setIsLoading(true);
+			const authPromise =
+				action === "link"
+					? authClient.linkSocial({
+							provider: options.provider,
+							callbackURL: options.callbackURL || `${env.VITE_FRONTEND_URL}/dashboard`,
+						})
+					: authClient.signIn.social({
+							provider: options.provider,
+							callbackURL: `${env.VITE_FRONTEND_URL}/dashboard`,
+						});
 
-			try {
-				const isLoggedIn = await authClient.getSession();
-				// If the user is already logged in, link the provider
-				const action = isLoggedIn.data?.session ? "link" : "signin";
-
-				const authPromise =
-					action === "link" ? linkSessionWithProvider(provider, options?.callbackURL) : signInWithProvider(provider);
-
-				toast.promise(authPromise, {
-					loading: action === "link" ? `Linking ${providerName} account...` : `Signing in with ${providerName}...`,
-					success: action === "link" ? `Successfully linked ${providerName} account` : `Signed in with ${providerName}`,
-					error: (error: unknown) => handleAuthError(error, `${providerName} authentication failed`),
-				});
-
-				return true;
-			} catch (error) {
-				const errorMessage = handleAuthError(error, `${providerName} authentication failed`);
-				toast.error(errorMessage);
-				return false;
-			} finally {
-				setIsLoading(false);
-			}
+			return toast.promise(authPromise, {
+				loading: action === "link" ? `Linking ${providerName} account...` : `Signing in with ${providerName}...`,
+				success: action === "link" ? `Successfully linked ${providerName} account` : `Signed in with ${providerName}`,
+				error: error => handleAuthError(error, `${options.provider} authentication failed`),
+			});
 		},
-		[provider, providerName]
-	);
-
-	return { handleAuth, isLoading };
-};
-
-export const useGoogleAuth = () => {
-	const { handleAuth, isLoading } = useSocialAuth("google");
-	return {
-		signInWithGoogleProvider: handleAuth,
-		isLoading,
-	};
-};
-
-export const useMicrosoftAuth = () => {
-	const { handleAuth, isLoading } = useSocialAuth("microsoft");
-	return {
-		signInWithMicrosoftProvider: handleAuth,
-		isLoading,
-	};
-};
-
-export const useBoxAuth = () => {
-	const { handleAuth, isLoading } = useSocialAuth("box");
-	return {
-		signInWithBoxProvider: handleAuth,
-		isLoading,
-	};
-};
-
-export const useDropboxAuth = () => {
-	const { handleAuth, isLoading } = useSocialAuth("dropbox");
-	return {
-		signInWithDropboxProvider: handleAuth,
-		isLoading,
-	};
-};
-
-const useRedirect = () => {
-	const router = useRouter();
-	const { getParam } = useSearchParamsSafely();
-
-	const getRedirectUrl = useCallback(() => {
-		return getParam("redirect") || "/dashboard";
-	}, [getParam]);
-
-	const redirectToDashboard = useCallback(() => {
-		const redirectUrl = getRedirectUrl();
-		router.push(redirectUrl);
-		router.refresh();
-	}, [router, getRedirectUrl]);
-
-	return { getRedirectUrl, redirectToDashboard };
-};
-
-const useAuthMutation = <TData, TResult = unknown>(mutationFn: (data: TData) => Promise<TResult>) => {
-	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
-
-	const mutate = useCallback(
-		async (data: TData, options: Parameters<typeof toast.promise<TResult>>[1]) => {
-			setState({ isLoading: true, error: null });
-			try {
-				toast.promise(mutationFn(data), options);
-			} catch (error) {
-				const errorMessage = handleAuthError(error, "An unexpected error occurred.");
-				setState(prev => ({ ...prev, error: errorMessage }));
-				throw error; // Re-throw for form-level error handling
-			} finally {
-				setState(prev => ({ ...prev, isLoading: false }));
-			}
+		onSuccess: () => {
+			navigate({ to: "/dashboard" });
 		},
-		[mutationFn]
-	);
-
-	return { ...state, mutate };
+	});
 };
 
+// Sign in hook
 export const useSignIn = () => {
-	const { redirectToDashboard } = useRedirect();
+	const navigate = useNavigate();
 
-	const signInMutation = useCallback(
-		(data: SignInFormData) =>
-			authClient.signIn.email(
+	return useMutation({
+		mutationFn: async (data: SignInFormData) => {
+			await authClient.signIn.email(
 				{
 					email: data.email,
 					password: data.password,
 					rememberMe: data.remember,
 				},
 				{
-					onSuccess: redirectToDashboard,
+					onSuccess: () => {
+						const redirectUrl = new URLSearchParams(window.location.search).get("redirect") || "/dashboard";
+						navigate({ to: redirectUrl });
+					},
 					onError: ctx => {
 						throw ctx.error;
 					},
 				}
-			),
-		[redirectToDashboard]
-	);
-
-	const { mutate, ...state } = useAuthMutation(signInMutation);
-
-	const signInWithCredentials = (data: SignInFormData) =>
-		mutate(data, {
-			loading: "Signing you in...",
-			success: `Welcome back, ${data.email}!`,
-			error: error => handleAuthError(error, "Unable to sign in. Please try again."),
-		});
-
-	return { ...state, signInWithCredentials };
+			);
+			return data.email;
+		},
+		onSuccess: email => {
+			toast.success(`Welcome back, ${email}!`);
+		},
+		onError: error => {
+			toast.error(handleAuthError(error, "Unable to sign in. Please try again."));
+		},
+	});
 };
 
+// Sign up hook
 export const useSignUp = () => {
-	const { redirectToDashboard } = useRedirect();
+	const navigate = useNavigate();
 
-	const signUpMutation = useCallback(
-		async (data: SignUpFormData) => {
+	return useMutation({
+		mutationFn: async (data: SignUpFormData) => {
 			const fullName = `${data.firstName} ${data.lastName}`;
 			await authClient.signUp.email({
 				name: fullName,
 				email: data.email,
 				password: data.password,
-				callbackURL: `${import.meta.env.VITE_FRONTEND_URL}/dashboard`,
+				callbackURL: `${env.VITE_FRONTEND_URL}/dashboard`,
 			});
-			redirectToDashboard();
+			return fullName;
 		},
-		[redirectToDashboard]
-	);
-
-	const { mutate, ...state } = useAuthMutation(signUpMutation);
-
-	const signUpWithCredentials = (data: SignUpFormData) => {
-		const fullName = `${data.firstName} ${data.lastName}`;
-		return mutate(data, {
-			loading: "Creating your account...",
-			success: `Welcome to Nimbus, ${fullName}!`,
-			error: error => {
-				if (error instanceof Error) {
-					if (error.message.toLowerCase().includes("exists")) {
-						return "An account with this email already exists. Please sign in instead.";
-					} else if (error.message.toLowerCase().includes("password")) {
-						return "Password doesn't meet requirements. Please check and try again.";
-					}
-					return error.message;
+		onSuccess: fullName => {
+			navigate({ to: "/dashboard" });
+		},
+		onError: error => {
+			let errorMessage = "Unable to create your account. Please try again.";
+			if (error instanceof Error) {
+				if (error.message.toLowerCase().includes("exists")) {
+					errorMessage = "An account with this email already exists. Please sign in instead.";
+				} else if (error.message.toLowerCase().includes("password")) {
+					errorMessage = "Password doesn't meet requirements. Please check and try again.";
+				} else {
+					errorMessage = error.message;
 				}
-				return "Unable to create your account. Please try again.";
-			},
-		});
-	};
-
-	return { ...state, signUpWithCredentials };
-};
-
-export const useSignOut = () => {
-	const router = useRouter();
-	const [isLoading, setIsLoading] = useState(false);
-
-	const signOut = useCallback(
-		async (options?: { redirectTo?: string }) => {
-			setIsLoading(true);
-			try {
-				const response = await authClient.signOut();
-				const data = response.data;
-				const success = data?.success ?? false;
-
-				if (!success) {
-					throw new Error("Sign out failed");
-				}
-
-				toast.success("Signed out successfully");
-
-				// Redirect to the specified path or default to signin
-				const redirectPath = options?.redirectTo || "/signin";
-				router.push(redirectPath);
-				router.refresh();
-
-				return { success: true };
-			} catch (error) {
-				const errorMessage = error instanceof Error ? error.message : "Sign out failed";
-				toast.error(errorMessage);
-				return { success: false, error: errorMessage };
-			} finally {
-				setIsLoading(false);
 			}
+			toast.error(errorMessage);
 		},
-		[router]
-	);
-
-	return {
-		signOut,
-		isLoading,
-	};
-};
-
-const checkEmailExists = async (email: string): Promise<CheckEmailExists> => {
-	try {
-		const body = {
-			email,
-		};
-		const result = emailObjectSchema.safeParse(body);
-		if (!result.success) {
-			throw new Error(result.error.message);
-		}
-		const response = await publicClient.api.auth["check-email"].$post({ json: body });
-		return (await response.json()) as CheckEmailExists;
-	} catch (error) {
-		if (error instanceof Error) {
-			throw new Error(error.message || "Failed to check email existence");
-		}
-		throw error;
-	}
-};
-
-export const useCheckEmailExists = () => {
-	return useMutation<CheckEmailExists, Error, string>({
-		mutationFn: checkEmailExists,
 	});
 };
 
-export const useForgotPassword = () => {
-	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
+// Sign out hook
+export const useSignOut = () => {
+	const navigate = useNavigate();
 
-	const forgotPassword = useCallback(async (data: ForgotPasswordFormData) => {
-		setState({ isLoading: true, error: null });
+	return useMutation({
+		mutationFn: async (options?: { redirectTo?: string }) => {
+			const response = await authClient.signOut();
+			const data = response.data;
+			const success = data?.success ?? false;
 
-		try {
-			toast.promise(
-				authClient.forgetPassword({
-					email: data.email,
-					redirectTo: `${window.location.origin}/reset-password`,
-				}),
-				{
-					loading: "Sending password reset email...",
-					success: "If an account exists with this email, you will receive a password reset link.",
-					error: error => handleAuthError(error, "Failed to send password reset email. Please try again."),
-				}
-			);
-			return true;
-		} catch (error) {
-			const errorMessage = handleAuthError(error, "Failed to send password reset email.");
-			setState({ isLoading: false, error: errorMessage });
-			throw error;
-		} finally {
-			setState(prev => ({ ...prev, isLoading: false }));
-		}
-	}, []);
+			if (!success) {
+				throw new Error("Sign out failed");
+			}
 
-	return { ...state, forgotPassword };
+			return { success: true, redirectPath: options?.redirectTo || "/signin" };
+		},
+		onSuccess: ({ redirectPath }) => {
+			toast.success("Signed out successfully");
+			navigate({ to: redirectPath });
+		},
+		onError: error => {
+			toast.error(handleAuthError(error, "Sign out failed"));
+		},
+	});
 };
 
-export const useResetPassword = () => {
-	const router = useRouter();
-	const [state, setState] = useState<AuthState>({ isLoading: false, error: null });
+// Check email exists hook
+export const useCheckEmailExists = () => {
+	return useMutation<CheckEmailExists, Error, string>({
+		mutationFn: async (email: string) => {
+			const body = { email };
+			const result = emailObjectSchema.safeParse(body);
+			if (!result.success) {
+				throw new Error(result.error.message);
+			}
+			const response = await publicClient.api.auth["check-email"].$post({ json: body });
+			return (await response.json()) as CheckEmailExists;
+		},
+	});
+};
 
-	const resetPassword = useCallback(
-		async (data: ResetPasswordFormData, token: string) => {
+// Forgot password hook
+export const useForgotPassword = () => {
+	return useMutation({
+		mutationFn: async (data: ForgotPasswordFormData) => {
+			await authClient.forgetPassword({
+				email: data.email,
+				redirectTo: `${window.location.origin}/reset-password`,
+			});
+		},
+		onSuccess: () => {
+			toast.success("If an account exists with this email, you will receive a password reset link.");
+		},
+		onError: error => {
+			toast.error(handleAuthError(error, "Failed to send password reset email. Please try again."));
+		},
+	});
+};
+
+// Reset password hook
+export const useResetPassword = () => {
+	const navigate = useNavigate();
+
+	return useMutation({
+		mutationFn: async ({ data, token }: { data: ResetPasswordFormData; token: string }) => {
 			if (!token) {
 				throw new Error("Reset token is missing");
 			}
 
-			setState({ isLoading: true, error: null });
-
-			try {
-				toast.promise(
-					authClient.resetPassword({
-						token,
-						newPassword: data.password,
-					}),
-					{
-						loading: "Resetting your password...",
-						success: () => {
-							router.push("/signin");
-							return "Your password has been reset successfully. You can now sign in with your new password.";
-						},
-						error: error =>
-							handleAuthError(error, "Failed to reset password. The link may have expired or is invalid."),
-					}
-				);
-				return true;
-			} catch (error) {
-				const errorMessage = handleAuthError(
-					error,
-					"Failed to reset password. The link may have expired or is invalid."
-				);
-				setState(prev => ({ ...prev, error: errorMessage }));
-				throw error;
-			} finally {
-				setState(prev => ({ ...prev, isLoading: false }));
-			}
+			await authClient.resetPassword({
+				token,
+				newPassword: data.password,
+			});
 		},
-		[router]
-	);
-
-	return {
-		...state,
-		resetPassword,
-	};
+		onSuccess: () => {
+			navigate({ to: "/signin" });
+			toast.success("Your password has been reset successfully. You can now sign in with your new password.");
+		},
+		onError: error => {
+			toast.error(handleAuthError(error, "Failed to reset password. The link may have expired or is invalid."));
+		},
+	});
 };

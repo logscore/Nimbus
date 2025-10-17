@@ -1,5 +1,3 @@
-"use client";
-
 import { RouteGuard } from "./route-guard";
 
 interface ProtectedRouteProps {

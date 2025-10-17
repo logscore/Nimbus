@@ -1,5 +1,3 @@
-"use client";
-
 import { emailObjectSchema, type ApiResponse, type WaitlistCount } from "@nimbus/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";

@@ -1,4 +1,3 @@
-"use client";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -9,7 +8,7 @@ import { UploadFolderDialog } from "@/components/dialogs/upload-folder-dialog";
 import { CreateFolderDialog } from "@/components/dialogs/create-folder-dialog";
 import { UploadFileDialog } from "@/components/dialogs/upload-files-dialog";
 import { FolderPlus, Plus, Upload } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -17,8 +16,8 @@ export function UploadButton({ name }: { name: string }) {
 	const [uploadFileOpen, setUploadFileOpen] = useState(false);
 	const [uploadFolderOpen, setUploadFolderOpen] = useState(false);
 	const [createFolderOpen, setCreateFolderOpen] = useState(false);
-	const searchParams = useSearchParams();
-	const folderId = searchParams.get("folderId") ?? "root";
+	const searchParams = useSearch({ from: "/_protected/dashboard/$providerSlug/$accountId" });
+	const folderId = searchParams.folderId ?? "root";
 
 	return (
 		<>

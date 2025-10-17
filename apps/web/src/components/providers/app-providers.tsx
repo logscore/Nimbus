@@ -1,5 +1,3 @@
-"use client";
-
 import { SigninAccountDialog } from "@/components/auth/signin-account-dialog";
 import { AuthProvider, useAuth } from "@/components/providers/auth-provider";
 import { setAuthContext } from "@/utils/client";

@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "@nimbus/shared";
 import { useForm, type SubmitHandler } from "react-hook-form";
@@ -14,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import type { ComponentProps } from "react";
 
 export function ForgotPasswordForm({ ...props }: ComponentProps<"div">) {
-	const { isLoading, forgotPassword } = useForgotPassword();
+	const { mutate, isPending } = useForgotPassword();
 
 	const {
 		register,
@@ -28,7 +26,7 @@ export function ForgotPasswordForm({ ...props }: ComponentProps<"div">) {
 	});
 
 	const onSubmit: SubmitHandler<ForgotPasswordFormData> = async data => {
-		await forgotPassword(data);
+		mutate(data);
 	};
 
 	return (
@@ -69,8 +67,8 @@ export function ForgotPasswordForm({ ...props }: ComponentProps<"div">) {
 							<FieldError error={errors.email?.message} />
 						</div>
 
-						<Button type="submit" className="mt-2 w-full cursor-pointer" disabled={isLoading}>
-							{isLoading ? (
+						<Button type="submit" className="mt-2 w-full cursor-pointer" disabled={isPending}>
+							{isPending ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									Sending reset link...

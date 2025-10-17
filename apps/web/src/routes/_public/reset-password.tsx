@@ -4,6 +4,10 @@ import { Suspense } from "react";
 
 export const Route = createFileRoute("/_public/reset-password")({
 	component: ResetPasswordPage,
+	validateSearch: (search: Record<string, string>) => ({
+		token: search.token as string,
+		error: search.error as string,
+	}),
 });
 
 function ResetPasswordContent() {

@@ -1,4 +1,5 @@
 import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { LoadingStatePage } from "./components/loading-state-page";
 import { routeTree } from "./routeTree.gen";
 import ReactDOM from "react-dom/client";
 import { StrictMode } from "react";
@@ -10,14 +11,7 @@ const router = createRouter({
 	defaultPreload: "intent",
 	defaultPreloadStaleTime: 0,
 	context: undefined!,
-	defaultPendingComponent: () => (
-		<div className="flex h-screen w-full items-center justify-center">
-			<div className="flex flex-col items-center gap-2">
-				<div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
-				<p className="text-muted-foreground text-sm">Loading...</p>
-			</div>
-		</div>
-	),
+	defaultPendingComponent: () => LoadingStatePage,
 });
 
 // Register the router instance for type safety

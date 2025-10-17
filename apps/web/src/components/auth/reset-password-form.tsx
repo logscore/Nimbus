@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { resetPasswordSchema, type ResetPasswordFormData } from "@nimbus/shared";
 import { AuthErrorCard } from "@/components/auth/shared/auth-error-card";
@@ -7,20 +5,20 @@ import { ArrowLeft, Eye, EyeClosed, Loader2 } from "lucide-react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { FieldError } from "@/components/ui/field-error";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSearch } from "@tanstack/react-router";
 import { useResetPassword } from "@/hooks/useAuth";
-import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import type { ComponentProps } from "react";
 import { useState } from "react";
-import Link from "next/link";
 
 export function ResetPasswordForm({ ...props }: ComponentProps<"div">) {
-	const searchParams = useSearchParams();
-	const error = searchParams.get("error");
-	const token = searchParams.get("token");
-	const { isLoading, resetPassword } = useResetPassword();
+	const searchParams = useSearch({ from: "/_public/reset-password" });
+	const error = searchParams.error;
+	const token = searchParams.token;
+	const { mutate, isPending } = useResetPassword();
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
 	const {
@@ -39,7 +37,7 @@ export function ResetPasswordForm({ ...props }: ComponentProps<"div">) {
 		if (!token) {
 			throw new Error("Reset token is missing");
 		}
-		await resetPassword(data, token);
+		await mutate(data, token);
 	};
 
 	if (error === "invalid_token" || !token) {
@@ -59,7 +57,7 @@ export function ResetPasswordForm({ ...props }: ComponentProps<"div">) {
 				<CardHeader className="overflow-x-hidden">
 					<div className="-mx-6 flex flex-row items-center justify-start border-b">
 						<Button className="cursor-pointer rounded-none px-6 py-6 font-semibold" variant="link" asChild>
-							<Link href="/">
+							<Link to="/">
 								<ArrowLeft />
 								Back
 							</Link>
@@ -115,8 +113,8 @@ export function ResetPasswordForm({ ...props }: ComponentProps<"div">) {
 							<FieldError error={errors.confirmPassword?.message as string} />
 						</div>
 
-						<Button type="submit" className="mt-2 w-full cursor-pointer" disabled={isLoading}>
-							{isLoading ? (
+						<Button type="submit" className="mt-2 w-full cursor-pointer" disabled={isPending}>
+							{isPending ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									Resetting password...
@@ -131,7 +129,7 @@ export function ResetPasswordForm({ ...props }: ComponentProps<"div">) {
 				<CardFooter className="px-6 py-4">
 					<p className="w-full text-center text-sm text-neutral-600">
 						By continuing, you agree to our{" "}
-						<Link href="/terms" className="cursor-pointer whitespace-nowrap underline underline-offset-4">
+						<Link to="/terms" className="cursor-pointer whitespace-nowrap underline underline-offset-4">
 							terms of service
 						</Link>
 						.

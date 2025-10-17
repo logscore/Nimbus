@@ -4,7 +4,7 @@
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
-			"outputs": [".next/**", "!.next/cache/**", "dist/**"]
+			"outputs": ["dist/**", "apps/**/dist/**", "packages/**/dist/**", "!.cache/**"]
 		},
 		"dev": {
 			"persistent": true,

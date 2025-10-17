@@ -48,6 +48,8 @@
 		"packages/*"
 	],
 	"dependencies": {
+		"@tanstack/devtools-vite": "^0.3.6",
+		"@tanstack/react-devtools": "^0.7.6",
 		"stripe": "^19.0.0"
 	}
 }

@@ -1,12 +1,10 @@
-"use client";
-
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { CircleAlert, CircleCheckBig, CloudUpload, RefreshCcw } from "lucide-react";
 import { uploadMutationKey, useUploadFile } from "@/hooks/useFileOperations";
 import { useMutationState, type MutationState } from "@tanstack/react-query";
 import { MAX_FILE_SIZE, type UploadFileSchema } from "@nimbus/shared";
 import { AnimatePresence, motion } from "motion/react";
-import { useSearchParams } from "next/navigation";
+import { useSearch } from "@tanstack/react-router";
 import { useDropzone } from "react-dropzone";
 import { getModernFileIcon } from ".";
 import { cn } from "@/lib/utils";
@@ -18,8 +16,8 @@ export default function DragNDropUploader({ children }: { children: React.ReactN
 
 	const [openDialog, setOpenDialog] = useState(false);
 
-	const searchParams = useSearchParams();
-	const parentId = searchParams.get("folderId") ?? "root";
+	const searchParams = useSearch({ from: "/_protected/dashboard/$providerSlug/$accountId" });
+	const parentId = searchParams.folderId ?? "root";
 
 	const { getRootProps, isDragActive, acceptedFiles } = useDropzone({
 		multiple: true,

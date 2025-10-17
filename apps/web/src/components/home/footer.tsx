@@ -1,5 +1,5 @@
+import { Link } from "@tanstack/react-router";
 import { LogoIcon } from "@/components/icons";
-import Link from "next/link";
 
 // this is a copy of Analogs footer component with some changes
 // https://github.com/analogdotnow/Analog/blob/main/apps/web/src/components/footer.tsx
@@ -10,10 +10,10 @@ export default function Footer() {
 			<div className="mx-auto flex w-full max-w-7xl flex-row items-center justify-center">
 				<div className="text-muted-foreground flex flex-row items-center justify-center gap-2">
 					<LogoIcon className="h-9 w-9" aria-hidden="true" />
-					<Link href="/terms" className="text-xs underline underline-offset-2 md:text-sm">
+					<Link to="/terms" className="text-xs underline underline-offset-2 md:text-sm">
 						Terms of Use
 					</Link>
-					<Link href="/privacy" className="text-xs underline underline-offset-2 md:text-sm">
+					<Link to="/privacy" className="text-xs underline underline-offset-2 md:text-sm">
 						Privacy Policy
 					</Link>
 				</div>

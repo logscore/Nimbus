@@ -1,5 +1,3 @@
-"use client";
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AWS_REGIONS, createS3AccountSchema, type CreateS3AccountSchema } from "@nimbus/shared";
 import { FieldError } from "@/components/ui/field-error";

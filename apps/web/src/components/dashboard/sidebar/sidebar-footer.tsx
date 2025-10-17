@@ -1,15 +1,13 @@
-"use client";
-
 import { SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Progress } from "@/components/ui/progress";
 import { useDriveInfo } from "@/hooks/useDriveOps";
 import { Moon, Settings, Sun } from "lucide-react";
 // import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@nimbus/shared";
+import { Link } from "@tanstack/react-router";
 import { useTheme } from "@/hooks/useTheme";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import Link from "next/link";
 
 export default function StorageFooter() {
 	const { data, error, isError, isPending } = useDriveInfo();
@@ -81,7 +79,7 @@ export default function StorageFooter() {
 					asChild
 					className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
 				>
-					<Link href="/dashboard/settings">
+					<Link to="/dashboard/settings">
 						<Settings className="size-4" />
 						<span>Settings</span>
 					</Link>

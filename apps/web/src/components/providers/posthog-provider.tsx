@@ -1,4 +1,3 @@
-"use client";
 import { authClient } from "@nimbus/auth/auth-client";
 import { PostHogProvider } from "posthog-js/react";
 import { type ReactNode, useEffect } from "react";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 const WarningBanner = () => {
 	return (
@@ -7,7 +7,7 @@ const WarningBanner = () => {
 			<div className="text-sm">
 				This project is not currently maintained. If you like what the project is and would like to see it continue,
 				reach out on our{" "}
-				<Link href="https://discord.gg/c9nWy26ubK" className="font-semibold underline">
+				<Link to="https://discord.gg/c9nWy26ubK" className="font-semibold underline">
 					Discord
 				</Link>
 			</div>

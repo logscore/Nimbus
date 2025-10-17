@@ -1,11 +1,9 @@
-"use client";
-
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AuthProviderButtons } from "@/components/auth/shared/auth-provider-buttons";
 import { S3AccountForm } from "@/components/settings/s3-account-form";
+import { useLocation } from "@tanstack/react-router";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import type { DriveProvider } from "@nimbus/shared";
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type SigninAccountDialogProps = {
@@ -17,7 +15,9 @@ type ViewMode = "select" | "s3-form";
 
 export function SigninAccountDialog({ open, onOpenChange }: SigninAccountDialogProps) {
 	const isMounted = useIsMounted();
-	const pathname = usePathname();
+	const pathname = useLocation({
+		select: location => location.pathname,
+	});
 	const [callbackURL, setCallbackURL] = useState<string>("");
 	const [viewMode, setViewMode] = useState<ViewMode>("select");
 	const [isLoading] = useState<Record<DriveProvider, boolean>>({

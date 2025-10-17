@@ -2,9 +2,9 @@ import { type Account, type AuthContext, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import schema, { user as userTable } from "@nimbus/db/schema";
 import { cacheClient, type CacheClient } from "@nimbus/cache";
+import { stripe } from "@better-auth/stripe";
 // import { genericOAuth } from "better-auth/plugins";
 import { sendMail } from "./utils/send-mail";
-import { stripe } from "@better-auth/stripe";
 import { env } from "@nimbus/env/server";
 import { db, type DB } from "@nimbus/db";
 import { eq } from "drizzle-orm";
@@ -52,7 +52,7 @@ export const auth = betterAuth({
 		minPasswordLength: 8,
 		maxPasswordLength: 100,
 		resetPasswordTokenExpiresIn: 600, // 10 minutes
-		requireEmailVerification: true,
+		// requireEmailVerification: true,
 		sendResetPassword: async ({ user, token: _token, url }) => {
 			// const frontendResetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
 			await sendMail(emailContext, {
@@ -63,20 +63,20 @@ export const auth = betterAuth({
 		},
 	},
 
-	emailVerification: {
-		sendVerificationEmail: async ({ user, url }) => {
-			// const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
-			// const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
-			await sendMail(emailContext, {
-				to: user.email,
-				subject: "Verify your Nimbus email address",
-				text: `Click the link to verify your email address: ${url}`,
-			});
-		},
-		sendOnSignUp: true,
-		autoSignInAfterVerification: true,
-		expiresIn: 3600, // 1 hour
-	},
+	// emailVerification: {
+	// 	sendVerificationEmail: async ({ user, url }) => {
+	// 		// const urlParts = url.split(`${env.BACKEND_URL}/api/auth`);
+	// 		// const emailUrl = `${env.FRONTEND_URL}${urlParts[1]}`;
+	// 		await sendMail(emailContext, {
+	// 			to: user.email,
+	// 			subject: "Verify your Nimbus email address",
+	// 			text: `Click the link to verify your email address: ${url}`,
+	// 		});
+	// 	},
+	// 	sendOnSignUp: true,
+	// 	autoSignInAfterVerification: true,
+	// 	expiresIn: 3600, // 1 hour
+	// },
 
 	socialProviders: {
 		google: {
@@ -118,7 +118,7 @@ export const auth = betterAuth({
 	plugins: [
 		stripe({
 			stripeClient,
-			stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET!,
+			stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
 			createCustomerOnSignUp: true,
 		}),
 		// 	genericOAuth({

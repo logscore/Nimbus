@@ -4,6 +4,12 @@ import { Suspense } from "react";
 
 export const Route = createFileRoute("/_public/verify-email")({
 	component: VerifyEmailPage,
+	validateSearch: (search: Record<string, unknown>) => {
+		return {
+			token: (search.token as string) || undefined,
+			error: (search.error as string) || undefined,
+		};
+	},
 });
 
 function VerifyEmailPage() {

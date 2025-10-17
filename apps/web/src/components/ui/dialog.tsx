@@ -1,5 +1,3 @@
-"use client";
-
 import { Close, Content, Description, Overlay, Portal, Root, Title, Trigger } from "@radix-ui/react-dialog";
 import { ArrowLeftIcon, XIcon } from "lucide-react";
 

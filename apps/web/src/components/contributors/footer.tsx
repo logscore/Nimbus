@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, GitFork, Calendar } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 export function ContributorFooter({
 	repoName,
@@ -22,7 +22,7 @@ export function ContributorFooter({
 				</div>
 				<div className="flex flex-wrap items-center justify-center gap-4 text-sm">
 					<Link
-						href={repoUrl}
+						to={repoUrl}
 						target="_blank"
 						rel="noopener noreferrer"
 						className="text-primary inline-flex items-center gap-2 font-medium hover:underline"
@@ -32,7 +32,7 @@ export function ContributorFooter({
 					</Link>
 					<span className="text-muted-foreground">•</span>
 					<Link
-						href={repoUrl}
+						to={repoUrl}
 						target="_blank"
 						rel="noopener noreferrer"
 						className="text-primary inline-flex items-center gap-2 font-medium hover:underline"

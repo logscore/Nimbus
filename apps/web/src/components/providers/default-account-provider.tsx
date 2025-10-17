@@ -1,5 +1,3 @@
-"use client";
-
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { DriveProvider, DriveProviderSlug } from "@nimbus/shared";
 import { useNavigate, useLocation } from "@tanstack/react-router";

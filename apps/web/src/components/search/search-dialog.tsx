@@ -1,5 +1,3 @@
-"use client";
-
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FileText, Filter, Folder, Search, Tag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
