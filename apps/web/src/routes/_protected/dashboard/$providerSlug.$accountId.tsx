@@ -36,13 +36,13 @@ function DrivePage() {
 	});
 
 	return (
-		<>
+		<AccountProvider>
 			<Suspense fallback={null}>
 				<DndKitProvider parentId={currentFolderId}>
 					<Header />
 					<FileTable files={data || []} isLoading={isLoading} refetch={refetch} error={error} />
 				</DndKitProvider>
 			</Suspense>
-		</>
+		</AccountProvider>
 	);
 }

@@ -7,6 +7,7 @@ import { zValidator } from "@hono/zod-validator";
 import { type HonoContext } from "../../hono";
 import { cacheClient } from "@nimbus/cache";
 import { eq } from "drizzle-orm";
+import { db } from "@nimbus/db";
 import { Hono } from "hono";
 
 // TODO(rate-limiting): implement for user
@@ -33,7 +34,7 @@ const userRouter = new Hono<HonoContext>()
 				return sendUnauthorized(c, "Unauthorized");
 			}
 
-			const user = await c.var.db.query.user.findFirst({
+			const user = await db.query.user.findFirst({
 				where: (table, { eq }) => eq(table.id, userId),
 			});
 
@@ -51,7 +52,7 @@ const userRouter = new Hono<HonoContext>()
 				return sendError(c, { message: "Invalid default provider" });
 			}
 
-			const account = await c.var.db.query.account.findFirst({
+			const account = await db.query.account.findFirst({
 				where: (table, { and, eq }) =>
 					and(
 						eq(table.userId, user.id),
@@ -91,7 +92,7 @@ const userRouter = new Hono<HonoContext>()
 
 			const data: UpdateUserSchema = c.req.valid("json");
 
-			await c.var.db.update(userTable).set(data).where(eq(userTable.id, user.id));
+			await db.update(userTable).set(data).where(eq(userTable.id, user.id));
 
 			return sendSuccess(c, { message: "User updated successfully" });
 		}

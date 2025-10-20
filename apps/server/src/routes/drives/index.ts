@@ -7,6 +7,7 @@ import { pinnedFile } from "@nimbus/db/schema";
 import { type HonoContext } from "../../hono";
 import { cacheClient } from "@nimbus/cache";
 import { and, eq } from "drizzle-orm";
+import { db } from "@nimbus/db";
 import { nanoid } from "nanoid";
 import { Hono } from "hono";
 
@@ -65,7 +66,7 @@ const drivesRouter = new Hono<HonoContext>()
 			if (!user) {
 				return sendUnauthorized(c, "Unauthorized");
 			}
-			const files = await c.var.db.query.pinnedFile.findMany({ where: (table, { eq }) => eq(table.userId, user.id) });
+			const files = await db.query.pinnedFile.findMany({ where: (table, { eq }) => eq(table.userId, user.id) });
 			return sendSuccess(c, { data: files });
 		}
 	)
@@ -100,7 +101,7 @@ const drivesRouter = new Hono<HonoContext>()
 				const accountId = c.req.valid("query").accountId;
 
 				// Check if file is already pinned for this account
-				const firstResult = await c.var.db.query.pinnedFile.findFirst({
+				const firstResult = await db.query.pinnedFile.findFirst({
 					where: (table, { eq }) => eq(table.userId, user.id),
 				});
 
@@ -113,7 +114,7 @@ const drivesRouter = new Hono<HonoContext>()
 
 				// Insert new pinned file
 				const id = nanoid();
-				await c.var.db.insert(pinnedFile).values({
+				await db.insert(pinnedFile).values({
 					id,
 					userId: user.id,
 					fileId,
@@ -165,7 +166,7 @@ const drivesRouter = new Hono<HonoContext>()
 			}
 			const id = c.req.valid("param").id;
 
-			await c.var.db.delete(pinnedFile).where(and(eq(pinnedFile.id, id), eq(pinnedFile.userId, user.id)));
+			await db.delete(pinnedFile).where(and(eq(pinnedFile.id, id), eq(pinnedFile.userId, user.id)));
 
 			return sendSuccess(c, {
 				data: {

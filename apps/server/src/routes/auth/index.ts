@@ -3,6 +3,7 @@ import { sendError, sendSuccess } from "../utils";
 import { zValidator } from "@hono/zod-validator";
 import { type HonoContext } from "../../hono";
 import { auth } from "@nimbus/auth/auth";
+import { db } from "@nimbus/db";
 import { Hono } from "hono";
 
 // TODO(rate-limiting): implement for auth
@@ -12,7 +13,7 @@ const authRouter = new Hono<HonoContext>()
 		try {
 			const email = c.req.valid("json").email;
 
-			const user = await c.var.db.query.user.findFirst({
+			const user = await db.query.user.findFirst({
 				where: (table, { eq }) => eq(table.email, email.toLowerCase().trim()),
 			});
 

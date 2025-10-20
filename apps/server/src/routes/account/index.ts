@@ -15,6 +15,7 @@ import { S3Provider } from "../../providers/s3";
 import { type HonoContext } from "../../hono";
 import { cacheClient } from "@nimbus/cache";
 import { eq } from "drizzle-orm";
+import { db } from "@nimbus/db";
 import { nanoid } from "nanoid";
 import { Hono } from "hono";
 
@@ -43,14 +44,14 @@ const accountRouter = new Hono<HonoContext>()
 				return sendUnauthorized(c, "Unauthorized");
 			}
 
-			const accounts = await c.var.db.query.account.findMany({
+			const accounts = await db.query.account.findMany({
 				where: (table, { eq }) => eq(table.userId, user.id),
 			});
 			const limitedAccessAccounts = accounts.map(account => ({
 				id: account.id,
 				providerId: account.providerId,
 				accountId: account.accountId,
-				scope: account.scope,
+				scope: account.scope, // Should write up some scopes for our solution. Maybe read write create delete share? This wuld extend to permissions for shared files too.
 				nickname: account.nickname,
 				createdAt: account.createdAt,
 				updatedAt: account.updatedAt,
@@ -78,7 +79,7 @@ const accountRouter = new Hono<HonoContext>()
 		async c => {
 			const data: UpdateAccountSchema = c.req.valid("json");
 			const metadata = { nickname: data.nickname };
-			await c.var.db.update(accountTable).set(metadata).where(eq(accountTable.id, data.id));
+			await db.update(accountTable).set(metadata).where(eq(accountTable.id, data.id));
 			return sendSuccess(c, { message: "Account updated successfully" });
 		}
 	)
@@ -136,7 +137,7 @@ const accountRouter = new Hono<HonoContext>()
 					updatedAt: new Date(),
 				};
 
-				await c.var.db.insert(accountTable).values(s3Account);
+				await db.insert(accountTable).values(s3Account);
 
 				return sendSuccess(c, {
 					message: "S3 account added successfully",

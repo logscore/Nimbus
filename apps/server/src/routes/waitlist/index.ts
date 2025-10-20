@@ -4,13 +4,14 @@ import { zValidator } from "@hono/zod-validator";
 import { type HonoContext } from "../../hono";
 import { waitlist } from "@nimbus/db/schema";
 import { count } from "drizzle-orm";
+import { db } from "@nimbus/db";
 import { nanoid } from "nanoid";
 import { Hono } from "hono";
 
 const waitlistRouter = new Hono<HonoContext>()
 	.get("/count", async c => {
 		try {
-			const result = await c.var.db.select({ count: count() }).from(waitlist);
+			const result = await db.select({ count: count() }).from(waitlist);
 			const waitlistCount = result[0]?.count || 0;
 			const data: WaitlistCount = { count: waitlistCount };
 			return sendSuccess(c, { data });
@@ -30,7 +31,7 @@ const waitlistRouter = new Hono<HonoContext>()
 			try {
 				const email = c.req.valid("json").email;
 
-				const existing = await c.var.db.query.waitlist.findFirst({
+				const existing = await db.query.waitlist.findFirst({
 					where: (table, { eq }) => eq(table.email, email.toLowerCase().trim()),
 				});
 
@@ -38,7 +39,7 @@ const waitlistRouter = new Hono<HonoContext>()
 					return sendError(c, { message: "This email is already on the waitlist", status: 400 });
 				}
 
-				await c.var.db.insert(waitlist).values({
+				await db.insert(waitlist).values({
 					id: nanoid(),
 					email: email.toLowerCase().trim(),
 				});

@@ -1,0 +1,2 @@
+- Remove next/navigation from the codebase. Figure out how tanstack router does it.
+-

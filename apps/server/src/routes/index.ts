@@ -9,10 +9,12 @@ import { decrypt } from "../utils/encryption";
 import { S3Provider } from "../providers/s3";
 import { type HonoContext } from "../hono";
 import { env } from "@nimbus/env/server";
+import { auth } from "@nimbus/auth/auth";
 import waitlistRoutes from "./waitlist";
 import accountRouter from "./account";
 import drivesRoutes from "./drives";
 import filesRoutes from "./files";
+import { db } from "@nimbus/db";
 import userRouter from "./user";
 import tagsRoutes from "./tags";
 import authRoutes from "./auth";
@@ -31,7 +33,7 @@ const driveRouter = new Hono<HonoContext>()
 		if (!parsedProviderId.success || !accountIdHeader) {
 			return sendForbidden(c, "Invalid provider or account information");
 		}
-		const account = await c.var.db.query.account.findFirst({
+		const account = await db.query.account.findFirst({
 			where: (table, { and, eq }) =>
 				and(
 					eq(table.userId, user.id),
@@ -72,7 +74,7 @@ const driveRouter = new Hono<HonoContext>()
 			}
 
 			try {
-				const { accessToken } = await c.var.auth.api.getAccessToken({
+				const { accessToken } = await auth.api.getAccessToken({
 					body: {
 						providerId: account.providerId,
 						accountId: account.id,
@@ -114,7 +116,7 @@ const driveRouter = new Hono<HonoContext>()
 
 const protectedRouter = new Hono<HonoContext>()
 	.use("*", async (c, next) => {
-		const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
+		const session = await auth.api.getSession({ headers: c.req.raw.headers });
 		const user = session?.user;
 		if (!user) {
 			return sendForbidden(c);
