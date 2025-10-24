@@ -1,7 +1,5 @@
 import { AnimatedGroup } from "@/components/ui/animated-group";
-import BgAngels from "@/components/brand-assets/bg-angels";
 import { WaitlistForm } from "@/components/home/waitlist";
-import { useIsMobile } from "@/hooks/use-mobile";
 import Header from "@/components/home/header";
 import Footer from "@/components/home/footer";
 import { type Variants } from "motion/react";
@@ -26,8 +24,6 @@ const transitionVariants: { item: Variants } = {
 };
 
 export default function Hero() {
-	const isMobile = useIsMobile();
-
 	return (
 		<div className="font-manrope flex w-full flex-1 flex-col items-center justify-center gap-12 overflow-hidden px-4 py-40 md:gap-16">
 			<Header />

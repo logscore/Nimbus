@@ -1,5 +1,4 @@
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { LoadingStatePage } from "./components/loading-state-page";
 import { routeTree } from "./routeTree.gen";
 import ReactDOM from "react-dom/client";
 import { StrictMode } from "react";

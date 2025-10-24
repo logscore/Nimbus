@@ -8,7 +8,6 @@ import { FieldError } from "@/components/ui/field-error";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, type ComponentProps } from "react";
-import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { Label } from "@/components/ui/label";
@@ -17,7 +16,7 @@ import { useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
 
 export function SignupForm({ className, ...props }: ComponentProps<"div">) {
-	const searchParams = useSearch({ from: "/_public/signup" });
+	// const searchParams = useSearch({ from: "/_public/signup" });
 	const [showPasswordEntry, setShowPasswordEntry] = useState(false);
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const signUpMutation = useSignUp();

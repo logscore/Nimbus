@@ -4,8 +4,8 @@ import { createAuthClient } from "better-auth/react";
 import env from "@nimbus/env/client";
 
 export const authClient = createAuthClient({
-	baseURL: import.meta.env.VITE_BACKEND_URL,
-	callbackUrl: `${import.meta.env.VITE_FRONTEND_URL}/dashboard`,
+	baseURL: env.VITE_BACKEND_URL,
+	callbackUrl: `${env.VITE_FRONTEND_URL}/dashboard`,
 	plugins: [
 		genericOAuthClient(),
 		stripeClient({

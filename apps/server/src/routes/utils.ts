@@ -1,6 +1,5 @@
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import type { ApiResponse } from "@nimbus/shared";
-import { routePath } from "hono/route";
 import type { Context } from "hono";
 
 interface ErrorResponseOptions {

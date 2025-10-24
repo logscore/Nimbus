@@ -45,7 +45,7 @@ export function S3AccountForm({ onSuccess, onCancel }: S3AccountFormProps) {
 				nickname: formData.nickname || null, // Ensure null for empty nickname
 			};
 
-			const backendUrl = import.meta.env.VITE_BACKEND_URL;
+			const backendUrl = env.VITE_BACKEND_URL;
 			if (!backendUrl) {
 				throw new Error("Backend URL is not configured");
 			}

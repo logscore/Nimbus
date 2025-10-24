@@ -1,7 +1,5 @@
 import { SocialAuthButton } from "./social-auth-button";
-import type { DriveProvider } from "@nimbus/shared";
 import { useSocialAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
 
 type AuthProviderButtonsProps = {
 	action: "signin" | "signup";

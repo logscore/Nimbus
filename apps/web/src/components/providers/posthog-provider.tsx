@@ -1,7 +1,6 @@
 import { authClient } from "@nimbus/auth/auth-client";
 import { PostHogProvider } from "posthog-js/react";
 import { type ReactNode, useEffect } from "react";
-import env from "@nimbus/env/client";
 import posthog from "posthog-js";
 
 export function PHProvider({ children }: { children: ReactNode }) {

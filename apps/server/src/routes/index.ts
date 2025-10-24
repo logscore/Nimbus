@@ -1,7 +1,7 @@
+import { sendError, sendForbidden, sendUnauthorized } from "./utils";
 import type { Provider } from "../providers/interface/provider";
 import { OneDriveProvider } from "../providers/microsoft";
 import { GoogleDriveProvider } from "../providers/google";
-import { sendForbidden, sendUnauthorized } from "./utils";
 import { DropboxProvider } from "../providers/dropbox";
 import { driveProviderSchema } from "@nimbus/shared";
 import { BoxProvider } from "../providers/box";
@@ -53,10 +53,15 @@ const driveRouter = new Hono<HonoContext>()
 
 		let provider: Provider;
 
+		// Handle Nimbus storage
+		if (parsedProviderName.data === "credential") {
+			return sendError(c, { message: "We dont have this set up yet, but I would return a nimbus s3 client here" });
+		}
+
 		// Handle S3 provider separately (no access token needed)
 		if (parsedProviderName.data === "s3") {
 			if (!account.s3AccessKeyId || !account.s3SecretAccessKey || !account.s3Region || !account.s3BucketName) {
-				return sendUnauthorized(c, "Missing S3 credentials");
+				return sendUnauthorized(c, "Missing account credentials");
 			}
 
 			provider = new S3Provider({

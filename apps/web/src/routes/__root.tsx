@@ -1,15 +1,32 @@
-import { createRootRoute, Outlet, ErrorComponent } from "@tanstack/react-router";
 import { ReactQueryProvider } from "@/components/providers/query-provider";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AppProviders } from "@/components/providers/app-providers";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { geistSans, geistMono, manrope } from "@/utils/fonts";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { Toaster } from "sonner";
 import { Suspense } from "react";
 
 export const Route = createRootRoute({
+	head: () => ({
+		meta: [
+			{
+				name: "Nimbus",
+				content: "File storage made simple",
+			},
+			{
+				title: "Nimbus - Better file storage",
+			},
+		],
+		links: [
+			{
+				rel: "icon",
+				href: "../public/favicon.ico",
+			},
+		],
+	}),
 	component: RootComponent,
 	notFoundComponent: NotFound,
 	errorComponent: RootErrorComponent,

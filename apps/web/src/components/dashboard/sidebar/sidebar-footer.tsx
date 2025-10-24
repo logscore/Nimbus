@@ -2,19 +2,45 @@ import { SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "
 import { Progress } from "@/components/ui/progress";
 import { useDriveInfo } from "@/hooks/useDriveOps";
 import { Moon, Settings, Sun } from "lucide-react";
-// import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@nimbus/shared";
 import { Link } from "@tanstack/react-router";
-import { useTheme } from "@/hooks/useTheme";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function StorageFooter() {
 	const { data, error, isError, isPending } = useDriveInfo();
-	const { theme, toggleTheme, isMounted } = useTheme();
 	const [usedSpace, setUsedSpace] = useState<number>(0);
 	const [totalSpace, setTotalSpace] = useState<number>(0);
 	const [usagePercent, setUsagePercent] = useState<number>(0);
+	const [isMounted, setIsMounted] = useState(false);
+
+	// Simple theme state management
+	const [theme, setTheme] = useState<"light" | "dark">("light");
+
+	useEffect(() => {
+		// Check for saved theme preference or default to light mode
+		const savedTheme = localStorage.getItem("theme");
+		if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+			document.documentElement.classList.add("dark");
+			setTheme("dark");
+		} else {
+			document.documentElement.classList.remove("dark");
+			setTheme("light");
+		}
+		setIsMounted(true);
+	}, []);
+
+	const toggleTheme = () => {
+		if (theme === "light") {
+			document.documentElement.classList.add("dark");
+			localStorage.setItem("theme", "dark");
+			setTheme("dark");
+		} else {
+			document.documentElement.classList.remove("dark");
+			localStorage.setItem("theme", "light");
+			setTheme("light");
+		}
+	};
 
 	useEffect(() => {
 		if (isError && error) {
@@ -62,14 +88,11 @@ export default function StorageFooter() {
 									{fileSizeText(isError, totalSpace)}
 								</div>
 							)}
-							{/* <Button variant="link" className="ml-2 px-2 text-xs font-medium text-neutral-800 dark:text-neutral-300">
-								Upgrade
-							</Button> */}
 						</div>
 					</div>
 				</SidebarMenuItem>
 				<SidebarMenuButton
-					onClick={() => toggleTheme()}
+					onClick={toggleTheme}
 					className="transition-all duration-200 ease-linear hover:bg-neutral-200 dark:hover:bg-neutral-700"
 				>
 					{isMounted && (theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />)}

@@ -103,7 +103,7 @@ export const useSignUp = () => {
 			});
 			return fullName;
 		},
-		onSuccess: fullName => {
+		onSuccess: () => {
 			navigate({ to: "/dashboard" });
 		},
 		onError: error => {
@@ -197,7 +197,7 @@ export const useResetPassword = () => {
 			});
 		},
 		onSuccess: () => {
-			navigate({ to: "/signin" });
+			navigate({ to: "/signin", search: { redirectTo: undefined } });
 			toast.success("Your password has been reset successfully. You can now sign in with your new password.");
 		},
 		onError: error => {

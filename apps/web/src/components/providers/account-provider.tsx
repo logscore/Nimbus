@@ -32,7 +32,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { providerSlug: providerSlugParam, accountId: accountIdParam } = useParams({
-		from: "/_protected/dashboard/$providerSlug/$accountId",
+		strict: false,
 	});
 
 	const [providerSlug, setProviderSlug] = useState<string | null>(providerSlugParam);

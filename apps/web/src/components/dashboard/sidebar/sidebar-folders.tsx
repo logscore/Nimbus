@@ -6,10 +6,10 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useNavigate, useSearch, useParams } from "@tanstack/react-router";
 import { ChevronDown, FileText, Folder, PinOff } from "lucide-react";
 import { providerToSlug, type DriveProvider } from "@nimbus/shared";
 import { usePinnedFiles, useUnpinFile } from "@/hooks/useDriveOps";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PinnedFile } from "@nimbus/shared";
 import { Button } from "@/components/ui/button";
@@ -49,10 +49,6 @@ export default function SidebarPinnedFiles() {
 			});
 		}
 		// If not a folder, we don't navigate
-	};
-
-	const isValidProvider = (provider: string): provider is DriveProvider => {
-		return provider === "microsoft" || provider === "google";
 	};
 
 	return (

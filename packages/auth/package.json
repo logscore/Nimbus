@@ -3,7 +3,7 @@
 	"version": "0.0.4",
 	"type": "module",
 	"private": true,
-	"module": "index.ts",
+	"module": "src/auth.ts",
 	"exports": {
 		"./auth-client": "./src/auth-client.ts",
 		"./auth": "./src/auth.ts"

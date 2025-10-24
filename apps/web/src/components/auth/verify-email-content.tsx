@@ -1,6 +1,6 @@
 // import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 // import { AuthErrorCard } from "./shared/auth-error-card";
-import { type ComponentProps } from "react";
+// import { type ComponentProps } from "react";
 // import { useSearchParams } from "next/navigation";
 // import { ArrowLeft, Loader2 } from "lucide-react";
 // import { Button } from "@/components/ui/button";
@@ -9,9 +9,9 @@ import { type ComponentProps } from "react";
 // import env from "@nimbus/env/client";
 // import { toast } from "sonner";
 
-export function VerifyEmailContent({ ...props }: ComponentProps<"div">) {}
+export function VerifyEmailContent() {}
 // TODO: This stuff
-
+// This was in the () { ...props }: ComponentProps<"div">
 // 	const searchParams = useSearchParams();
 // 	const error = searchParams.get("error");
 // 	const token = searchParams.get("token");

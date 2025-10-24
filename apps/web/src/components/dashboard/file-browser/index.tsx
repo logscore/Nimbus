@@ -23,6 +23,7 @@ import {
 	type SortingState,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DownloadProvider } from "@/components/providers/download-provider";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useDraggable, useDroppable } from "@dnd-kit/react";
 import { UploadButton } from "@/components/upload-button";
@@ -261,7 +262,11 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 					const file = row.original;
 					const fileType = file.mimeType.includes("folder") || file.mimeType === "folder" ? "folder" : "file";
 
-					return <FileActions file={row.original} fileType={fileType} />;
+					return (
+						<DownloadProvider>
+							<FileActions file={row.original} fileType={fileType} />
+						</DownloadProvider>
+					);
 				},
 				size: 50,
 				maxSize: 50,

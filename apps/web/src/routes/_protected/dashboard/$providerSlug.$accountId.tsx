@@ -1,6 +1,8 @@
 import { AccountProvider } from "@/components/providers/account-provider";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import DndKitProvider from "@/components/providers/dnd-kit-provider";
 import { FileTable } from "@/components/dashboard/file-browser";
+import { AppSidebar } from "@/components/dashboard/sidebar";
 import { createFileRoute } from "@tanstack/react-router";
 import { useGetFiles } from "@/hooks/useFileOperations";
 import { Header } from "@/components/dashboard/header";
@@ -38,10 +40,15 @@ function DrivePage() {
 	return (
 		<AccountProvider>
 			<Suspense fallback={null}>
-				<DndKitProvider parentId={currentFolderId}>
-					<Header />
-					<FileTable files={data || []} isLoading={isLoading} refetch={refetch} error={error} />
-				</DndKitProvider>
+				<SidebarProvider>
+					<AppSidebar />
+					<SidebarInset className="p-1 md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-0">
+						<DndKitProvider parentId={currentFolderId}>
+							<Header />
+							<FileTable files={data || []} isLoading={isLoading} refetch={refetch} error={error} />
+						</DndKitProvider>
+					</SidebarInset>
+				</SidebarProvider>
 			</Suspense>
 		</AccountProvider>
 	);

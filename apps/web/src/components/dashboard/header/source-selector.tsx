@@ -75,7 +75,7 @@ export function SourceSelector() {
 					<Button
 						variant="ghost"
 						className="flex items-center gap-2 rounded-lg border-0 p-1 ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 has-[>svg]:px-2"
-						disabled={isLoading}
+						// disabled={isLoading}
 					>
 						<div className="flex items-center gap-2">
 							{selectedIcon}

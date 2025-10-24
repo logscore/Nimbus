@@ -1,7 +1,7 @@
+import schema, { user as userTable, account as accountTable } from "@nimbus/db/schema";
 import { type Account, type AuthContext, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import schema, { user as userTable } from "@nimbus/db/schema";
-import { cacheClient, type CacheClient } from "@nimbus/cache";
+// import { cacheClient, type CacheClient } from "@nimbus/cache";
 import { stripe } from "@better-auth/stripe";
 // import { genericOAuth } from "better-auth/plugins";
 import { sendMail } from "./utils/send-mail";
@@ -15,8 +15,7 @@ const stripeClient = new Stripe(env.STRIPE_SECRET_KEY!, {
 	apiVersion: "2025-08-27.basil",
 });
 
-// TODO(shared): move constants to shared package. use in validation.
-// TODO(rate-limiting): implement for auth
+// TODO: add rate limiting
 const emailContext = {
 	from: env.EMAIL_FROM!,
 	resend: new Resend(env.RESEND_API_KEY),
@@ -260,12 +259,12 @@ export async function afterAccountCreation(db: DB, account: Account) {
 		where: (table, { eq }) => eq(table.id, account.userId),
 	});
 
-	if (!user || user.defaultAccountId || user.defaultProviderId) {
-		return;
+	// Only set default if not already set and the account is a credential (provider_id)
+	if (user && (!user.defaultAccountId || !user.defaultProviderId) && account.providerId === "credential") {
+		const defaultAccountId = account.accountId;
+		const defaultProviderId = account.providerId;
+
+		await db.update(accountTable).set({ scope: "read,write,share" }).where(eq(accountTable.id, account.id));
+		await db.update(userTable).set({ defaultAccountId, defaultProviderId }).where(eq(userTable.id, account.userId));
 	}
-
-	const defaultAccountId = account.accountId;
-	const defaultProviderId = account.providerId;
-
-	await db.update(userTable).set({ defaultAccountId, defaultProviderId }).where(eq(userTable.id, account.userId));
 }

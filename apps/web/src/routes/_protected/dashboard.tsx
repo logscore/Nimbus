@@ -9,10 +9,12 @@ export const Route = createFileRoute("/_protected/dashboard")({
 
 function DashboardLayout() {
 	return (
-		<UserInfoProvider>
-			<DefaultAccountProvider>
-				<Outlet />
-			</DefaultAccountProvider>
-		</UserInfoProvider>
+		<AccountProvider>
+			<UserInfoProvider>
+				<DefaultAccountProvider>
+					<Outlet />
+				</DefaultAccountProvider>
+			</UserInfoProvider>
+		</AccountProvider>
 	);
 }

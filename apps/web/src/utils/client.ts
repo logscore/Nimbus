@@ -4,10 +4,10 @@ import env from "@nimbus/env/client";
 import { hc } from "hono/client";
 
 const createClient = (options?: ClientRequestOptions) => {
-	if (!import.meta.env.VITE_BACKEND_URL) {
+	if (!env.VITE_BACKEND_URL) {
 		throw new Error("VITE_BACKEND_URL is not configured");
 	}
-	return hc<AppType>(import.meta.env.VITE_BACKEND_URL, options);
+	return hc<AppType>(env.VITE_BACKEND_URL, options);
 };
 export const publicClient = createClient();
 
