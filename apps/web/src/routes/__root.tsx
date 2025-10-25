@@ -47,18 +47,8 @@ function RootComponent() {
 					</div>
 				</ThemeProvider>
 			</AppProviders>
-			<TanStackDevtools
-				plugins={[
-					{
-						name: "TanStack Router",
-						render: <TanStackRouterDevtools />,
-					},
-					{
-						name: "React Query",
-						render: <ReactQueryDevtools />,
-					},
-				]}
-			/>
+			<TanStackRouterDevtools />
+			<ReactQueryDevtools />
 		</ReactQueryProvider>
 	);
 }

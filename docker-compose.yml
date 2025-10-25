@@ -1,7 +1,7 @@
 services:
   # Database Service
   db:
-    image: postgres:16
+    image: postgres:17-alpine
     container_name: nimbus-db
     restart: unless-stopped
     env_file: .env
@@ -9,8 +9,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT}
     ports:
-      - "5432:5432"
+      - "6151:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -23,7 +24,7 @@ services:
 
   # Cache Service
   cache:
-    image: valkey/valkey:latest
+    image: valkey/valkey:9-alpine
     container_name: nimbus-cache
     restart: unless-stopped
     env_file: .env

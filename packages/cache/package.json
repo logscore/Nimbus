@@ -8,7 +8,6 @@
 		"./rate-limiters": "./src/rate-limiters.ts"
 	},
 	"scripts": {
-		"dev": "docker compose up",
 		"lint": "bun run oxlint . --fix",
 		"format": "bun prettier . --write --list-different",
 		"docker:up": "docker compose up -d",
