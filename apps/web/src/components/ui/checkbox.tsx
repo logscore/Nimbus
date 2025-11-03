@@ -1,5 +1,3 @@
-"use client";
-
 import { Root, Indicator } from "@radix-ui/react-checkbox";
 import type { ComponentProps } from "react";
 import { CheckIcon } from "lucide-react";

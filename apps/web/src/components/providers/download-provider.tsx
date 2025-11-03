@@ -1,5 +1,3 @@
-"use client";
-
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 import { DownloadProgress } from "@/components/ui/download-progress";
 

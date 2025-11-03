@@ -1,6 +1,5 @@
 # Dependency directories
 **/node_modules/
-**/.next/
 **/dist/
 **/build/
 *package-lock.json
@@ -14,9 +13,6 @@
 .env
 .env.*
 .env*disabled
-
-# Cloudflare
-cloudflare-env.d.ts
 
 # Generated files
 drizzle/

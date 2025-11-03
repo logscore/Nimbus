@@ -70,10 +70,8 @@ jspm_packages/
 .husky/_
 
 # Development and CI files
-.eslintcache
 .prettierignore
 .prettierrc
-eslint.config.ts
 knip.config.ts
 lint-staged.config.js
 

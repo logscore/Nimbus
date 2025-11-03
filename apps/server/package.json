@@ -7,16 +7,13 @@
 		".": "./src/index.ts"
 	},
 	"scripts": {
+		"lint": "bun run oxlint --fix",
+		"format": "bun prettier . --write --list-different",
 		"dev": "bun --watch src/index.ts",
 		"dev:hot": "bun --hot src/index.ts",
 		"check": "tsc --noEmit",
 		"build": "bun run check && bun build src/index.ts --target bun --minify --outdir dist",
 		"start": "bun dist/index.js",
-		"cf:dev": "sudo wrangler dev",
-		"cf:deploy:preview": "wrangler deploy --env preview --keep-vars",
-		"cf:deploy:staging": "wrangler deploy --env staging --keep-vars",
-		"cf:deploy:production": "wrangler deploy --env production --keep-vars",
-		"sync-wrangler-secrets": "bun run scripts/sync-wrangler-secrets.ts",
 		"docker:build": "bun run build && docker build -t nimbus-server-manual .",
 		"docker:run": "source .env && docker run --name nimbus-server-manual --env-file .env -p $SERVER_PORT:$SERVER_PORT nimbus-server-manual:latest",
 		"docker:up": "bun run build && docker compose up -d",
@@ -29,6 +26,7 @@
 		"@aws-sdk/lib-storage": "^3.850.0",
 		"@aws-sdk/s3-request-presigner": "^3.850.0",
 		"@googleapis/drive": "^14.1.0",
+		"@hono/node-server": "^1.19.0",
 		"@hono/zod-validator": "^0.7.1",
 		"@microsoft/microsoft-graph-client": "^3.0.7",
 		"@nimbus/auth": "workspace:*",
@@ -37,19 +35,17 @@
 		"@nimbus/env": "workspace:*",
 		"@nimbus/shared": "workspace:*",
 		"box-node-sdk": "3.8.2",
-		"dropbox": "10.34.0",
 		"drizzle-orm": "^0.44.2",
+		"dropbox": "10.34.0",
 		"google-auth-library": "^10.1.0",
 		"hono": "^4.8.5",
 		"nanoid": "^5.1.5",
 		"pg": "^8.16.3",
-		"resend": "^4.7.0",
+		"rate-limiter-flexible": "^7.2.0",
 		"zod": "^4.0.5"
 	},
 	"devDependencies": {
 		"@microsoft/microsoft-graph-types": "^2.40.0",
-		"@nimbus/tsconfig": "workspace:*",
-		"@nimbus/vitest": "workspace:*",
 		"@types/pg": "^8.15.4"
 	}
 }

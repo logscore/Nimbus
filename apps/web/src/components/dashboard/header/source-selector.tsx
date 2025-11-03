@@ -8,9 +8,9 @@ import {
 import { BoxIcon, DropboxIcon, GoogleDriveIcon, LogoIcon, OneDriveIcon, S3Icon } from "@/components/icons";
 import { useUserInfoProvider } from "@/components/providers/user-info-provider";
 import { useAccountProvider } from "@/components/providers/account-provider";
-import { useAuth } from "@/components/providers/auth-provider";
 import type { LimitedAccessAccount } from "@nimbus/shared";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useNavigate } from "@tanstack/react-router";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronsUpDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,9 +37,9 @@ export function providerToIcon(providerId: string) {
 export function SourceSelector() {
 	const { accounts, isLoading } = useUserInfoProvider();
 	const { providerId, accountId, setDriveProviderById } = useAccountProvider();
-	const { openSignIn } = useAuth();
-	const [selectedAccountNickname, setSelectedAccountNickname] = useState<string | null>(null);
+	const [selectedAccountNickname, setSelectedAccountNickname] = useState(null);
 	const [selectedIcon, setSelectedIcon] = useState(<LogoIcon className="h-5 w-5" />);
+	const navigate = useNavigate({ from: "/dashboard/$providerSlug/$accountId" });
 
 	useEffect(() => {
 		if (providerId && accountId) {
@@ -75,7 +75,7 @@ export function SourceSelector() {
 					<Button
 						variant="ghost"
 						className="flex items-center gap-2 rounded-lg border-0 p-1 ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 has-[>svg]:px-2"
-						disabled={isLoading}
+						// disabled={isLoading}
 					>
 						<div className="flex items-center gap-2">
 							{selectedIcon}
@@ -114,7 +114,15 @@ export function SourceSelector() {
 						</div>
 					</ScrollArea>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={openSignIn} className="flex cursor-pointer items-center gap-2 font-medium">
+					<DropdownMenuItem
+						onClick={() =>
+							navigate({
+								replace: true,
+								search: prev => ({ ...prev, connectAccount: true }),
+							})
+						}
+						className="flex cursor-pointer items-center gap-2 font-medium"
+					>
 						<Plus className="h-4 w-4" />
 						<span>Add source</span>
 					</DropdownMenuItem>

@@ -19,7 +19,7 @@ export const createTagSchema = z.object({
 	parentId: z.string().nullable().optional(),
 });
 
-export const tagIdObjectSchema = z.object({
+const tagIdObjectSchema = z.object({
 	id: tagIdSchema,
 });
 export const getTagByIdSchema = tagIdObjectSchema;

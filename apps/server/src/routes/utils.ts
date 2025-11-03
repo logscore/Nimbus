@@ -3,6 +3,7 @@ import type { ApiResponse } from "@nimbus/shared";
 import type { Context } from "hono";
 
 interface ErrorResponseOptions {
+	route?: string;
 	message?: string;
 	status?: ContentfulStatusCode;
 }
@@ -14,28 +15,30 @@ interface SuccessResponseOptions<T> {
 }
 
 export function sendForbidden(c: Context, message?: string) {
-	return sendError(c, { message: message || "Forbidden", status: 403 });
+	return sendError(c, { route: c.req.path, message: message || `Forbidden`, status: 403 });
 }
 
 export function sendUnauthorized(c: Context, message?: string) {
-	return sendError(c, { message: message || "Unauthorized", status: 401 });
+	return sendError(c, { route: c.req.path, message: message || "Unauthorized", status: 401 });
 }
 
 export function sendError(c: Context, options?: ErrorResponseOptions) {
+	const route = c.req.path;
 	const success = false;
 	const { message = "Internal server error", status = 500 } = options ?? {};
 	console.error(options);
-	return c.json<ApiResponse>({ success, message }, status);
+	return c.json<ApiResponse>({ route, success, message }, status);
 }
 
 export function sendSuccess<T extends Record<string, any> | any[]>(c: Context, options?: SuccessResponseOptions<T>) {
+	const route = c.req.path;
 	const success = true;
 	const { data, message = "Success", status = 200 } = options ?? {};
 
 	if (data) {
 		return c.json<T>(data, status);
 	} else {
-		return c.json<ApiResponse>({ success, message }, status);
+		return c.json<ApiResponse>({ route, success, message }, status);
 	}
 }
 

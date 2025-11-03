@@ -5,7 +5,6 @@ const indexEntry = "src/index.{ts,js}";
 const project = "**/*.{ts,js}";
 
 const ignoreUtils = ["src/utils/*"];
-const ignoreViteV8 = ["@vitest/coverage-v8"];
 const ignoreComponents = ["**/components/**"];
 
 const config: KnipConfig = {
@@ -44,11 +43,6 @@ const config: KnipConfig = {
 
 		"packages/tsconfig": {
 			entry: "base.json",
-		},
-
-		"packages/vitest": {
-			entry: "src/index.ts",
-			ignoreDependencies: ignoreViteV8,
 		},
 	},
 };

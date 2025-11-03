@@ -1,5 +1,3 @@
-"use client";
-
 import type { LimitedAccessAccount } from "@nimbus/shared";
 import { createContext, useContext, useMemo } from "react";
 import type { SessionUser } from "@nimbus/auth/auth";

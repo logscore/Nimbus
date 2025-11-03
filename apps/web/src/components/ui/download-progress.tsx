@@ -1,5 +1,3 @@
-"use client";
-
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useEffect, useState } from "react";

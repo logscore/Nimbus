@@ -1,5 +1,3 @@
-"use client";
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AWS_REGIONS, createS3AccountSchema, type CreateS3AccountSchema } from "@nimbus/shared";
 import { FieldError } from "@/components/ui/field-error";
@@ -9,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
+import env from "@nimbus/env/client";
 import { useState } from "react";
 
 type S3AccountFormProps = {
@@ -46,7 +45,7 @@ export function S3AccountForm({ onSuccess, onCancel }: S3AccountFormProps) {
 				nickname: formData.nickname || null, // Ensure null for empty nickname
 			};
 
-			const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+			const backendUrl = env.VITE_BACKEND_URL;
 			if (!backendUrl) {
 				throw new Error("Backend URL is not configured");
 			}

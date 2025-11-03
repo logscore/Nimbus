@@ -34,6 +34,7 @@ export function useGetFiles({ parentId, pageSize, pageToken, returnedValues }: G
 	});
 }
 
+// DO NOT REMOVE: this will be needed for future features
 export function useGetFile({ fileId, returnedValues }: GetFileByIdSchema) {
 	const { clientPromise, providerId, accountId } = useAccountProvider();
 	return useQuery({
@@ -209,8 +210,7 @@ export function useUploadFile() {
 	});
 }
 
-// TODO(feat): add upload folder
-
+// DO NOT REMOVE: this will be needed for future features
 export function useUploadFolder() {}
 
 export function useDownloadFile() {

@@ -3,8 +3,6 @@
 	"prettier.ignorePath": ".prettierignore",
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.formatOnSave": true,
-	// https://stackoverflow.com/a/76549788/3571431
-	"eslint.workingDirectories": [{ "mode": "auto" }],
 	"oxc.enable": true,
 	"[toml]": {
 		"editor.defaultFormatter": "tamasfe.even-better-toml"
@@ -18,14 +16,5 @@
 	"editor.rulers": [80, 120],
 	"editor.wordWrap": "off",
 	"editor.wrappingIndent": "same",
-	"editor.renderLineHighlight": "all",
-	// Code coverage gutters
-	"coverage-gutters.coverageReportFileName": "coverage/lcov.info",
-	"coverage-gutters.coverageFileNames": ["coverage/lcov.info", "coverage/clover.xml", "coverage/coverage.json"],
-	"coverage-gutters.showLineCoverage": true,
-	"coverage-gutters.showRulerCoverage": true,
-	"coverage-gutters.showGutterCoverage": true,
-	// Recommended extensions
-	"extensions.autoUpdate": true,
-	"extensions.autoCheckUpdates": true
+	"editor.renderLineHighlight": "all"
 }

@@ -1,22 +1,14 @@
 import { and, count, eq, inArray, isNull } from "drizzle-orm";
-import { getDriveProviderContext } from "../../hono";
 import type { FileTag, Tag } from "@nimbus/shared";
 import { fileTag, tag } from "@nimbus/db/schema";
+import { db } from "@nimbus/db";
 import { nanoid } from "nanoid";
 
 export class TagService {
-	private get c() {
-		const context = getDriveProviderContext();
-		if (!context) {
-			throw new Error("Context is not available in TagService. It must be used within a request cycle.");
-		}
-		return context;
-	}
-
 	// Get all tags for a user with file counts
 	async getUserTags(userId: string): Promise<Tag[]> {
 		// Get all tags for the user
-		const userTags = await this.c.var.db.query.tag.findMany({
+		const userTags = await db.query.tag.findMany({
 			where: (table, { eq }) => eq(table.userId, userId),
 			orderBy: (table, { asc }) => asc(table.name),
 		});
@@ -24,7 +16,7 @@ export class TagService {
 		// Get file counts for each tag
 		const tagsWithCounts = await Promise.all(
 			userTags.map(async tagRecord => {
-				const fileCount = await this.c.var.db
+				const fileCount = await db
 					.select({ count: count() })
 					.from(fileTag)
 					.where(and(eq(fileTag.tagId, tagRecord.id), eq(fileTag.userId, userId)));
@@ -45,13 +37,13 @@ export class TagService {
 
 	// Get a specific tag by ID
 	async getTagById(tagId: string, userId: string): Promise<Tag | null> {
-		const record = await this.c.var.db.query.tag.findFirst({
+		const record = await db.query.tag.findFirst({
 			where: (table, { and, eq }) => and(eq(table.id, tagId), eq(table.userId, userId)),
 		});
 
 		if (!record) return null;
 
-		const fileCount = await this.c.var.db
+		const fileCount = await db
 			.select({ count: count() })
 			.from(fileTag)
 			.where(and(eq(fileTag.tagId, tagId), eq(fileTag.userId, userId)));
@@ -83,7 +75,7 @@ export class TagService {
 			? and(eq(tag.name, name), eq(tag.userId, userId), eq(tag.parentId, parentId))
 			: and(eq(tag.name, name), eq(tag.userId, userId), isNull(tag.parentId));
 
-		const existingTag = await this.c.var.db.query.tag.findFirst({
+		const existingTag = await db.query.tag.findFirst({
 			where: existingTagQuery,
 		});
 
@@ -99,7 +91,7 @@ export class TagService {
 			userId,
 		};
 
-		await this.c.var.db.insert(tag).values(newTag);
+		await db.insert(tag).values(newTag);
 
 		return {
 			...newTag,
@@ -140,7 +132,7 @@ export class TagService {
 				? and(eq(tag.name, updates.name), eq(tag.userId, userId), eq(tag.parentId, newParentId))
 				: and(eq(tag.name, updates.name), eq(tag.userId, userId), isNull(tag.parentId));
 
-			const nameConflict = await this.c.var.db.query.tag.findFirst({
+			const nameConflict = await db.query.tag.findFirst({
 				where: nameConflictQuery,
 			});
 
@@ -156,7 +148,7 @@ export class TagService {
 		if (updates.parentId !== undefined) updateData.parentId = updates.parentId || null;
 		updateData.updatedAt = new Date();
 
-		await this.c.var.db
+		await db
 			.update(tag)
 			.set(updateData)
 			.where(and(eq(tag.id, tagId), eq(tag.userId, userId)));
@@ -176,10 +168,10 @@ export class TagService {
 		const childTagIds = await this.getAllChildTagIds(tagId, userId);
 		const allTagIds = [tagId, ...childTagIds];
 
-		await this.c.var.db.delete(fileTag).where(and(inArray(fileTag.tagId, allTagIds), eq(fileTag.userId, userId)));
+		await db.delete(fileTag).where(and(inArray(fileTag.tagId, allTagIds), eq(fileTag.userId, userId)));
 
 		// Delete the tag and all its children
-		await this.c.var.db.delete(tag).where(and(inArray(tag.id, allTagIds), eq(tag.userId, userId)));
+		await db.delete(tag).where(and(inArray(tag.id, allTagIds), eq(tag.userId, userId)));
 	}
 
 	// Add tags to a file
@@ -193,7 +185,7 @@ export class TagService {
 		}
 
 		// Check for existing associations
-		const existingAssociations = await this.c.var.db.query.fileTag.findMany({
+		const existingAssociations = await db.query.fileTag.findMany({
 			where: (table, { and, eq, inArray }) =>
 				and(eq(table.fileId, fileId), inArray(table.tagId, tagIds), eq(table.userId, userId)),
 		});
@@ -216,7 +208,7 @@ export class TagService {
 			userId,
 		}));
 
-		await this.c.var.db.insert(fileTag).values(newAssociations);
+		await db.insert(fileTag).values(newAssociations);
 
 		const newAssociationsWithDates = newAssociations.map(assoc => ({
 			...assoc,
@@ -234,14 +226,14 @@ export class TagService {
 
 	// Remove tags from a file
 	async removeTagsFromFile(fileId: string, tagIds: string[], userId: string): Promise<void> {
-		await this.c.var.db
+		await db
 			.delete(fileTag)
 			.where(and(eq(fileTag.fileId, fileId), inArray(fileTag.tagId, tagIds), eq(fileTag.userId, userId)));
 	}
 
 	// Get all tags for a specific file
 	async getFileTags(fileId: string, userId: string): Promise<Tag[]> {
-		const fileTagAssociations = await this.c.var.db.query.fileTag.findMany({
+		const fileTagAssociations = await db.query.fileTag.findMany({
 			where: (table, { and, eq }) => and(eq(table.fileId, fileId), eq(table.userId, userId)),
 		});
 
@@ -249,7 +241,7 @@ export class TagService {
 
 		if (tagIds.length === 0) return [];
 
-		const tags = await this.c.var.db.query.tag.findMany({
+		const tags = await db.query.tag.findMany({
 			where: (table, { and, inArray, eq }) => and(inArray(table.id, tagIds), eq(table.userId, userId)),
 		});
 
@@ -261,51 +253,9 @@ export class TagService {
 		}));
 	}
 
-	// Get tags for multiple files in one batched query
-	async getTagsByFileIds(fileIds: string[], userId: string): Promise<Record<string, Tag[]>> {
-		if (fileIds.length === 0) return {};
-
-		// Fetch all file->tag associations for these files
-		const associations = await this.c.var.db.query.fileTag.findMany({
-			where: (table, { and, inArray, eq }) => and(inArray(table.fileId, fileIds), eq(table.userId, userId)),
-		});
-
-		if (associations.length === 0) return {};
-
-		// Fetch all tags referenced by these associations
-		const uniqueTagIds = Array.from(new Set(associations.map(a => a.tagId)));
-		const tags = await this.c.var.db.query.tag.findMany({
-			where: (table, { and, inArray, eq }) => and(inArray(table.id, uniqueTagIds), eq(table.userId, userId)),
-		});
-
-		// Map tagId -> Tag
-		const tagById = new Map<string, Tag>(
-			tags.map(t => [
-				t.id,
-				{
-					...t,
-					parentId: t.parentId || undefined,
-					createdAt: t.createdAt.toISOString(),
-					updatedAt: t.updatedAt.toISOString(),
-				} as Tag,
-			])
-		);
-
-		// Build fileId -> Tag[] map
-		const result: Record<string, Tag[]> = {};
-		for (const assoc of associations) {
-			const t = tagById.get(assoc.tagId);
-			if (!t) continue;
-			const list = result[assoc.fileId] ?? (result[assoc.fileId] = []);
-			list.push(t);
-		}
-
-		return result;
-	}
-
 	// Get all child tag IDs recursively
 	private async getAllChildTagIds(parentId: string, userId: string): Promise<string[]> {
-		const childTags = await this.c.var.db.query.tag.findMany({
+		const childTags = await db.query.tag.findMany({
 			where: (table, { and, eq }) => and(eq(table.parentId, parentId), eq(table.userId, userId)),
 		});
 
@@ -346,6 +296,6 @@ export class TagService {
 
 	// Delete all fileTag associations for a file
 	async deleteFileTagsByFileId(fileId: string, userId: string): Promise<void> {
-		await this.c.var.db.delete(fileTag).where(and(eq(fileTag.fileId, fileId), eq(fileTag.userId, userId)));
+		await db.delete(fileTag).where(and(eq(fileTag.fileId, fileId), eq(fileTag.userId, userId)));
 	}
 }

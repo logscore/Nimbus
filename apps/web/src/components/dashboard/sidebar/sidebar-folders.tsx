@@ -1,5 +1,3 @@
-"use client";
-
 import {
 	SidebarGroup,
 	SidebarGroupContent,
@@ -11,7 +9,7 @@ import {
 import { ChevronDown, FileText, Folder, PinOff } from "lucide-react";
 import { providerToSlug, type DriveProvider } from "@nimbus/shared";
 import { usePinnedFiles, useUnpinFile } from "@/hooks/useDriveOps";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PinnedFile } from "@nimbus/shared";
 import { Button } from "@/components/ui/button";
@@ -29,8 +27,8 @@ function getFileIcon(type: string) {
 }
 
 export default function SidebarPinnedFiles() {
-	const searchParams = useSearchParams();
-	const router = useRouter();
+	const searchParams = useSearch({ from: "/_protected/dashboard/$providerSlug/$accountId" });
+	const navigate = useNavigate({ from: "/dashboard/$providerSlug/$accountId" });
 	const [isOpen, setIsOpen] = useState(true);
 	const { data: pinnedFiles, isLoading, error } = usePinnedFiles();
 	const unpinFile = useUnpinFile();
@@ -40,22 +38,17 @@ export default function SidebarPinnedFiles() {
 	};
 
 	const handleNavigate = (file: PinnedFile) => {
-		const params = new URLSearchParams(searchParams.toString());
 		if (file.type === "folder") {
-			params.set("folderId", file.fileId);
-		} else {
-			return;
+			navigate({
+				to: "/dashboard/$providerSlug/$accountId",
+				params: {
+					providerSlug: providerToSlug(file.provider as DriveProvider),
+					accountId: file.accountId,
+				},
+				search: { ...searchParams, folderId: file.fileId },
+			});
 		}
-		const isValidProvider = (provider: string): provider is DriveProvider => {
-			return provider === "microsoft" || provider === "google";
-		};
-
-		if (!isValidProvider(file.provider)) {
-			console.error(`Invalid provider: ${file.provider}`);
-			return;
-		}
-
-		router.push(`/dashboard/${providerToSlug(file.provider)}/${file.accountId}?${params.toString()}`);
+		// If not a folder, we don't navigate
 	};
 
 	return (

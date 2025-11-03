@@ -18,7 +18,6 @@ export interface UploadFileDialogProps {
 
 export interface AuthCardProps extends ComponentProps<"div"> {
 	title: string;
-	description: string;
 	navigationType: "signin" | "signup";
 	children: ReactNode;
 }

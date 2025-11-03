@@ -1,61 +1,15 @@
 import type { Provider } from "./providers/interface/provider";
-import { Hono, type Context, type Env as HonoEnv } from "hono";
-import type { Auth, SessionUser } from "@nimbus/auth/auth";
-import { getContext } from "hono/context-storage";
-import type { RedisClient } from "@nimbus/cache";
-import type { ContextManager } from "./context";
-import type { Env } from "@nimbus/env/server";
+import type { auth, Auth } from "@nimbus/auth/auth";
+import type { CacheClient } from "@nimbus/cache";
 import type { DB } from "@nimbus/db";
 
-export interface BaseRouterVars {
-	contextManager: ContextManager;
-	env: Env;
-}
-
-export interface PublicRouterVars extends BaseRouterVars {
-	db: DB;
-	redisClient: RedisClient;
-	auth: Auth;
-}
-
-export interface ProtectedRouterVars extends PublicRouterVars {
-	user: SessionUser;
-}
-
-export interface DriveProviderRouterVars extends ProtectedRouterVars {
-	provider: Provider;
-}
-
-export interface PublicRouterEnv {
-	Variables: PublicRouterVars;
-}
-
-export interface ProtectedRouterEnv {
-	Variables: ProtectedRouterVars;
-}
-
-export interface DriveProviderRouterEnv {
-	Variables: DriveProviderRouterVars;
-}
-
-export type PublicRouterContext = Context<PublicRouterEnv>;
-
-function createHono<T extends HonoEnv>() {
-	return new Hono<T>();
-}
-
-export function createPublicRouter() {
-	return createHono<PublicRouterEnv>();
-}
-
-export function createProtectedRouter() {
-	return createHono<ProtectedRouterEnv>();
-}
-
-export function createDriveProviderRouter() {
-	return createHono<DriveProviderRouterEnv>();
-}
-
-export function getDriveProviderContext() {
-	return getContext<DriveProviderRouterEnv>();
+export interface HonoContext {
+	Variables: {
+		user: typeof auth.$Infer.Session.user | null;
+		session: typeof auth.$Infer.Session.session | null;
+		db: DB;
+		cache: CacheClient;
+		auth: Auth;
+		provider: Provider;
+	};
 }

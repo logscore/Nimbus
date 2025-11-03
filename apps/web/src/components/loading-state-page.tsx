@@ -1,5 +1,3 @@
-"use client";
-
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";

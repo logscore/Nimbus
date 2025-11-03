@@ -1,5 +1,3 @@
-"use client";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cva, type VariantProps } from "class-variance-authority";
 import { useIsMounted } from "@/hooks/useIsMounted";
@@ -48,13 +46,15 @@ const Profile = ({ className, url, name, size }: ProfileProps) => {
 
 	// Don't render anything on the server to avoid hydration mismatch
 	if (!isMounted) {
-		return <div className={cn(iconvVariants({ size }), "animate-pulse bg-gray-200 dark:bg-gray-700", className)} />;
+		return (
+			<div className={cn(iconvVariants({ size }), "animate-pulse bg-neutral-200 dark:bg-neutral-700", className)} />
+		);
 	}
 
 	return (
 		<Avatar className={cn(iconvVariants({ size }), className)}>
 			{url && <AvatarImage src={url} alt={name} />}
-			<AvatarFallback className="rounded-md bg-gray-100 font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+			<AvatarFallback className="rounded-md bg-neutral-100 font-semibold text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
 				{isMounted ? initials : "..."}
 			</AvatarFallback>
 		</Avatar>

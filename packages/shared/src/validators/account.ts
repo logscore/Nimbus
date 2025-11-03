@@ -9,7 +9,7 @@ export const limitedAccessAccountSchema = z.object({
 	providerId: driveProviderSchema,
 	accountId: z.string(),
 	scope: z.string(),
-	nickname: nicknameSchema,
+	nickname: nicknameSchema.optional(),
 	createdAt: z.date(),
 	updatedAt: z.date(),
 });

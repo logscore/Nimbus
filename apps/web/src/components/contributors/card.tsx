@@ -1,8 +1,8 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardTitle } from "@/components/ui/card";
+import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { GitCommit } from "lucide-react";
-import Link from "next/link";
 
 export interface Contributor {
 	login: string;
@@ -16,7 +16,7 @@ export interface Contributor {
 
 export function ContributorCard({ contributor }: { contributor: Contributor }) {
 	return (
-		<Link href={contributor.html_url} target="_blank" rel="noopener noreferrer" className="block max-w-full">
+		<Link to={contributor.html_url} target="_blank" rel="noopener noreferrer" className="block max-w-full">
 			<Card className="group flex aspect-square w-full flex-col rounded-sm border-dashed p-3 transition-all duration-200 hover:cursor-pointer hover:border-solid hover:shadow-md">
 				<div className="flex flex-1 flex-col items-center justify-center space-y-2 text-center">
 					<Avatar className="h-12 w-12 rounded-lg border-0 sm:h-14 sm:w-14 md:h-16 md:w-16">

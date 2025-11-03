@@ -6,10 +6,11 @@ import type {
 	GetFilesSchema,
 	MoveFileSchema,
 	UpdateFileSchema,
-	Tag,
 } from "@nimbus/shared";
-import { getDriveProviderContext } from "../../hono";
+import { getContext } from "hono/context-storage";
 import { TagService } from "../tags/tag-service";
+import type { HonoContext } from "../../hono";
+import type { Readable } from "node:stream";
 
 interface CreateFileOptions {
 	name: string;
@@ -19,12 +20,13 @@ interface CreateFileOptions {
 
 export class FileService {
 	private tagService: TagService;
-	private get c() {
-		const context = getDriveProviderContext();
-		if (!context) {
-			throw new Error("Context is not available in TagService. It must be used within a request cycle.");
-		}
-		return context;
+
+	private get user() {
+		return getContext<HonoContext>().var.user;
+	}
+
+	private get provider() {
+		return getContext<HonoContext>().var.provider;
 	}
 
 	constructor() {
@@ -32,9 +34,7 @@ export class FileService {
 	}
 
 	async listFiles(options: GetFilesSchema) {
-		const user = this.c.var.user;
-		const drive = this.c.var.provider;
-		const res = await drive.listChildren(options.parentId, {
+		const res = await this.provider.listChildren(options.parentId, {
 			pageSize: options.pageSize,
 			pageToken: options.pageToken,
 			fields: options.returnedValues,
@@ -44,59 +44,51 @@ export class FileService {
 			return null;
 		}
 
-		// Batch load tags for files to avoid N parallel queries
-		const fileIds = res.items.map(i => i.id).filter((id): id is string => Boolean(id));
-		let tagsByFileId: Record<string, Tag[]> = {};
-		try {
-			// Lazy import type to avoid circular import issues at top
-			tagsByFileId = await this.tagService.getTagsByFileIds(fileIds, user.id);
-		} catch (error) {
-			console.error("Failed to batch get tags for files:", error);
-		}
-
-		const filesWithTags = res.items.map(item => {
-			const tags = item.id ? (tagsByFileId[item.id] ?? []) : [];
-			return { ...item, tags };
-		});
+		// Add tags to files, handling any tag retrieval failures
+		const filesWithTags = await Promise.all(
+			res.items.map(async item => {
+				if (!item.id) return { ...item, tags: [] };
+				try {
+					const tags = await this.tagService.getFileTags(item.id, this.user!.id);
+					return { ...item, tags };
+				} catch (error) {
+					console.error(`Failed to get tags for file ${item.id}:`, error);
+					return { ...item, tags: [] };
+				}
+			})
+		);
 
 		return filesWithTags as File[];
 	}
 
 	async getById(options: GetFileByIdSchema) {
-		const user = this.c.var.user;
-		const drive = this.c.var.provider;
-		const file = await drive.getById(options.fileId, options.returnedValues);
+		const file = await this.provider.getById(options.fileId, options.returnedValues);
 
 		if (!file) {
 			return null;
 		}
 
-		const tags = await this.tagService.getFileTags(options.fileId, user.id);
+		const tags = await this.tagService.getFileTags(options.fileId, this.user!.id);
 		return { ...file, tags } as File;
 	}
 
 	async updateFile(options: UpdateFileSchema) {
-		const drive = this.c.var.provider;
-		return drive.update(options.fileId, { name: options.name });
+		return this.provider.update(options.fileId, { name: options.name });
 	}
 
 	async deleteFile(options: DeleteFileSchema) {
-		const drive = this.c.var.provider;
-		return drive.delete(options.fileId);
+		return this.provider.delete(options.fileId);
 	}
 
-	async createFile(options: CreateFileOptions, fileStream?: Buffer<ArrayBuffer>) {
-		const drive = this.c.var.provider;
-		return drive.create(options, fileStream);
+	async createFile(options: CreateFileOptions, fileStream?: Readable) {
+		return this.provider.create(options, fileStream);
 	}
 
 	async downloadFile(options: DownloadFileSchema) {
-		const drive = this.c.var.provider;
-		return drive.download(options.fileId, options);
+		return this.provider.download(options.fileId, options);
 	}
 
 	async moveFile(options: MoveFileSchema) {
-		const drive = this.c.var.provider;
-		return drive.move(options.sourceId, options.targetParentId, options.newName);
+		return this.provider.move(options.sourceId, options.targetParentId, options.newName);
 	}
 }

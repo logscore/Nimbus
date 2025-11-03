@@ -1,5 +1,3 @@
-"use client";
-
 import { Provider, Root, Trigger, Content, Portal, Arrow } from "@radix-ui/react-tooltip";
 
 import type { ComponentProps } from "react";

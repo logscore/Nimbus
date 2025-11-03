@@ -1,5 +1,3 @@
-"use client";
-
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";

@@ -1,7 +1,8 @@
 import { createCipheriv, createDecipheriv, randomBytes, createHash } from "crypto";
+import { env } from "@nimbus/env/server";
 
 const ENCRYPTION_ALGORITHM = "aes-256-cbc";
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+const ENCRYPTION_KEY = env.ENCRYPTION_KEY;
 
 function deriveKey(): Buffer {
 	if (!ENCRYPTION_KEY) {
@@ -59,6 +60,7 @@ export function decrypt(encryptedText: string): string {
 	return encryptedText;
 }
 
+// ! THIS IS NEVER USED, FIGURE OUT WHAT TO DO WITH IT OR REMOVE IT
 /**
  * Determines if text is in encrypted format
  */

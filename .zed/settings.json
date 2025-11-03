@@ -1,9 +1,12 @@
 {
-	"prettier.configPath": ".prettierrc",
-	"prettier.ignorePath": ".prettierignore",
-	"editor.defaultFormatter": "esbenp.prettier-vscode",
-	"editor.formatOnSave": true,
-	// https://stackoverflow.com/a/76549788/3571431
-	"eslint.workingDirectories": [{ "mode": "auto" }],
-	"oxc.enable": true
+	"auto_install_extensions": {
+		"oxlint": true
+	},
+	"format_on_save": "on",
+	"formatter": {
+		"external": {
+			"command": "prettier",
+			"arguments": ["--stdin-filepath", "{buffer_path}"]
+		}
+	}
 }

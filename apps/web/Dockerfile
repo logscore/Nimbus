@@ -2,15 +2,16 @@
 FROM oven/bun AS builder
 WORKDIR /app
 
-ARG NEXT_PUBLIC_BACKEND_URL
-ARG NEXT_PUBLIC_FRONTEND_URL
+ARG VITE_BACKEND_URL
+ARG VITE_FRONTEND_URL
 
-ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
-ENV NEXT_PUBLIC_FRONTEND_URL=${NEXT_PUBLIC_FRONTEND_URL}
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
+ENV VITE_FRONTEND_URL=${VITE_FRONTEND_URL}
 
 # Copy package files for dependency installation
 COPY package.json bun.lock ./
 COPY apps/web/package.json ./apps/web/
+COPY apps/server/package.json ./apps/server/
 COPY packages/ ./packages/
 
 # Install dependencies
@@ -35,8 +36,8 @@ WORKDIR /app
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
-ENV NEXT_PUBLIC_FRONTEND_URL=${NEXT_PUBLIC_FRONTEND_URL}
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
+ENV VITE_FRONTEND_URL=${VITE_FRONTEND_URL}
 
 # Create non-root user
 RUN groupadd -r nodejs && useradd -r -g nodejs nodejs

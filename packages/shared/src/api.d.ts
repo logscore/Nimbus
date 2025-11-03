@@ -1,6 +1,7 @@
 // import type { Tag } from "./file";
 
 export interface ApiResponse<T = unknown> {
+	route: string;
 	success: boolean;
 	message?: string;
 	data?: T;

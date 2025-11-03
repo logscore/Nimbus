@@ -1,14 +1,9 @@
-import {
-	type DriveProvider,
-	type DriveProviderHeaders,
-	type DriveProviderSlug,
-	type DriveProviderSlugParam,
-	providerToSlug,
-	slugToProvider,
-} from "@nimbus/shared";
+import { type DriveProvider, type DriveProviderSlug, providerToSlug, slugToProvider } from "@nimbus/shared";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createProtectedClient, type DriveProviderClient } from "@/utils/client";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 
 interface AccountProviderContextType {
 	providerId: string | null;
@@ -23,7 +18,7 @@ const createClient = (providerId: string | null, accountId: string | null): Prom
 		return new Promise<DriveProviderClient>(() => {});
 	}
 
-	const headers: DriveProviderHeaders = {
+	const headers = {
 		"X-Provider-Id": providerId,
 		"X-Account-Id": accountId,
 	};
@@ -34,9 +29,11 @@ const createClient = (providerId: string | null, accountId: string | null): Prom
 const AccountProviderContext = createContext<AccountProviderContextType | null>(null);
 
 export function AccountProvider({ children }: { children: React.ReactNode }) {
-	const router = useRouter();
-	const pathname = usePathname();
-	const { providerSlug: providerSlugParam, accountId: accountIdParam } = useParams<DriveProviderSlugParam>();
+	const navigate = useNavigate();
+	const location = useLocation();
+	const { providerSlug: providerSlugParam, accountId: accountIdParam } = useParams({
+		strict: false,
+	});
 
 	const [providerSlug, setProviderSlug] = useState<string | null>(providerSlugParam);
 	const [providerId, setProviderId] = useState<string | null>(
@@ -74,11 +71,14 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 	const navigateToProvider = useCallback(
 		(newProviderSlug: string, newAccountId: string) => {
 			const newPathname = `/dashboard/${newProviderSlug}/${newAccountId}`;
-			if (pathname !== newPathname) {
-				router.push(newPathname);
+			if (location.pathname !== newPathname) {
+				navigate({
+					to: "/dashboard/$providerSlug/$accountId",
+					params: { providerSlug: newProviderSlug, accountId: newAccountId },
+				});
 			}
 		},
-		[pathname, router]
+		[location.pathname, navigate]
 	);
 
 	const setDriveProviderById = useCallback(

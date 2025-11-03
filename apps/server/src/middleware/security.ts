@@ -1,9 +1,6 @@
-import { createRateLimiter, type RateLimiterConfig } from "@nimbus/cache/rate-limiters";
-import { UpstashRateLimit, ValkeyRateLimit } from "@nimbus/cache";
-import type { PublicRouterContext } from "../hono";
-import type { RateLimiter } from "@nimbus/cache";
+import { RateLimiterRedis as ValkeyRateLimit } from "rate-limiter-flexible";
+import { type Context, type Next } from "hono";
 import { sendError } from "../routes/utils";
-import type { Context, Next } from "hono";
 import { webcrypto } from "node:crypto";
 
 /**
@@ -12,24 +9,9 @@ import { webcrypto } from "node:crypto";
 interface SecurityOptions {
 	rateLimiting?: {
 		enabled: boolean;
-		// Returns a factory that accepts an identifier and returns a RateLimiter instance
-		rateLimiter: () => RateLimiter;
+		rateLimiter: (c: Context) => ValkeyRateLimit;
 	};
 	securityHeaders?: boolean;
-}
-
-export function buildSecurityMiddleware(ctx: PublicRouterContext, config: RateLimiterConfig) {
-	return securityMiddleware({
-		rateLimiting: {
-			enabled: true,
-			rateLimiter: createRateLimiter({
-				isEdgeRuntime: ctx.var.env.IS_EDGE_RUNTIME,
-				redisClient: ctx.var.redisClient,
-				config,
-			}),
-		},
-		securityHeaders: true,
-	});
 }
 
 /**
@@ -58,7 +40,7 @@ const getClientIp = (c: Context): string => {
 	// return `unidentifiable-${webcrypto.randomUUID()}`;
 };
 
-const securityMiddleware = (options: SecurityOptions = {}) => {
+export const securityMiddleware = (options: SecurityOptions = {}) => {
 	const {
 		rateLimiting = {
 			enabled: options.rateLimiting?.enabled ?? true,
@@ -123,33 +105,13 @@ const securityMiddleware = (options: SecurityOptions = {}) => {
 			const identifier = user?.id || ip;
 
 			try {
-				const limiterFactory = rateLimiting.rateLimiter;
-				const limiter = limiterFactory();
-				if (limiter instanceof UpstashRateLimit) {
-					// Upstash
-					const result = await limiter.limit(identifier);
-					if (!result.success) {
-						const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
-						c.header("Retry-After", retryAfter.toString());
-						return c.json(
-							{
-								success: false,
-								error: "Too many requests",
-								retryAfter: `${retryAfter} seconds`,
-							},
-							429
-						);
-					}
-				} else if (limiter instanceof ValkeyRateLimit) {
-					// Valkey
-					await limiter.consume(identifier);
-				}
+				const limiter = rateLimiting.rateLimiter(c);
+				await limiter.consume(identifier);
 			} catch (error: any) {
 				console.error("Rate limiter error:", error);
 
-				// Handle different types of rate limit errors
+				// Handle rate limit exceeded error for Valkey
 				if (error.remaining === 0 || error.msBeforeNext) {
-					// This is a rate limit exceeded error for Valkey
 					const retryAfter = Math.ceil((error.msBeforeNext || 60000) / 1000);
 					c.header("Retry-After", retryAfter.toString());
 					return c.json(

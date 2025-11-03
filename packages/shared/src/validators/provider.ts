@@ -1,9 +1,7 @@
 import z from "zod";
 
-// const providers = ["google", "microsoft", "dropbox", "box", "nimbus", "apple", "github"] as const;
-// const providerSlugs = ["g", "m", "d", "b", "n", "a", "gh"] as const;
-const providers = ["google", "microsoft", "s3", "box", "dropbox"] as const;
-const providerSlugs = ["g", "m", "s3", "b", "d"] as const;
+const providers = ["credential", "google", "microsoft", "s3", "box", "dropbox"] as const;
+const providerSlugs = ["c", "g", "m", "s3", "b", "d"] as const;
 
 // Define social providers first
 export const driveProviderSchema = z.enum(providers);

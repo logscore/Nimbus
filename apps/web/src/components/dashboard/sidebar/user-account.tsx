@@ -1,5 +1,3 @@
-"use client";
-
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -13,11 +11,20 @@ import { ChevronsUpDown, LogOut, Sparkles } from "lucide-react";
 import { authClient } from "@nimbus/auth/auth-client";
 import Profile from "@/components/user-profile";
 import { useSignOut } from "@/hooks/useAuth";
-import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+async function upgradePlan() {
+	const response = await authClient.checkout({
+		slug: "pro",
+	});
+	if (response.error) {
+		toast.error(response.error.message);
+	}
+}
 
 export default function UserAccount() {
 	const { data: session, isPending } = authClient.useSession();
-	const { signOut, isLoading } = useSignOut();
+	const { mutate: signOut, isPending: isPendingSignOut } = useSignOut();
 
 	const userName = session?.user?.name;
 	const userEmail = session?.user?.email;
@@ -59,27 +66,26 @@ export default function UserAccount() {
 
 						<DropdownMenuItem
 							// Redirect to Polar page
-							className={cn(
-								"flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm",
-								"text-amber-600 dark:text-amber-400"
-							)}
+							className={"flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm"}
+							onClick={upgradePlan}
 						>
-							<Sparkles className="h-4 w-4" />
+							<Sparkles className="h-4 w-4 text-orange-500 dark:text-yellow-400" />
 							Upgrade to Pro
 						</DropdownMenuItem>
 
 						<DropdownMenuSeparator />
 
 						<DropdownMenuItem
-							onClick={() => signOut()}
-							className={cn(
-								"flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm",
-								"text-red-400 dark:text-red-500"
-							)}
-							disabled={isLoading}
+							onClick={() =>
+								signOut({
+									redirectTo: "/signin",
+								})
+							}
+							className={"flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm"}
+							disabled={isPendingSignOut}
 						>
-							<LogOut className="h-4 w-4" />
-							<span>{isLoading ? "Signing out..." : "Sign Out"}</span>
+							<LogOut className="h-4 w-4 text-red-400 dark:text-red-500" />
+							<span>{isPendingSignOut ? "Signing out..." : "Sign Out"}</span>
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

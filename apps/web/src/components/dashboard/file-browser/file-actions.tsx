@@ -220,7 +220,7 @@ export function FileActions({ file, fileType }: { file: File; fileType: "file" |
 								{file.mimeType?.startsWith("application/vnd.google-apps.") ? (
 									<DropdownMenuSub>
 										<DropdownMenuSubTrigger className="cursor-pointer">
-											<Download className="mr-2 h-4 w-4" />
+											<Download className="mr-2 h-4 w-4 text-neutral-500 dark:text-neutral-400" />
 											Download As...
 										</DropdownMenuSubTrigger>
 										<DropdownMenuPortal>

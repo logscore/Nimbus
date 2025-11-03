@@ -1,17 +1,15 @@
-"use client";
-
 import { DiscordIcon, GitHubIcon, LogoIcon, XPlatformIcon } from "@/components/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { Users } from "lucide-react";
-import Link from "next/link";
 
 export default function Header() {
 	return (
 		<header className="border-border bg-surface/80 fixed top-4 left-1/2 z-50 mx-auto flex w-full max-w-xs -translate-x-1/2 items-center justify-between rounded-lg border px-4 py-2 backdrop-blur-xs md:max-w-2xl">
 			<h1>
-				<Link href="/" className="hover:text-primary/80 flex items-center gap-2 font-bold transition-colors">
+				<Link to="/" className="hover:text-primary/80 flex items-center gap-2 font-bold transition-colors">
 					<span>
 						<LogoIcon className="h-9 w-9" aria-hidden="true" />
 					</span>
@@ -22,7 +20,7 @@ export default function Header() {
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button variant="ghost" asChild aria-label="Contributors" className="h-9 w-9">
-							<Link href="/contributors">
+							<Link to="/contributors">
 								<Users className="h-5 w-5" />
 							</Link>
 						</Button>
@@ -32,9 +30,9 @@ export default function Header() {
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button variant="ghost" aria-label="Discord" className="h-9 w-9">
-							<a href="https://discord.gg/c9nWy26ubK" target="_blank" rel="noopener noreferrer">
+							<Link href="https://discord.gg/c9nWy26ubK" target="_blank" rel="noopener noreferrer">
 								<DiscordIcon />
-							</a>
+							</Link>
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent>Discord</TooltipContent>
@@ -42,9 +40,9 @@ export default function Header() {
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button variant="ghost" asChild className="h-9 w-9">
-							<a href="https://github.com/nimbusdotstorage/Nimbus" target="_blank" rel="noopener noreferrer">
+							<Link href="https://github.com/nimbusdotstorage/Nimbus" target="_blank" rel="noopener noreferrer">
 								<GitHubIcon />
-							</a>
+							</Link>
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent>Github</TooltipContent>
@@ -52,9 +50,9 @@ export default function Header() {
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button variant="ghost" aria-label="X (Twitter)" className="h-9 w-9">
-							<a href="https://x.com/nimbusdotcloud" target="_blank" rel="noopener noreferrer">
+							<Link href="https://x.com/nimbusdotcloud" target="_blank" rel="noopener noreferrer">
 								<XPlatformIcon />
-							</a>
+							</Link>
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent>X (Twitter)</TooltipContent>

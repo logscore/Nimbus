@@ -17,6 +17,7 @@ export async function sendMail(ctx: EmailContext, { to, subject, text }: SendMai
 
 		if (!from) {
 			console.error("Missing environment variables");
+			return;
 		}
 
 		const { data, error } = await ctx.resend.emails.send({

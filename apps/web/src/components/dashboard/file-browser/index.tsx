@@ -1,5 +1,3 @@
-"use client";
-
 import {
 	Archive,
 	ChevronDown,
@@ -10,7 +8,6 @@ import {
 	FileText,
 	Folder,
 	ImageIcon,
-	Loader2,
 	Music,
 	Presentation,
 	Video,
@@ -25,12 +22,12 @@ import {
 	type SortingState,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useRouter, useSearchParams } from "next/navigation";
+import { DownloadProvider } from "@/components/providers/download-provider";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useDraggable, useDroppable } from "@dnd-kit/react";
-import React, { useMemo, useState, type JSX } from "react";
-import { UploadButton } from "@/components/upload-button";
 import { pointerIntersection } from "@dnd-kit/collision";
 import DragNDropUploader from "./drag-n-drop-uploader";
+import { useMemo, useState, type JSX } from "react";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@nimbus/shared";
 import { PdfIcon } from "@/components/icons";
@@ -79,73 +76,70 @@ const columnHelper = createColumnHelper<File>();
 
 export function FileTable({ files, isLoading, refetch, error }: FileTableProps) {
 	const { tags } = useTags(files[0]?.parentId);
-	const router = useRouter();
-	const searchParams = useSearchParams();
+	const navigate = useNavigate({ from: "/dashboard/$providerSlug/$accountId" });
+	const searchParams = useSearch({ from: "/_protected/dashboard/$providerSlug/$accountId" });
 	const [sorting, setSorting] = useState<SortingState>([]);
-
-	const [filteredFiles, setFilteredFiles] = useState<File[]>([]);
-	const searchType = searchParams.get("type");
 
 	const safeFiles = useMemo(() => {
 		if (isLoading || !files || !Array.isArray(files)) {
 			return [];
 		}
+		return files;
+	}, [files, isLoading]);
 
-		let result = [...files];
+	const filteredFiles = useMemo(() => {
+		if (!safeFiles.length) return [];
 
-		// Apply type filter if specified
-		if (searchType) {
-			result = result.filter(file => {
-				const mimeType = file.mimeType?.toLowerCase() ?? "";
-				const fileName = file.name?.toLowerCase() ?? "";
+		const searchType = searchParams.type;
+		if (!searchType) return safeFiles;
 
-				switch (searchType) {
-					case "folder":
-						return mimeType === "application/vnd.google-apps.folder" || mimeType === "folder";
-					case "document":
-						return (
-							// Google Docs
-							mimeType.includes("application/vnd.google-apps.document") ||
-							mimeType.includes("application/vnd.google-apps.spreadsheet") ||
-							mimeType.includes("application/vnd.google-apps.presentation") ||
-							// Microsoft Office
-							mimeType.includes("officedocument") ||
-							mimeType.includes("msword") ||
-							// PDFs
-							mimeType.includes("pdf") ||
-							// Text files
-							mimeType.includes("text/") ||
-							// Common document extensions
-							/\.(doc|docx|xls|xlsx|ppt|pptx|pdf|txt|rtf|odt|ods|odp)$/i.test(fileName)
-						);
-					case "media":
-						return (
-							// Images
-							mimeType.includes("image/") ||
-							// Videos
-							mimeType.includes("video/") ||
-							// Audio
-							mimeType.includes("audio/") ||
-							// Common media extensions
-							/\.(jpg|jpeg|png|gif|bmp|webp|mp4|webm|mov|mp3|wav|ogg)$/i.test(fileName)
-						);
-					default:
-						return true;
-				}
-			});
-		}
+		return safeFiles.filter(file => {
+			const mimeType = file.mimeType?.toLowerCase() ?? "";
+			const fileName = file.name?.toLowerCase() ?? "";
 
-		setFilteredFiles(result);
-		return result;
-	}, [files, isLoading, searchType]);
+			switch (searchType) {
+				case "folder":
+					return mimeType === "application/vnd.google-apps.folder" || mimeType === "folder";
+				case "document":
+					return (
+						// Google Docs
+						mimeType.includes("application/vnd.google-apps.document") ||
+						mimeType.includes("application/vnd.google-apps.spreadsheet") ||
+						mimeType.includes("application/vnd.google-apps.presentation") ||
+						// Microsoft Office
+						mimeType.includes("officedocument") ||
+						mimeType.includes("msword") ||
+						// PDFs
+						mimeType.includes("pdf") ||
+						// Text files
+						mimeType.includes("text/") ||
+						// Common document extensions
+						/\.(doc|docx|xls|xlsx|ppt|pptx|pdf|txt|rtf|odt|ods|odp)$/i.test(fileName)
+					);
+				case "media":
+					return (
+						// Images
+						mimeType.includes("image/") ||
+						// Videos
+						mimeType.includes("video/") ||
+						// Audio
+						mimeType.includes("audio/") ||
+						// Common media extensions
+						/\.(jpg|jpeg|png|gif|bmp|webp|mp4|webm|mov|mp3|wav|ogg)$/i.test(fileName)
+					);
+				default:
+					return true;
+			}
+		});
+	}, [safeFiles, searchParams.type]);
 
 	const handleRowDoubleClick = (file: File): void => {
 		const fileType = file.mimeType.includes("folder") || file.mimeType === "folder" ? "folder" : "file";
 
 		if (fileType === "folder") {
-			const params = new URLSearchParams(searchParams);
-			params.set("folderId", file.id);
-			router.push(`?${params.toString()}`);
+			navigate({
+				search: { ...searchParams, folderId: file.id },
+			});
 		}
 	};
 
@@ -266,7 +260,11 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 					const file = row.original;
 					const fileType = file.mimeType.includes("folder") || file.mimeType === "folder" ? "folder" : "file";
 
-					return <FileActions file={row.original} fileType={fileType} />;
+					return (
+						<DownloadProvider>
+							<FileActions file={row.original} fileType={fileType} />
+						</DownloadProvider>
+					);
 				},
 				size: 50,
 				maxSize: 50,
@@ -277,7 +275,7 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 	);
 
 	const table = useReactTable({
-		data: searchType ? filteredFiles : safeFiles,
+		data: searchParams.type ? filteredFiles : safeFiles,
 		columns,
 		state: {
 			sorting,
@@ -293,13 +291,13 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 				{/* h-0 is required to make the table scrollable */}
 				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar scrollbar-thumb-accent/70 scrollbar-track-transparent scrollbar-hover:scrollbar-thumb-accent scrollbar-w-2 scrollbar-h-2 h-0 min-h-full w-full overflow-auto overflow-y-scroll pb-5">
 					<Table>
-						<TableHeader className="hover:bg-transparent">
+						<TableHeader className="select-none hover:bg-transparent">
 							{table.getHeaderGroups().map(headerGroup => (
-								<TableRow key={headerGroup.id} className="h-6 hover:bg-transparent">
+								<TableRow key={headerGroup.id} className="h-6 select-none hover:bg-transparent">
 									{headerGroup.headers.map(header => (
 										<TableHead
 											key={header.id}
-											className="whitespace-nowrap"
+											className="whitespace-nowrap select-none"
 											style={{
 												width:
 													header.id === "tags" || header.id === "size" || header.id === "modifiedTime"
@@ -313,48 +311,11 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 								</TableRow>
 							))}
 						</TableHeader>
-						{error ? (
-							<TableBody>
-								<TableRow className="hover:bg-transparent">
-									<TableCell colSpan={columns.length} className="h-[600px]">
-										<div className="flex h-full flex-col items-center justify-center gap-3">
-											<h3>An error occured when getting your files. Please try again</h3>
-											<Button variant="outline" onClick={refetch}>
-												Try again
-											</Button>
-										</div>
-									</TableCell>
-								</TableRow>
-							</TableBody>
-						) : isLoading ? (
-							<TableBody>
-								<TableRow className="hover:bg-transparent">
-									<TableCell colSpan={columns.length} className="h-[600px]">
-										<div className="flex h-full flex-col items-center justify-center gap-2">
-											<Loader2 className="h-6 w-6 animate-spin" />
-											<p>Loading files</p>
-										</div>
-									</TableCell>
-								</TableRow>
-							</TableBody>
-						) : table.getRowModel().rows.length === 0 ? (
-							<TableBody>
-								<TableRow className="hover:bg-transparent">
-									<TableCell colSpan={columns.length} className="h-[600px]">
-										<div className="flex h-full flex-col items-center justify-center gap-2">
-											<p>No files found. Lets add one!</p>
-											<UploadButton name="Add File" />
-										</div>
-									</TableCell>
-								</TableRow>
-							</TableBody>
-						) : (
-							<TableBody className="border-spacing-2">
-								{table.getRowModel().rows.map(row => (
-									<DroppableTableRow key={row.id} row={row} handleRowDoubleClick={handleRowDoubleClick} />
-								))}
-							</TableBody>
-						)}
+						<TableBody className="select-none">
+							{table.getRowModel().rows.map(row => (
+								<DroppableTableRow key={row.id} row={row} handleRowDoubleClick={handleRowDoubleClick} />
+							))}
+						</TableBody>
 					</Table>
 				</div>
 			</DragNDropUploader>
