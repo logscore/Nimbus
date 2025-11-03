@@ -1,11 +1,9 @@
 import { ReactQueryProvider } from "@/components/providers/query-provider";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { AppProviders } from "@/components/providers/app-providers";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { geistSans, geistMono, manrope } from "@/utils/fonts";
-import { TanStackDevtools } from "@tanstack/react-devtools";
 import { Toaster } from "sonner";
 import { Suspense } from "react";
 
@@ -35,18 +33,16 @@ export const Route = createRootRoute({
 function RootComponent() {
 	return (
 		<ReactQueryProvider>
-			<AppProviders>
-				<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-					<div
-						className={`bg-background text-foreground relative min-h-screen ${geistSans.variable} ${geistMono.variable} ${manrope.variable}`}
-					>
-						<Suspense>
-							<Outlet />
-						</Suspense>
-						<Toaster position="bottom-right" richColors theme="system" />
-					</div>
-				</ThemeProvider>
-			</AppProviders>
+			<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+				<div
+					className={`bg-background text-foreground relative min-h-screen ${geistSans.variable} ${geistMono.variable} ${manrope.variable}`}
+				>
+					<Suspense>
+						<Outlet />
+					</Suspense>
+					<Toaster position="bottom-right" richColors theme="system" />
+				</div>
+			</ThemeProvider>
 			<TanStackRouterDevtools />
 			<ReactQueryDevtools />
 		</ReactQueryProvider>

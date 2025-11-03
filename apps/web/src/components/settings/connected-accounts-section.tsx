@@ -2,7 +2,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertCircle, Check, Edit, Loader2, Plus, X } from "lucide-react";
 import { nicknameSchema, type DriveProvider } from "@nimbus/shared";
-import { useAuth } from "@/components/providers/auth-provider";
 import type { LimitedAccessAccount } from "@nimbus/shared";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -93,20 +92,19 @@ const NicknameInput = ({
 					{isSuccess ? (
 						<Check className="h-4 w-4 text-green-500" />
 					) : (
-						<Button
-							variant="ghost"
-							size="icon"
-							className="h-6 w-6 p-0 hover:bg-transparent"
-							onClick={onCancel}
-							aria-label="Cancel editing"
-						>
-							<X className="text-muted-foreground hover:text-destructive h-4 w-4" />
-						</Button>
+						<div className="flex items-center gap-1">
+							<span className="text-muted-foreground text-xs">{remainingChars}</span>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-6 w-6 p-0 hover:bg-transparent"
+								onClick={onCancel}
+								aria-label="Cancel editing"
+							>
+								<X className="text-muted-foreground hover:text-destructive h-4 w-4" />
+							</Button>
+						</div>
 					)}
-				</div>
-				{/* Character counter - positioned absolutely relative to input */}
-				<div className="text-muted-foreground absolute -bottom-5 left-0 text-xs">
-					{remainingChars} characters remaining
 				</div>
 			</div>
 			{/* Error message with proper spacing */}
@@ -128,7 +126,6 @@ export function ConnectedAccountsSection({
 	onSetDefault,
 	onUpdateAccount,
 }: ConnectedAccountsSectionProps) {
-	const { openSignIn } = useAuth();
 	const [editing, setEditing] = useState<EditingState | null>(null);
 	const [validationError, setValidationError] = useState<string | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
@@ -306,7 +303,12 @@ export function ConnectedAccountsSection({
 				</Table>
 			</CardContent>
 			<CardFooter className="flex justify-between">
-				<Button variant="outline" onClick={openSignIn}>
+				<Button
+					variant="outline"
+					// onClick={
+					// Implement opening the signing dialog
+					// }
+				>
 					<Plus className="mr-2 h-4 w-4" />
 					Add Account
 				</Button>

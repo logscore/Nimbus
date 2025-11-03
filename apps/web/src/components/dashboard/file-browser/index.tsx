@@ -8,7 +8,6 @@ import {
 	FileText,
 	Folder,
 	ImageIcon,
-	Loader2,
 	Music,
 	Presentation,
 	Video,
@@ -26,7 +25,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DownloadProvider } from "@/components/providers/download-provider";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useDraggable, useDroppable } from "@dnd-kit/react";
-import { UploadButton } from "@/components/upload-button";
 import { pointerIntersection } from "@dnd-kit/collision";
 import DragNDropUploader from "./drag-n-drop-uploader";
 import { useMemo, useState, type JSX } from "react";
@@ -293,13 +291,13 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 				{/* h-0 is required to make the table scrollable */}
 				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar scrollbar-thumb-accent/70 scrollbar-track-transparent scrollbar-hover:scrollbar-thumb-accent scrollbar-w-2 scrollbar-h-2 h-0 min-h-full w-full overflow-auto overflow-y-scroll pb-5">
 					<Table>
-						<TableHeader className="hover:bg-transparent">
+						<TableHeader className="select-none hover:bg-transparent">
 							{table.getHeaderGroups().map(headerGroup => (
-								<TableRow key={headerGroup.id} className="h-6 hover:bg-transparent">
+								<TableRow key={headerGroup.id} className="h-6 select-none hover:bg-transparent">
 									{headerGroup.headers.map(header => (
 										<TableHead
 											key={header.id}
-											className="whitespace-nowrap"
+											className="whitespace-nowrap select-none"
 											style={{
 												width:
 													header.id === "tags" || header.id === "size" || header.id === "modifiedTime"
@@ -313,48 +311,11 @@ export function FileTable({ files, isLoading, refetch, error }: FileTableProps) 
 								</TableRow>
 							))}
 						</TableHeader>
-						{error ? (
-							<TableBody>
-								<TableRow className="hover:bg-transparent">
-									<TableCell colSpan={columns.length} className="h-[600px]">
-										<div className="flex h-full flex-col items-center justify-center gap-3">
-											<h3>An error occured when getting your files. Please try again</h3>
-											<Button variant="outline" onClick={refetch}>
-												Try again
-											</Button>
-										</div>
-									</TableCell>
-								</TableRow>
-							</TableBody>
-						) : isLoading ? (
-							<TableBody>
-								<TableRow className="hover:bg-transparent">
-									<TableCell colSpan={columns.length} className="h-[600px]">
-										<div className="flex h-full flex-col items-center justify-center gap-2">
-											<Loader2 className="h-6 w-6 animate-spin" />
-											<p>Loading files</p>
-										</div>
-									</TableCell>
-								</TableRow>
-							</TableBody>
-						) : table.getRowModel().rows.length === 0 ? (
-							<TableBody>
-								<TableRow className="hover:bg-transparent">
-									<TableCell colSpan={columns.length} className="h-[600px]">
-										<div className="flex h-full flex-col items-center justify-center gap-2">
-											<p>No files found. Lets add one!</p>
-											<UploadButton name="Add File" />
-										</div>
-									</TableCell>
-								</TableRow>
-							</TableBody>
-						) : (
-							<TableBody className="border-spacing-2">
-								{table.getRowModel().rows.map(row => (
-									<DroppableTableRow key={row.id} row={row} handleRowDoubleClick={handleRowDoubleClick} />
-								))}
-							</TableBody>
-						)}
+						<TableBody className="select-none">
+							{table.getRowModel().rows.map(row => (
+								<DroppableTableRow key={row.id} row={row} handleRowDoubleClick={handleRowDoubleClick} />
+							))}
+						</TableBody>
 					</Table>
 				</div>
 			</DragNDropUploader>

@@ -1,9 +1,10 @@
+import { SigninAccountDialog } from "@/components/auth/signin-account-dialog";
 import { AccountProvider } from "@/components/providers/account-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import DndKitProvider from "@/components/providers/dnd-kit-provider";
 import { FileTable } from "@/components/dashboard/file-browser";
 import { AppSidebar } from "@/components/dashboard/sidebar";
-import { createFileRoute } from "@tanstack/react-router";
 import { useGetFiles } from "@/hooks/useFileOperations";
 import { Header } from "@/components/dashboard/header";
 import { Suspense } from "react";
@@ -12,6 +13,7 @@ type DashboardSearch = {
 	folderId?: string;
 	type?: string;
 	id?: string;
+	connectAccount?: boolean;
 };
 
 export const Route = createFileRoute("/_protected/dashboard/$providerSlug/$accountId")({
@@ -21,13 +23,30 @@ export const Route = createFileRoute("/_protected/dashboard/$providerSlug/$accou
 			folderId: (search.folderId as string) || undefined,
 			type: (search.type as string) || undefined,
 			id: (search.id as string) || undefined,
+			connectAccount: (search.connectAccount as boolean) || undefined,
 		};
 	},
 });
 
 function DrivePage() {
-	const { folderId } = Route.useSearch();
+	const { folderId, connectAccount } = Route.useSearch();
+	const navigate = useNavigate({ from: "/dashboard/$providerSlug/$accountId" });
 	const currentFolderId = folderId ?? "root";
+
+	const handleSigninOpenChange = (open: boolean) => {
+		navigate({
+			replace: true,
+			search: prev => {
+				const next = { ...prev };
+				if (open) {
+					next.connectAccount = true;
+				} else {
+					delete next.connectAccount;
+				}
+				return next;
+			},
+		});
+	};
 
 	const { data, isLoading, refetch, error } = useGetFiles({
 		parentId: currentFolderId,
@@ -47,6 +66,7 @@ function DrivePage() {
 							<Header />
 							<FileTable files={data || []} isLoading={isLoading} refetch={refetch} error={error} />
 						</DndKitProvider>
+						<SigninAccountDialog open={!!connectAccount} onOpenChange={handleSigninOpenChange} />
 					</SidebarInset>
 				</SidebarProvider>
 			</Suspense>

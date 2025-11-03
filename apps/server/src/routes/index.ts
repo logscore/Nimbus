@@ -20,6 +20,8 @@ import tagsRoutes from "./tags";
 import authRoutes from "./auth";
 import { Hono } from "hono";
 
+// TODO: this sucks. make it simpler. Just pass the ids as either a path or query params
+
 const driveRouter = new Hono<HonoContext>()
 	.use("*", async (c, next) => {
 		const user = c.var.user;

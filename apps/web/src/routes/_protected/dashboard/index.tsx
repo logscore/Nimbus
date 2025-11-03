@@ -8,8 +8,8 @@ export const Route = createFileRoute("/_protected/dashboard/")({
 
 function DashboardPage() {
 	const { error } = useUserInfoProvider();
-	const title = "Loading your dashboard...";
-	const description = "Please wait while we fetch your provider and account information.";
+	const title = "Loading your dashboard";
+	const description = "Searching the cloud for your files...";
 	const errorTitle = "Error loading your dashboard";
 	const errorDescription = "Please try again later.";
 

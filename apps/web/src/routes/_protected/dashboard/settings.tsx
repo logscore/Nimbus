@@ -11,6 +11,8 @@ import { useUnlinkAccount } from "@/hooks/useUnlinkAccount";
 import { protectedClient } from "@/utils/client";
 
 import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
+import { SubscriptionInfo } from "@/components/subscription/subscription-info";
+import { UpgradeDialog } from "@/components/subscription/upgrade-dialog";
 // import { SecuritySection } from "@/components/settings/security-section";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { SettingsHeader } from "@/components/settings/header";
@@ -158,7 +160,7 @@ function SettingsPage() {
 	return (
 		<div className="flex flex-1 flex-col">
 			<SettingsHeader />
-			<div className="container mx-auto flex-1 space-y-6 p-6">
+			<div className="container mx-auto w-200 flex-1 space-y-6 p-6">
 				<ProfileSection
 					name={name}
 					email={email}
@@ -169,6 +171,8 @@ function SettingsPage() {
 					onSave={handleSaveProfile}
 					isSaving={isSaving}
 				/>
+
+				<SubscriptionInfo />
 
 				<ConnectedAccountsSection
 					accounts={accounts}
@@ -181,6 +185,8 @@ function SettingsPage() {
 
 				{/*<SecuritySection />*/}
 			</div>
+
+			<UpgradeDialog />
 		</div>
 	);
 }

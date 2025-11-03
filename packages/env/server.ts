@@ -67,11 +67,10 @@ export const env = createEnv({
 		VALKEY_USERNAME: z.string(),
 		VALKEY_PASSWORD: z.string(),
 
-		// Stripe
-		STRIPE_SECRET_KEY: z.string(),
-		STRIPE_WEBHOOK_SECRET: z.string(),
-
 		ENCRYPTION_KEY: z.string(),
+		POLAR_ACCESS_TOKEN: z.string(),
+		POLAR_SUCCESS_URL: z.url(),
+		POLAR_PRO_PRODUCT_ID: z.string(),
 	},
 
 	runtimeEnv: process.env,

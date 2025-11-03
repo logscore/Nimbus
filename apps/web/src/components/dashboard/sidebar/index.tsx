@@ -9,7 +9,7 @@ import TagMenu from "@/components/dashboard/sidebar/tag-menu";
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 	return (
-		<Sidebar {...props} className="px-0 py-1 dark:bg-neutral-800">
+		<Sidebar {...props} className="px-0 py-2 dark:bg-neutral-800">
 			<SidebarHeader className="gap-4 p-2 pt-0 dark:bg-neutral-800">
 				<UserAccount />
 				{/* <SearchBar /> */}

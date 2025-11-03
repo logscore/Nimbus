@@ -1,6 +1,7 @@
 import { SigninFormSkeleton } from "@/components/auth/skeletons/signin-form";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { SignInForm } from "@/components/auth/signin-form";
-import { createFileRoute } from "@tanstack/react-router";
+import { authClient } from "@nimbus/auth/auth-client";
 import { Suspense } from "react";
 
 export const Route = createFileRoute("/_public/signin")({
@@ -9,6 +10,13 @@ export const Route = createFileRoute("/_public/signin")({
 		return {
 			redirectTo: (search.redirectTo as string) || undefined,
 		};
+	},
+	beforeLoad: async () => {
+		const session = await authClient.getSession();
+		console.log(session.data);
+		if (session.data?.session) {
+			return redirect({ to: "/dashboard" });
+		}
 	},
 });
 

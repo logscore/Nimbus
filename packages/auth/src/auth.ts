@@ -1,18 +1,19 @@
 import schema, { user as userTable, account as accountTable } from "@nimbus/db/schema";
 import { type Account, type AuthContext, betterAuth } from "better-auth";
+import { polar, checkout, portal } from "@polar-sh/better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 // import { cacheClient, type CacheClient } from "@nimbus/cache";
-import { stripe } from "@better-auth/stripe";
 // import { genericOAuth } from "better-auth/plugins";
 import { sendMail } from "./utils/send-mail";
 import { env } from "@nimbus/env/server";
 import { db, type DB } from "@nimbus/db";
+import { Polar } from "@polar-sh/sdk";
 import { eq } from "drizzle-orm";
 import { Resend } from "resend";
-import Stripe from "stripe";
 
-const stripeClient = new Stripe(env.STRIPE_SECRET_KEY!, {
-	apiVersion: "2025-08-27.basil",
+const polarClient = new Polar({
+	accessToken: env.POLAR_ACCESS_TOKEN,
+	server: "sandbox",
 });
 
 // TODO: add rate limiting
@@ -115,10 +116,22 @@ export const auth = betterAuth({
 	},
 
 	plugins: [
-		stripe({
-			stripeClient,
-			stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
+		polar({
+			client: polarClient,
 			createCustomerOnSignUp: true,
+			use: [
+				checkout({
+					products: [
+						{
+							productId: env.POLAR_PRO_PRODUCT_ID,
+							slug: "pro",
+						},
+					],
+					successUrl: "http://localhost:3000/dashboard?success=true&checkout_id={CHECKOUT_ID}",
+					authenticatedUsersOnly: true,
+				}),
+				portal(),
+			],
 		}),
 		// 	genericOAuth({
 		// 		config: [
